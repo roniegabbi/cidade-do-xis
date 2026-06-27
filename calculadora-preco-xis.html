@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cidade do Xis · Calculadora de Preço do Lanche</title>
+<style>
+  :root{
+    --vinho:#9c2b1d;
+    --vinho-2:#b23a2a;
+    --vermelho:#c0392b;
+    --laranja:#e69a2c;
+    --amarelo:#f2b441;
+    --creme:#f6edd6;
+    --creme-2:#fbf6e7;
+    --verde:#6ba53f;
+    --texto:#3a2420;
+    --texto-suave:#7a6258;
+    --linha:#e7d8b6;
+    --sombra:0 6px 22px rgba(120,40,25,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--creme);
+    color:var(--texto);
+    line-height:1.5;
+    padding:0 0 60px;
+  }
+  /* ---- Header ---- */
+  header{
+    background:linear-gradient(135deg,var(--vinho) 0%,var(--vinho-2) 100%);
+    color:var(--creme-2);
+    padding:26px 20px;
+    text-align:center;
+    box-shadow:var(--sombra);
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:10px;
+    background:rgba(246,237,214,.12);
+    border:2px solid rgba(246,237,214,.35);
+    border-radius:999px;
+    padding:6px 16px;font-size:13px;font-weight:700;letter-spacing:.5px;
+    margin-bottom:14px;text-transform:uppercase;
+  }
+  .badge .dot{width:9px;height:9px;border-radius:50%;background:var(--amarelo)}
+  header h1{font-size:30px;font-weight:800;letter-spacing:.5px}
+  header h1 .xis{color:var(--amarelo)}
+  header p{font-size:15px;opacity:.9;margin-top:6px}
+  /* ---- Layout ---- */
+  .wrap{max-width:920px;margin:24px auto;padding:0 18px}
+  .card{
+    background:var(--creme-2);
+    border:1px solid var(--linha);
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:20px;
+    box-shadow:var(--sombra);
+  }
+  .card h2{
+    font-size:18px;color:var(--vinho);font-weight:800;
+    display:flex;align-items:center;gap:9px;margin-bottom:4px;
+  }
+  .card .hint{font-size:13.5px;color:var(--texto-suave);margin-bottom:16px}
+  .ico{
+    width:30px;height:30px;border-radius:9px;flex:0 0 auto;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--amarelo);color:var(--vinho);font-size:17px;
+  }
+  /* ---- Tabela de insumos ---- */
+  .tbl{width:100%;border-collapse:collapse}
+  .tbl th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--texto-suave);font-weight:700;padding:0 8px 8px;
+  }
+  .tbl td{padding:5px 8px;vertical-align:middle}
+  .tbl tr+tr td{border-top:1px solid var(--linha)}
+  .tbl input[type=text]{width:100%}
+  input,select{
+    font-family:inherit;font-size:14.5px;color:var(--texto);
+    background:#fff;border:1px solid var(--linha);border-radius:9px;
+    padding:9px 10px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus,select:focus{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(230,154,44,.18)}
+  input.num{width:96px;text-align:right}
+  .custo-cell{font-weight:700;color:var(--vinho);white-space:nowrap;font-size:14.5px}
+  .del{
+    background:transparent;border:none;color:var(--vermelho);cursor:pointer;
+    font-size:18px;line-height:1;padding:4px 6px;border-radius:7px;
+  }
+  .del:hover{background:rgba(192,57,43,.1)}
+  .add{
+    margin-top:14px;background:var(--creme);border:1.5px dashed var(--laranja);
+    color:var(--vinho);font-weight:700;font-size:14px;cursor:pointer;
+    border-radius:10px;padding:10px 16px;transition:background .15s;
+  }
+  .add:hover{background:#fff}
+  /* ---- Parâmetros ---- */
+  .params{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--texto)}
+  .field .sub{font-weight:400;color:var(--texto-suave);font-size:12px}
+  .field .inputwrap{position:relative}
+  .field .inputwrap input{width:100%;padding-right:34px}
+  .field .suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--texto-suave);font-size:13px;font-weight:600}
+  /* ---- Resultado ---- */
+  .result{background:linear-gradient(135deg,var(--vinho) 0%,#7d2316 100%);color:var(--creme-2);border:none}
+  .result h2{color:var(--amarelo)}
+  .result .hint{color:rgba(246,237,214,.75)}
+  .price-hero{text-align:center;padding:8px 0 18px;border-bottom:1px solid rgba(246,237,214,.18);margin-bottom:18px}
+  .price-hero .lbl{font-size:13px;text-transform:uppercase;letter-spacing:1px;opacity:.85}
+  .price-hero .val{font-size:52px;font-weight:800;color:#fff;margin-top:2px;line-height:1}
+  .price-hero .val .cents{font-size:30px;opacity:.85}
+  .grid-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .res-box{background:rgba(246,237,214,.10);border:1px solid rgba(246,237,214,.18);border-radius:12px;padding:14px}
+  .res-box .k{font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:.4px}
+  .res-box .v{font-size:23px;font-weight:800;color:#fff;margin-top:3px}
+  .res-box .v.green{color:#a7e07a}
+  .res-box .v.warn{color:var(--amarelo)}
+  /* ---- Projeção ---- */
+  .proj{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+  .proj .field{flex:1;min-width:180px}
+  .proj-out{flex:2;min-width:220px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .proj-box{background:var(--creme);border:1px solid var(--linha);border-radius:12px;padding:12px 14px}
+  .proj-box .k{font-size:12px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.4px}
+  .proj-box .v{font-size:22px;font-weight:800;color:var(--vinho);margin-top:2px}
+  .proj-box .v.green{color:#3f8f2a}
+  /* ---- Ações ---- */
+  .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  .btn{font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;border-radius:11px;padding:12px 22px;border:none;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--laranja);color:var(--vinho)}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-ghost{background:transparent;border:1.5px solid var(--linha);color:var(--texto-suave)}
+  .btn-ghost:hover{background:var(--creme)}
+  footer{text-align:center;color:var(--texto-suave);font-size:12.5px;max-width:920px;margin:10px auto 0;padding:0 18px}
+  footer b{color:var(--vinho)}
+  @media (max-width:560px){
+    header h1{font-size:24px}
+    .price-hero .val{font-size:42px}
+    input.num{width:78px}
+    .tbl th:nth-child(4),.tbl td:nth-child(4){display:none}
+  }
+  @media print{
+    .add,.del,.actions,.btn{display:none!important}
+    body{background:#fff}
+    .card{box-shadow:none;border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge"><span class="dot"></span>Cidade do Xis · Santa Maria · RS</div>
+  <h1>Calculadora de Preço do <span class="xis">Xis</span></h1>
+  <p>Descubra o custo real do seu lanche e o preço de venda ideal — com lucro de verdade.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- INSUMOS -->
+  <section class="card">
+    <h2><span class="ico">🥪</span>Ingredientes do lanche</h2>
+    <p class="hint">Informe quanto você paga em cada compra e quantos lanches aquilo rende. A calculadora descobre o custo por unidade. Ajuste a lista para a receita do seu Xis.</p>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:34%">Ingrediente</th>
+          <th style="width:22%">Custo da compra (R$)</th>
+          <th style="width:18%">Rende (lanches)</th>
+          <th style="width:14%">Usa por xis</th>
+          <th style="width:12%">Custo/xis</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="insumos"></tbody>
+    </table>
+    <button class="add" onclick="addInsumo()">+ Adicionar ingrediente</button>
+  </section>
+
+  <!-- CUSTOS OPERACIONAIS -->
+  <section class="card">
+    <h2><span class="ico">📦</span>Custos por lanche (embalagem, gás, etc.)</h2>
+    <p class="hint">Outros gastos que entram em cada lanche vendido. Pode informar o custo já por unidade (rende = 1) ou pelo pacote.</p>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:34%">Item</th>
+          <th style="width:22%">Custo da compra (R$)</th>
+          <th style="width:18%">Rende (lanches)</th>
+          <th style="width:14%">Usa por xis</th>
+          <th style="width:12%">Custo/xis</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="operacionais"></tbody>
+    </table>
+    <button class="add" onclick="addOperacional()">+ Adicionar custo</button>
+  </section>
+
+  <!-- PARAMETROS -->
+  <section class="card">
+    <h2><span class="ico">⚙️</span>Margem e taxas</h2>
+    <p class="hint">Quanto você quer ganhar em cada lanche e quais descontos incidem sobre a venda (maquininha de cartão, impostos do Simples/MEI).</p>
+    <div class="params">
+      <div class="field">
+        <label>Margem de lucro desejada <span class="sub">(sobre a venda)</span></label>
+        <div class="inputwrap"><input type="number" id="margem" value="40" min="0" max="95" oninput="calc()"><span class="suffix">%</span></div>
+      </div>
+      <div class="field">
+        <label>Taxas sobre a venda <span class="sub">(cartão + impostos)</span></label>
+        <div class="inputwrap"><input type="number" id="taxas" value="8" min="0" max="60" oninput="calc()"><span class="suffix">%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTADO -->
+  <section class="card result">
+    <h2>💰 Preço de venda sugerido</h2>
+    <p class="hint">Cálculo automático com base no custo total, nas taxas e na margem que você quer ter.</p>
+    <div class="price-hero">
+      <div class="lbl">Venda cada xis por</div>
+      <div class="val" id="precoVenda">R$ 0<span class="cents">,00</span></div>
+    </div>
+    <div class="grid-res">
+      <div class="res-box"><div class="k">Custo dos ingredientes</div><div class="v" id="custoInsumos">R$ 0,00</div></div>
+      <div class="res-box"><div class="k">Outros custos/lanche</div><div class="v" id="custoOper">R$ 0,00</div></div>
+      <div class="res-box"><div class="k">Custo total por xis</div><div class="v warn" id="custoTotal">R$ 0,00</div></div>
+      <div class="res-box"><div class="k">Lucro por xis</div><div class="v green" id="lucroUnit">R$ 0,00</div></div>
+      <div class="res-box"><div class="k">CMV (custo s/ preço)</div><div class="v" id="cmv">0%</div></div>
+    </div>
+  </section>
+
+  <!-- PROJEÇÃO -->
+  <section class="card">
+    <h2><span class="ico">📈</span>Projeção mensal</h2>
+    <p class="hint">Estime seu faturamento e lucro a partir de quantos lanches você vende por mês.</p>
+    <div class="proj">
+      <div class="field">
+        <label>Xis vendidos por mês</label>
+        <input type="number" id="qtdMes" value="1500" min="0" oninput="calc()" style="width:100%">
+      </div>
+      <div class="proj-out">
+        <div class="proj-box"><div class="k">Faturamento/mês</div><div class="v" id="fatMes">R$ 0</div></div>
+        <div class="proj-box"><div class="k">Lucro/mês</div><div class="v green" id="lucroMes">R$ 0</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    <button class="btn btn-ghost" onclick="restaurar()">↺ Restaurar receita padrão</button>
+  </div>
+
+  <footer>
+    Protótipo da plataforma <b>Cidade do Xis</b> · módulo do empreendedor. Valores são estimativas para apoio à gestão — ajuste conforme a realidade do seu negócio.
+  </footer>
+</div>
+
+<script>
+  const PADRAO_INSUMOS = [
+    {nome:"Pão de xis",        custo:14.00, rende:10, qtd:1},
+    {nome:"Bife / hambúrguer", custo:32.00, rende:20, qtd:1},
+    {nome:"Queijo (fatia)",    custo:18.00, rende:14, qtd:2},
+    {nome:"Presunto (fatia)",  custo:16.00, rende:16, qtd:1},
+    {nome:"Alface",            custo:3.50,  rende:12, qtd:1},
+    {nome:"Tomate",            custo:6.00,  rende:15, qtd:1},
+    {nome:"Milho e ervilha",   custo:7.00,  rende:12, qtd:1},
+    {nome:"Maionese / molhos", custo:12.00, rende:25, qtd:1},
+    {nome:"Ovo",               custo:18.00, rende:30, qtd:1},
+  ];
+  const PADRAO_OPER = [
+    {nome:"Embalagem / papel", custo:0.45, rende:1, qtd:1},
+    {nome:"Gás de cozinha",    custo:0.30, rende:1, qtd:1},
+    {nome:"Guardanapo + saco", custo:0.20, rende:1, qtd:1},
+  ];
+
+  function rowHTML(item, tipo, i){
+    return `<tr>
+      <td><input type="text" value="${item.nome}" oninput="upd('${tipo}',${i},'nome',this.value)"></td>
+      <td><input class="num" type="number" step="0.01" min="0" value="${item.custo}" oninput="upd('${tipo}',${i},'custo',this.value)"></td>
+      <td><input class="num" type="number" step="1" min="1" value="${item.rende}" oninput="upd('${tipo}',${i},'rende',this.value)"></td>
+      <td><input class="num" type="number" step="0.5" min="0" value="${item.qtd}" oninput="upd('${tipo}',${i},'qtd',this.value)"></td>
+      <td class="custo-cell" id="${tipo}-c-${i}">R$ 0,00</td>
+      <td><button class="del" title="Remover" onclick="del('${tipo}',${i})">✕</button></td>
+    </tr>`;
+  }
+
+  let insumos = [], operacionais = [];
+
+  function render(){
+    document.getElementById('insumos').innerHTML = insumos.map((it,i)=>rowHTML(it,'ins',i)).join('');
+    document.getElementById('operacionais').innerHTML = operacionais.map((it,i)=>rowHTML(it,'op',i)).join('');
+    calc();
+  }
+  function listOf(t){return t==='ins'?insumos:operacionais}
+  function upd(t,i,campo,val){
+    const it=listOf(t)[i];
+    it[campo]= campo==='nome'? val : (parseFloat(val)||0);
+    calc();
+  }
+  function del(t,i){listOf(t).splice(i,1);render();save()}
+  function addInsumo(){insumos.push({nome:"",custo:0,rende:1,qtd:1});render();save()}
+  function addOperacional(){operacionais.push({nome:"",custo:0,rende:1,qtd:1});render();save()}
+
+  const BRL = n => "R$ " + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const BRL0 = n => "R$ " + n.toLocaleString('pt-BR',{maximumFractionDigits:0});
+
+  function custoItem(it){ return it.rende>0 ? (it.custo/it.rende)*it.qtd : 0; }
+
+  function calc(){
+    let cIns=0, cOp=0;
+    insumos.forEach((it,i)=>{const c=custoItem(it);cIns+=c;const el=document.getElementById('ins-c-'+i);if(el)el.textContent=BRL(c);});
+    operacionais.forEach((it,i)=>{const c=custoItem(it);cOp+=c;const el=document.getElementById('op-c-'+i);if(el)el.textContent=BRL(c);});
+
+    const custoTotal = cIns + cOp;
+    const margem = Math.min(parseFloat(document.getElementById('margem').value)||0, 95);
+    const taxas  = Math.min(parseFloat(document.getElementById('taxas').value)||0, 60);
+
+    // Método do markup divisor: preço = custo / (1 - (margem+taxas)/100)
+    const divisor = 1 - (margem+taxas)/100;
+    const preco = divisor>0 ? custoTotal/divisor : 0;
+    const lucro = preco - custoTotal - preco*(taxas/100);
+    const cmv = preco>0 ? (custoTotal/preco)*100 : 0;
+
+    // Preço destacado (reais + centavos)
+    const reais = Math.floor(preco);
+    const cents = Math.round((preco-reais)*100).toString().padStart(2,'0');
+    document.getElementById('precoVenda').innerHTML = "R$ "+reais.toLocaleString('pt-BR')+'<span class="cents">,'+cents+'</span>';
+
+    document.getElementById('custoInsumos').textContent = BRL(cIns);
+    document.getElementById('custoOper').textContent    = BRL(cOp);
+    document.getElementById('custoTotal').textContent   = BRL(custoTotal);
+    document.getElementById('lucroUnit').textContent    = BRL(lucro);
+    document.getElementById('cmv').textContent          = cmv.toFixed(0)+"%";
+
+    const qtdMes = parseFloat(document.getElementById('qtdMes').value)||0;
+    document.getElementById('fatMes').textContent   = BRL0(preco*qtdMes);
+    document.getElementById('lucroMes').textContent = BRL0(lucro*qtdMes);
+
+    save();
+  }
+
+  // Persistência local (funciona ao abrir o arquivo no navegador; ignora se indisponível)
+  function save(){
+    try{
+      localStorage.setItem('cidadeXis_calc', JSON.stringify({
+        insumos, operacionais,
+        margem:document.getElementById('margem').value,
+        taxas:document.getElementById('taxas').value,
+        qtdMes:document.getElementById('qtdMes').value
+      }));
+    }catch(e){}
+  }
+  function load(){
+    try{
+      const d=JSON.parse(localStorage.getItem('cidadeXis_calc'));
+      if(d&&d.insumos){
+        insumos=d.insumos; operacionais=d.operacionais;
+        document.getElementById('margem').value=d.margem;
+        document.getElementById('taxas').value=d.taxas;
+        document.getElementById('qtdMes').value=d.qtdMes;
+        return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  function restaurar(){
+    insumos = JSON.parse(JSON.stringify(PADRAO_INSUMOS));
+    operacionais = JSON.parse(JSON.stringify(PADRAO_OPER));
+    document.getElementById('margem').value=40;
+    document.getElementById('taxas').value=8;
+    document.getElementById('qtdMes').value=1500;
+    render();
+  }
+
+  // init
+  if(!load()){
+    insumos = JSON.parse(JSON.stringify(PADRAO_INSUMOS));
+    operacionais = JSON.parse(JSON.stringify(PADRAO_OPER));
+  }
+  render();
+</script>
+</body>
+</html>

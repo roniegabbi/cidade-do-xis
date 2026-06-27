@@ -1,0 +1,17 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Dependências (caso surjam)
+node_modules/
+
+# Vercel
+.vercel/
+
+# Material de referência interno (não publicar)
+Marca Santa Maria.pdf
+analise-agendasantamaria.md

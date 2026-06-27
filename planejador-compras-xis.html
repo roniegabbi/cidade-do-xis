@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cidade do Xis · Planejador de Compras</title>
+<style>
+  :root{
+    --vinho:#9c2b1d;--vinho-2:#b23a2a;--vermelho:#c0392b;
+    --laranja:#e69a2c;--amarelo:#f2b441;
+    --creme:#f6edd6;--creme-2:#fbf6e7;--verde:#6ba53f;
+    --texto:#3a2420;--texto-suave:#7a6258;--linha:#e7d8b6;
+    --sombra:0 6px 22px rgba(120,40,25,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--creme);color:var(--texto);line-height:1.5;padding:0 0 60px}
+  header{background:linear-gradient(135deg,var(--vinho) 0%,var(--vinho-2) 100%);
+    color:var(--creme-2);padding:26px 20px;text-align:center;box-shadow:var(--sombra)}
+  .badge{display:inline-flex;align-items:center;gap:10px;background:rgba(246,237,214,.12);
+    border:2px solid rgba(246,237,214,.35);border-radius:999px;padding:6px 16px;
+    font-size:13px;font-weight:700;letter-spacing:.5px;margin-bottom:14px;text-transform:uppercase}
+  .badge .dot{width:9px;height:9px;border-radius:50%;background:var(--amarelo)}
+  header h1{font-size:30px;font-weight:800;letter-spacing:.5px}
+  header h1 .xis{color:var(--amarelo)}
+  header p{font-size:15px;opacity:.9;margin-top:6px}
+  .wrap{max-width:920px;margin:24px auto;padding:0 18px}
+  .card{background:var(--creme-2);border:1px solid var(--linha);border-radius:16px;
+    padding:22px;margin-bottom:20px;box-shadow:var(--sombra)}
+  .card h2{font-size:18px;color:var(--vinho);font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .card .hint{font-size:13.5px;color:var(--texto-suave);margin-bottom:16px}
+  .ico{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:inline-flex;
+    align-items:center;justify-content:center;background:var(--amarelo);color:var(--vinho);font-size:17px}
+  /* toggle modo */
+  .modos{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .modo-btn{flex:1;min-width:140px;background:var(--creme);border:1.5px solid var(--linha);
+    border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all .15s}
+  .modo-btn .e{font-size:22px;display:block;margin-bottom:4px}
+  .modo-btn .t{font-weight:800;font-size:15px;color:var(--texto)}
+  .modo-btn .d{font-size:12px;color:var(--texto-suave);margin-top:2px}
+  .modo-btn.on{border-color:var(--vinho);background:#fff;box-shadow:0 0 0 3px rgba(156,43,29,.12)}
+  .modo-btn.on .t{color:var(--vinho)}
+  .params{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--texto)}
+  .field label .sub{font-weight:400;color:var(--texto-suave);font-size:12px}
+  input,select{font-family:inherit;font-size:14.5px;color:var(--texto);background:#fff;
+    border:1px solid var(--linha);border-radius:9px;padding:9px 10px;outline:none;width:100%;
+    transition:border-color .15s,box-shadow .15s}
+  input:focus,select:focus{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(230,154,44,.18)}
+  .hide{display:none!important}
+  /* tabela */
+  .tbl{width:100%;border-collapse:collapse}
+  .tbl th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--texto-suave);font-weight:700;padding:0 8px 8px}
+  .tbl td{padding:5px 8px;vertical-align:middle}
+  .tbl tr+tr td{border-top:1px solid var(--linha)}
+  .tbl input.num{width:84px;text-align:right}
+  .tbl input.txt{width:100%}
+  .del{background:transparent;border:none;color:var(--vermelho);cursor:pointer;font-size:18px;
+    line-height:1;padding:4px 6px;border-radius:7px}
+  .del:hover{background:rgba(192,57,43,.1)}
+  .add{margin-top:14px;background:var(--creme);border:1.5px dashed var(--laranja);color:var(--vinho);
+    font-weight:700;font-size:14px;cursor:pointer;border-radius:10px;padding:10px 16px}
+  .add:hover{background:#fff}
+  /* lista de compras */
+  .lista{background:linear-gradient(135deg,var(--vinho) 0%,#7d2316 100%);color:var(--creme-2);border:none}
+  .lista h2{color:var(--amarelo)}
+  .lista .hint{color:rgba(246,237,214,.75)}
+  .meta-hero{text-align:center;padding:6px 0 16px;border-bottom:1px solid rgba(246,237,214,.18);margin-bottom:16px}
+  .meta-hero .lbl{font-size:13px;text-transform:uppercase;letter-spacing:1px;opacity:.85}
+  .meta-hero .val{font-size:30px;font-weight:800;color:#fff;margin-top:3px}
+  .meta-hero .val b{color:var(--amarelo)}
+  .compra-tbl{width:100%;border-collapse:collapse;margin-bottom:8px}
+  .compra-tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+    opacity:.8;font-weight:700;padding:0 10px 10px}
+  .compra-tbl th.r,.compra-tbl td.r{text-align:right}
+  .compra-tbl td{padding:9px 10px;border-top:1px solid rgba(246,237,214,.15);font-size:14.5px}
+  .compra-tbl tr.zero{opacity:.45}
+  .compra-tbl .pacotes{font-weight:800;color:#fff;font-size:16px}
+  .compra-tbl .custo{font-weight:700;color:var(--amarelo);white-space:nowrap}
+  .tot-row td{border-top:2px solid rgba(246,237,214,.4);font-weight:800;color:#fff;font-size:16px;padding-top:12px}
+  /* projeção */
+  .grid-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .res-box{background:var(--creme);border:1px solid var(--linha);border-radius:12px;padding:14px}
+  .res-box .k{font-size:12px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.4px}
+  .res-box .v{font-size:22px;font-weight:800;color:var(--vinho);margin-top:3px}
+  .res-box .v.green{color:#3f8f2a}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  .btn{font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;border-radius:11px;
+    padding:12px 22px;border:none;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--laranja);color:var(--vinho)}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-ghost{background:transparent;border:1.5px solid var(--linha);color:var(--texto-suave)}
+  .btn-ghost:hover{background:var(--creme)}
+  footer{text-align:center;color:var(--texto-suave);font-size:12.5px;max-width:920px;margin:10px auto 0;padding:0 18px}
+  footer b{color:var(--vinho)}
+  @media (max-width:560px){
+    header h1{font-size:24px}
+    .tbl th:nth-child(4),.tbl td:nth-child(4){display:none}
+  }
+  @media print{.add,.del,.actions,.btn,.modos{display:none!important}body{background:#fff}
+    .card{box-shadow:none;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge"><span class="dot"></span>Cidade do Xis · Santa Maria · RS</div>
+  <h1>Planejador de <span class="xis">Compras</span></h1>
+  <p>Prepare o dia, a semana ou um evento — e saiba exatamente o que comprar e quanto vai gastar.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- CONFIGURAÇÃO -->
+  <section class="card">
+    <h2><span class="ico">🗓️</span>O que você vai planejar?</h2>
+    <p class="hint">Escolha o período e informe quantos xis você espera vender.</p>
+    <div class="modos">
+      <div class="modo-btn on" id="m-dia" onclick="setModo('dia')">
+        <span class="e">☀️</span><div class="t">Um dia</div><div class="d">Preparar o dia de trabalho</div>
+      </div>
+      <div class="modo-btn" id="m-semana" onclick="setModo('semana')">
+        <span class="e">📅</span><div class="t">Uma semana</div><div class="d">Compra para vários dias</div>
+      </div>
+      <div class="modo-btn" id="m-evento" onclick="setModo('evento')">
+        <span class="e">🎪</span><div class="t">Um evento</div><div class="d">Festival, feira, festa</div>
+      </div>
+    </div>
+
+    <div class="params">
+      <!-- evento -->
+      <div class="field eventoOnly hide"><label>Nome do evento</label>
+        <input type="text" id="evNome" placeholder="Ex.: Festival do Xis 2026" oninput="calc()"></div>
+      <div class="field eventoOnly hide"><label>Data</label>
+        <input type="date" id="evData" oninput="calc()"></div>
+
+      <!-- meta -->
+      <div class="field" id="campoMetaDia"><label>Xis por dia <span class="sub">(média que você vende)</span></label>
+        <input type="number" id="metaDia" value="120" min="0" oninput="calc()"></div>
+      <div class="field semanaOnly hide"><label>Dias de trabalho na semana</label>
+        <input type="number" id="diasSemana" value="6" min="1" max="7" oninput="calc()"></div>
+      <div class="field eventoOnly hide" id="campoMetaEvento"><label>Meta total de xis <span class="sub">(no evento todo)</span></label>
+        <input type="number" id="metaEvento" value="1500" min="0" oninput="calc()"></div>
+      <div class="field eventoOnly hide"><label>Dias de duração</label>
+        <input type="number" id="evDias" value="3" min="1" oninput="calc()"></div>
+
+      <div class="field"><label>Folga de segurança <span class="sub">(comprar a mais)</span></label>
+        <input type="number" id="folga" value="10" min="0" max="100" oninput="calc()"></div>
+      <div class="field"><label>Preço de venda do xis <span class="sub">(p/ projeção)</span></label>
+        <input type="number" id="preco" value="18.99" step="0.01" min="0" oninput="calc()"></div>
+    </div>
+  </section>
+
+  <!-- RECEITA / INSUMOS -->
+  <section class="card">
+    <h2><span class="ico">🥪</span>Sua receita e estoque</h2>
+    <p class="hint">Quanto cada compra custa, quantos lanches rende e quanto você já tem em casa. Ajuste para a sua receita.</p>
+    <table class="tbl">
+      <thead><tr>
+        <th style="width:30%">Insumo</th>
+        <th style="width:18%">Custo do pacote (R$)</th>
+        <th style="width:16%">Rende (lanches)</th>
+        <th style="width:14%">Usa por xis</th>
+        <th style="width:16%">Já tenho (pacotes)</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="insumos"></tbody>
+    </table>
+    <button class="add" onclick="addInsumo()">+ Adicionar insumo</button>
+  </section>
+
+  <!-- LISTA DE COMPRAS -->
+  <section class="card lista">
+    <h2>🛒 Lista de compras</h2>
+    <p class="hint" id="listaHint"></p>
+    <div class="meta-hero">
+      <div class="lbl">Comprar para atender</div>
+      <div class="val"><b id="metaTotal">0</b> xis <span id="metaDetalhe" style="opacity:.7;font-size:18px"></span></div>
+    </div>
+    <table class="compra-tbl">
+      <thead><tr>
+        <th>Insumo</th>
+        <th class="r">Precisa</th>
+        <th class="r">Já tem</th>
+        <th class="r">Comprar</th>
+        <th class="r">Custo</th>
+      </tr></thead>
+      <tbody id="compra"></tbody>
+      <tfoot><tr class="tot-row">
+        <td colspan="4">Total da compra</td>
+        <td class="r" id="totalCompra">R$ 0,00</td>
+      </tr></tfoot>
+    </table>
+  </section>
+
+  <!-- PROJEÇÃO -->
+  <section class="card">
+    <h2><span class="ico">📈</span>Projeção do planejamento</h2>
+    <p class="hint">Estimativa com base na meta de vendas e no preço informado.</p>
+    <div class="grid-res">
+      <div class="res-box"><div class="k">Custo da compra</div><div class="v" id="pCusto">R$ 0</div></div>
+      <div class="res-box"><div class="k">Faturamento estimado</div><div class="v" id="pFat">R$ 0</div></div>
+      <div class="res-box"><div class="k">Lucro estimado</div><div class="v green" id="pLucro">R$ 0</div></div>
+      <div class="res-box"><div class="k">Custo médio por xis</div><div class="v" id="pCustoUn">R$ 0,00</div></div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir lista</button>
+    <button class="btn btn-ghost" onclick="restaurar()">↺ Restaurar receita padrão</button>
+  </div>
+
+  <footer>
+    Protótipo da plataforma <b>Cidade do Xis</b> · módulo de gestão. Estimativas para apoio ao planejamento — ajuste conforme a realidade do seu negócio.
+  </footer>
+</div>
+
+<script>
+  const PADRAO = [
+    {nome:"Pão de xis",        custo:14.00, rende:10, qtd:1, tem:0},
+    {nome:"Bife / hambúrguer", custo:32.00, rende:20, qtd:1, tem:0},
+    {nome:"Queijo (fatia)",    custo:18.00, rende:14, qtd:2, tem:0},
+    {nome:"Presunto (fatia)",  custo:16.00, rende:16, qtd:1, tem:0},
+    {nome:"Alface",            custo:3.50,  rende:12, qtd:1, tem:0},
+    {nome:"Tomate",            custo:6.00,  rende:15, qtd:1, tem:0},
+    {nome:"Milho e ervilha",   custo:7.00,  rende:12, qtd:1, tem:0},
+    {nome:"Maionese / molhos", custo:12.00, rende:25, qtd:1, tem:0},
+    {nome:"Ovo",               custo:18.00, rende:30, qtd:1, tem:0},
+    {nome:"Batata palha",      custo:22.00, rende:35, qtd:1, tem:0},
+  ];
+  let insumos = [];
+  let modo = 'dia';
+
+  const BRL = n => "R$ " + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const BRL0 = n => "R$ " + n.toLocaleString('pt-BR',{maximumFractionDigits:0});
+
+  function setModo(m){
+    modo = m;
+    ['dia','semana','evento'].forEach(x=>document.getElementById('m-'+x).classList.toggle('on',x===m));
+    document.querySelectorAll('.semanaOnly').forEach(e=>e.classList.toggle('hide',m!=='semana'));
+    document.querySelectorAll('.eventoOnly').forEach(e=>e.classList.toggle('hide',m!=='evento'));
+    // meta por dia some no modo evento (lá a meta é total)
+    document.getElementById('campoMetaDia').classList.toggle('hide',m==='evento');
+    calc();
+  }
+
+  function rowHTML(it,i){
+    return `<tr>
+      <td><input class="txt" type="text" value="${it.nome}" oninput="upd(${i},'nome',this.value)"></td>
+      <td><input class="num" type="number" step="0.01" min="0" value="${it.custo}" oninput="upd(${i},'custo',this.value)"></td>
+      <td><input class="num" type="number" step="1" min="1" value="${it.rende}" oninput="upd(${i},'rende',this.value)"></td>
+      <td><input class="num" type="number" step="0.5" min="0" value="${it.qtd}" oninput="upd(${i},'qtd',this.value)"></td>
+      <td><input class="num" type="number" step="1" min="0" value="${it.tem}" oninput="upd(${i},'tem',this.value)"></td>
+      <td><button class="del" title="Remover" onclick="del(${i})">✕</button></td>
+    </tr>`;
+  }
+  function render(){
+    document.getElementById('insumos').innerHTML = insumos.map((it,i)=>rowHTML(it,i)).join('');
+    calc();
+  }
+  function upd(i,c,v){insumos[i][c]= c==='nome'? v : (parseFloat(v)||0);calc()}
+  function del(i){insumos.splice(i,1);render();save()}
+  function addInsumo(){insumos.push({nome:"",custo:0,rende:1,qtd:1,tem:0});render();save()}
+
+  function metaBase(){
+    const folga = parseFloat(document.getElementById('folga').value)||0;
+    let base=0, detalhe='';
+    if(modo==='dia'){
+      base = parseFloat(document.getElementById('metaDia').value)||0;
+      detalhe = 'em 1 dia';
+    }else if(modo==='semana'){
+      const md = parseFloat(document.getElementById('metaDia').value)||0;
+      const ds = parseFloat(document.getElementById('diasSemana').value)||0;
+      base = md*ds; detalhe = `(${md}/dia × ${ds} dias)`;
+    }else{
+      base = parseFloat(document.getElementById('metaEvento').value)||0;
+      const dd = parseFloat(document.getElementById('evDias').value)||0;
+      detalhe = dd>0 ? `no evento (${dd} dia${dd>1?'s':''})` : 'no evento';
+    }
+    return {base, alvo: Math.round(base*(1+folga/100)), detalhe, folga};
+  }
+
+  function calc(){
+    const {base, alvo, detalhe, folga} = metaBase();
+    document.getElementById('metaTotal').textContent = alvo.toLocaleString('pt-BR');
+    document.getElementById('metaDetalhe').textContent = detalhe;
+    document.getElementById('listaHint').textContent =
+      folga>0 ? `Inclui ${folga}% de folga sobre a meta de ${base.toLocaleString('pt-BR')} xis, para não faltar.`
+              : `Para a meta de ${base.toLocaleString('pt-BR')} xis.`;
+
+    let totalCompra=0, custoProporcional=0;
+    const linhas = insumos.map(it=>{
+      const porcoes = alvo * it.qtd;
+      const precisa = it.rende>0 ? Math.ceil(porcoes/it.rende) : 0;
+      const comprar = Math.max(0, precisa - it.tem);
+      const custo = comprar * it.custo;
+      totalCompra += custo;
+      custoProporcional += it.rende>0 ? (it.custo/it.rende)*it.qtd*base : 0;
+      return {nome:it.nome||'—', precisa, tem:it.tem, comprar, custo};
+    });
+
+    document.getElementById('compra').innerHTML = linhas.map(l=>`
+      <tr class="${l.comprar===0?'zero':''}">
+        <td>${l.nome}</td>
+        <td class="r">${l.precisa}</td>
+        <td class="r">${l.tem||0}</td>
+        <td class="r pacotes">${l.comprar}</td>
+        <td class="r custo">${BRL(l.custo)}</td>
+      </tr>`).join('');
+    document.getElementById('totalCompra').textContent = BRL(totalCompra);
+
+    const preco = parseFloat(document.getElementById('preco').value)||0;
+    const fat = preco*base;
+    const lucro = fat - custoProporcional;
+    document.getElementById('pCusto').textContent = BRL0(totalCompra);
+    document.getElementById('pFat').textContent = BRL0(fat);
+    document.getElementById('pLucro').textContent = BRL0(lucro);
+    document.getElementById('pCustoUn').textContent = base>0 ? BRL(custoProporcional/base) : "R$ 0,00";
+
+    save();
+  }
+
+  function save(){
+    try{localStorage.setItem('cidadeXis_compras',JSON.stringify({
+      insumos, modo,
+      metaDia:document.getElementById('metaDia').value,
+      diasSemana:document.getElementById('diasSemana').value,
+      metaEvento:document.getElementById('metaEvento').value,
+      evDias:document.getElementById('evDias').value,
+      evNome:document.getElementById('evNome').value,
+      evData:document.getElementById('evData').value,
+      folga:document.getElementById('folga').value,
+      preco:document.getElementById('preco').value
+    }))}catch(e){}
+  }
+  function load(){
+    try{
+      const d=JSON.parse(localStorage.getItem('cidadeXis_compras'));
+      if(d&&d.insumos){
+        insumos=d.insumos;
+        document.getElementById('metaDia').value=d.metaDia;
+        document.getElementById('diasSemana').value=d.diasSemana;
+        document.getElementById('metaEvento').value=d.metaEvento;
+        document.getElementById('evDias').value=d.evDias;
+        document.getElementById('evNome').value=d.evNome||'';
+        document.getElementById('evData').value=d.evData||'';
+        document.getElementById('folga').value=d.folga;
+        document.getElementById('preco').value=d.preco;
+        modo=d.modo||'dia';
+        return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  function restaurar(){
+    insumos = JSON.parse(JSON.stringify(PADRAO));
+    document.getElementById('metaDia').value=120;
+    document.getElementById('diasSemana').value=6;
+    document.getElementById('metaEvento').value=1500;
+    document.getElementById('evDias').value=3;
+    document.getElementById('folga').value=10;
+    document.getElementById('preco').value=18.99;
+    render();
+  }
+
+  if(!load()){insumos = JSON.parse(JSON.stringify(PADRAO));}
+  setModo(modo);
+  render();
+</script>
+</body>
+</html>

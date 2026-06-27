@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cidade do Xis · Planejador de Mídias Sociais</title>
+<style>
+  :root{
+    --vinho:#9c2b1d;--vinho-2:#b23a2a;--vermelho:#c0392b;
+    --laranja:#e69a2c;--amarelo:#f2b441;
+    --creme:#f6edd6;--creme-2:#fbf6e7;--verde:#6ba53f;
+    --texto:#3a2420;--texto-suave:#7a6258;--linha:#e7d8b6;
+    --sombra:0 6px 22px rgba(120,40,25,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--creme);color:var(--texto);line-height:1.5;padding:0 0 60px}
+  header{background:linear-gradient(135deg,var(--vinho) 0%,var(--vinho-2) 100%);
+    color:var(--creme-2);padding:26px 20px;text-align:center;box-shadow:var(--sombra)}
+  .badge{display:inline-flex;align-items:center;gap:10px;background:rgba(246,237,214,.12);
+    border:2px solid rgba(246,237,214,.35);border-radius:999px;padding:6px 16px;
+    font-size:13px;font-weight:700;letter-spacing:.5px;margin-bottom:14px;text-transform:uppercase}
+  .badge .dot{width:9px;height:9px;border-radius:50%;background:var(--amarelo)}
+  header h1{font-size:30px;font-weight:800;letter-spacing:.5px}
+  header h1 .xis{color:var(--amarelo)}
+  header p{font-size:15px;opacity:.9;margin-top:6px}
+  .wrap{max-width:960px;margin:24px auto;padding:0 18px}
+  .card{background:var(--creme-2);border:1px solid var(--linha);border-radius:16px;
+    padding:22px;margin-bottom:20px;box-shadow:var(--sombra)}
+  .card h2{font-size:18px;color:var(--vinho);font-weight:800;display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .card .hint{font-size:13.5px;color:var(--texto-suave);margin-bottom:16px}
+  .ico{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:inline-flex;
+    align-items:center;justify-content:center;background:var(--amarelo);color:var(--vinho);font-size:17px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--texto)}
+  .field label .sub{font-weight:400;color:var(--texto-suave);font-size:12px}
+  input,select,textarea{font-family:inherit;font-size:14.5px;color:var(--texto);background:#fff;
+    border:1px solid var(--linha);border-radius:9px;padding:9px 10px;outline:none;width:100%;
+    transition:border-color .15s,box-shadow .15s}
+  textarea{resize:vertical;min-height:64px;line-height:1.45}
+  input:focus,select:focus,textarea:focus{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(230,154,44,.18)}
+  .hide{display:none!important}
+  .params{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+
+  /* ====== CALENDÁRIO SEMANAL ====== */
+  .cal-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--texto-suave)}
+  .legenda span{display:inline-flex;align-items:center;gap:6px}
+  .tag-dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .t-foto{background:#e69a2c}.t-video{background:#9c2b1d}.t-promo{background:#6ba53f}
+  .t-reels{background:#7d3cb5}.t-status{background:#2c8fbf}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;overflow-x:auto}
+  .dia-col{background:var(--creme);border:1px solid var(--linha);border-radius:12px;min-width:118px;
+    display:flex;flex-direction:column;min-height:150px}
+  .dia-col .cab{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--vinho);text-align:center;padding:9px 4px;border-bottom:1px solid var(--linha)}
+  .dia-col .cab.fds{color:var(--laranja)}
+  .posts{flex:1;padding:7px;display:flex;flex-direction:column;gap:6px}
+  .post{background:#fff;border-left:4px solid var(--laranja);border-radius:8px;padding:7px 8px;
+    font-size:12px;cursor:pointer;box-shadow:0 1px 4px rgba(120,40,25,.06);position:relative;transition:transform .1s}
+  .post:hover{transform:translateY(-1px)}
+  .post.b-foto{border-left-color:#e69a2c}.post.b-video{border-left-color:#9c2b1d}
+  .post.b-promo{border-left-color:#6ba53f}.post.b-reels{border-left-color:#7d3cb5}
+  .post.b-status{border-left-color:#2c8fbf}
+  .post .h{font-size:11px;color:var(--texto-suave);font-weight:700}
+  .post .tit{font-weight:700;color:var(--texto);margin-top:1px;line-height:1.25}
+  .post .canal{font-size:10.5px;color:var(--texto-suave);margin-top:2px}
+  .post.feito{opacity:.55}
+  .post.feito .tit{text-decoration:line-through}
+  .add-post{background:transparent;border:1.5px dashed var(--laranja);color:var(--vinho);font-weight:700;
+    font-size:18px;line-height:1;cursor:pointer;border-radius:8px;padding:6px;margin:0 7px 8px;transition:background .15s}
+  .add-post:hover{background:#fff}
+
+  /* ====== BANCO DE IDEIAS ====== */
+  .ideias{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .ideia{background:var(--creme);border:1px solid var(--linha);border-radius:12px;padding:13px;font-size:13px}
+  .ideia .e{font-size:20px}
+  .ideia .it{font-weight:800;color:var(--vinho);margin:4px 0 2px}
+  .ideia .id{color:var(--texto-suave);font-size:12.5px;line-height:1.4}
+
+  /* ====== HORÁRIOS ====== */
+  .horarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .hbox{background:var(--creme);border:1px solid var(--linha);border-radius:12px;padding:14px;text-align:center}
+  .hbox .e{font-size:24px}
+  .hbox .hh{font-size:20px;font-weight:800;color:var(--vinho);margin-top:4px}
+  .hbox .hl{font-size:12px;color:var(--texto-suave);margin-top:2px}
+
+  /* ====== GERADOR DE LEGENDA ====== */
+  .leg-out{background:#fff;border:1px solid var(--linha);border-radius:10px;padding:14px;
+    font-size:14px;line-height:1.55;white-space:pre-wrap;min-height:90px;color:var(--texto)}
+
+  /* ====== CAMPANHAS ====== */
+  .camp{background:var(--creme);border:1px solid var(--linha);border-radius:12px;padding:15px;margin-bottom:12px}
+  .camp .ct{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .camp .cn{font-size:16px;font-weight:800;color:var(--vinho)}
+  .camp .cp{font-size:12.5px;color:var(--texto-suave);margin-top:2px}
+  .barra{height:11px;background:#eaddbf;border-radius:99px;overflow:hidden;margin:10px 0 6px}
+  .barra > i{display:block;height:100%;background:linear-gradient(90deg,var(--laranja),var(--verde));border-radius:99px;transition:width .4s}
+  .camp .meta-l{display:flex;justify-content:space-between;font-size:12.5px;color:var(--texto-suave)}
+  .camp .meta-l b{color:var(--texto)}
+
+  /* botões */
+  .btn{font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;border-radius:11px;
+    padding:12px 22px;border:none;transition:transform .1s,filter .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--laranja);color:var(--vinho)}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-ghost{background:transparent;border:1.5px solid var(--linha);color:var(--texto-suave)}
+  .btn-ghost:hover{background:var(--creme)}
+  .btn-sm{padding:8px 14px;font-size:13px}
+  .add{margin-top:6px;background:var(--creme);border:1.5px dashed var(--laranja);color:var(--vinho);
+    font-weight:700;font-size:14px;cursor:pointer;border-radius:10px;padding:10px 16px}
+  .add:hover{background:#fff}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  footer{text-align:center;color:var(--texto-suave);font-size:12.5px;max-width:960px;margin:10px auto 0;padding:0 18px}
+  footer b{color:var(--vinho)}
+
+  /* modal */
+  .mask{position:fixed;inset:0;background:rgba(58,36,32,.5);display:none;align-items:center;
+    justify-content:center;padding:18px;z-index:50}
+  .mask.on{display:flex}
+  .modal{background:var(--creme-2);border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h3{color:var(--vinho);font-size:18px;margin-bottom:16px}
+  .modal .field{margin-bottom:13px}
+  .modal .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--texto);cursor:pointer}
+  .chk input{width:auto}
+  .modal-acts{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+
+  @media (max-width:760px){
+    .cal{grid-template-columns:repeat(7,minmax(118px,1fr))}
+  }
+  @media (max-width:560px){ header h1{font-size:24px} }
+  @media print{.add,.add-post,.actions,.btn,.modal,.mask{display:none!important}
+    body{background:#fff}.card{box-shadow:none;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge"><span class="dot"></span>Cidade do Xis · Santa Maria · RS</div>
+  <h1>Plano de <span class="xis">Comunicação</span></h1>
+  <p>Organize posts, vídeos e campanhas de venda da sua lanchonete — a semana inteira numa tela só.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- CALENDÁRIO -->
+  <div class="card">
+    <div class="cal-top">
+      <div>
+        <h2><span class="ico">📅</span> Calendário da semana</h2>
+        <div class="hint" style="margin-bottom:0">Toque em um dia para agendar. Clique num post para editar ou marcar como publicado.</div>
+      </div>
+      <div class="legenda">
+        <span><i class="tag-dot t-foto"></i>Foto</span>
+        <span><i class="tag-dot t-video"></i>Vídeo</span>
+        <span><i class="tag-dot t-reels"></i>Reels</span>
+        <span><i class="tag-dot t-promo"></i>Promo</span>
+        <span><i class="tag-dot t-status"></i>Status</span>
+      </div>
+    </div>
+    <div class="cal" id="cal"></div>
+  </div>
+
+  <!-- BANCO DE IDEIAS -->
+  <div class="card">
+    <h2><span class="ico">💡</span> Ideias prontas de post</h2>
+    <div class="hint">Sem saber o que postar? Clique numa ideia para jogar ela no calendário.</div>
+    <div class="ideias" id="ideias"></div>
+  </div>
+
+  <!-- HORÁRIOS -->
+  <div class="card">
+    <h2><span class="ico">⏰</span> Melhores horários para postar</h2>
+    <div class="hint">Poste quando seu cliente está com fome e olhando o celular. Referência para lanche/xis em Santa Maria.</div>
+    <div class="horarios" id="horarios"></div>
+  </div>
+
+  <!-- GERADOR DE LEGENDA -->
+  <div class="card">
+    <h2><span class="ico">✍️</span> Gerador de legenda</h2>
+    <div class="hint">Preencha os campos e copie uma legenda pronta, com emoji e chamada para ação.</div>
+    <div class="params">
+      <div class="field"><label>Modelo de legenda</label>
+        <select id="legModelo" onchange="gerarLegenda()"></select></div>
+      <div class="field"><label>Prato / item</label>
+        <input id="legPrato" value="Xis Salada Completo" oninput="gerarLegenda()"></div>
+      <div class="field"><label>Preço <span class="sub">(opcional)</span></label>
+        <input id="legPreco" value="18,90" oninput="gerarLegenda()"></div>
+      <div class="field"><label>Detalhe / chamada</label>
+        <input id="legExtra" value="entrega pelo Zap" oninput="gerarLegenda()"></div>
+    </div>
+    <div style="margin-top:14px" class="leg-out" id="legOut"></div>
+    <div class="actions" style="justify-content:flex-start;margin-top:14px">
+      <button class="btn btn-primary btn-sm" onclick="copiarLegenda()">📋 Copiar legenda</button>
+      <button class="btn btn-ghost btn-sm" onclick="gerarLegenda()">🔄 Outra variação</button>
+    </div>
+  </div>
+
+  <!-- CAMPANHAS -->
+  <div class="card">
+    <h2><span class="ico">🎯</span> Campanhas de venda</h2>
+    <div class="hint">Defina uma campanha (ex.: "Promo Festival do Xis"), a meta de vendas e acompanhe o resultado.</div>
+    <div id="camps"></div>
+    <button class="add" onclick="abrirCamp()">+ Nova campanha</button>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-ghost" onclick="restaurar()">↺ Restaurar exemplo</button>
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  </div>
+
+  <footer>
+    Plano de comunicação salvo no seu navegador. Parte das ferramentas de gestão da <b>Cidade do Xis</b>.
+  </footer>
+</div>
+
+<!-- MODAL POST -->
+<div class="mask" id="maskPost">
+  <div class="modal">
+    <h3 id="postTitulo">Novo post</h3>
+    <div class="field"><label>Título / assunto</label>
+      <input id="pTit" placeholder="Ex.: Xis Bacon do dia"></div>
+    <div class="row">
+      <div class="field"><label>Tipo</label>
+        <select id="pTipo">
+          <option value="foto">📷 Foto</option>
+          <option value="video">🎥 Vídeo</option>
+          <option value="reels">🎬 Reels</option>
+          <option value="promo">🏷️ Promoção</option>
+          <option value="status">💬 Status</option>
+        </select></div>
+      <div class="field"><label>Horário</label>
+        <input id="pHora" placeholder="Ex.: 11h30"></div>
+    </div>
+    <div class="field"><label>Canal</label>
+      <select id="pCanal">
+        <option>Instagram</option><option>Facebook</option>
+        <option>WhatsApp Status</option><option>TikTok</option><option>Todos</option>
+      </select></div>
+    <div class="field"><label>Legenda / observação <span class="sub">(opcional)</span></label>
+      <textarea id="pObs" placeholder="Anote a ideia, a legenda ou o que vai mostrar..."></textarea></div>
+    <label class="chk"><input type="checkbox" id="pFeito"> Já publicado</label>
+    <div class="modal-acts">
+      <button class="btn btn-ghost btn-sm" id="btnExcluir" onclick="excluirPost()">Excluir</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="fecharPost()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="salvarPost()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMPANHA -->
+<div class="mask" id="maskCamp">
+  <div class="modal">
+    <h3 id="campTitulo">Nova campanha</h3>
+    <div class="field"><label>Nome da campanha</label>
+      <input id="cNome" placeholder="Ex.: Promo Festival do Xis"></div>
+    <div class="row">
+      <div class="field"><label>Início</label><input type="date" id="cIni"></div>
+      <div class="field"><label>Fim</label><input type="date" id="cFim"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Meta de vendas <span class="sub">(xis)</span></label>
+        <input type="number" id="cMeta" min="0" placeholder="500"></div>
+      <div class="field"><label>Vendidos até agora</label>
+        <input type="number" id="cFeito" min="0" placeholder="0"></div>
+    </div>
+    <div class="field"><label>Objetivo / observação <span class="sub">(opcional)</span></label>
+      <input id="cObs" placeholder="Ex.: combo xis + refri a R$ 25"></div>
+    <div class="modal-acts">
+      <button class="btn btn-ghost btn-sm" id="btnExcluirCamp" onclick="excluirCamp()">Excluir</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="fecharCamp()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="salvarCamp()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const DIAS = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+  const TIPO_EMOJI = {foto:"📷",video:"🎥",reels:"🎬",promo:"🏷️",status:"💬"};
+
+  const IDEIAS = [
+    {e:"🔥",t:"Xis do dia",d:"Foto do lanche mais pedido + chamada 'pede o seu'.",tipo:"foto"},
+    {e:"🎬",t:"Montando o xis",d:"Vídeo rápido montando o lanche, do pão à última fatia.",tipo:"reels"},
+    {e:"👀",t:"Bastidores",d:"Mostre a chapa, o preparo, a equipe. Gera proximidade.",tipo:"video"},
+    {e:"⭐",t:"Depoimento de cliente",d:"Print ou vídeo de um cliente elogiando.",tipo:"status"},
+    {e:"🏷️",t:"Promoção relâmpago",d:"Combo do dia por tempo limitado. Cria urgência.",tipo:"promo"},
+    {e:"🆕",t:"Novidade no cardápio",d:"Apresente um xis novo ou um molho da casa.",tipo:"foto"},
+    {e:"📍",t:"Onde nos achar",d:"Localização do trailer/lanchonete e horário de hoje.",tipo:"status"},
+    {e:"🗳️",t:"Enquete",d:"'Qual o melhor: xis salada ou xis bacon?' Engaja o público.",tipo:"status"},
+    {e:"🎉",t:"Festival do Xis",d:"Conteúdo ligado ao Festival e à identidade da cidade.",tipo:"foto"},
+    {e:"😋",t:"Close gourmet",d:"Foto bem de perto, queijo derretendo. Dá água na boca.",tipo:"foto"},
+  ];
+
+  const HORARIOS = [
+    {e:"☀️",hh:"11h–13h",hl:"Almoço — pico de fome"},
+    {e:"🌇",hh:"18h–20h",hl:"Jantar — maior alcance"},
+    {e:"🌙",hh:"21h–23h",hl:"Madrugada do xis (fim de semana)"},
+    {e:"📆",hh:"Sex e Sáb",hl:"Melhores dias para promo"},
+  ];
+
+  const MODELOS = [
+    p => `${p.prato} chamando seu nome! 😋🔥\nFeito na hora, do nosso jeito.\n${p.preco?`Só R$ ${p.preco} 💰\n`:""}👉 ${p.extra||"Vem garantir o seu!"}\n📍 Cidade do Xis · Santa Maria`,
+    p => `Bateu a fome? O ${p.prato} resolve. 🍔\n${p.preco?`Por apenas R$ ${p.preco}.\n`:""}${p.extra||"Chama no Zap e a gente prepara."} 🛵\n#CidadeDoXis #SantaMaria`,
+    p => `Hoje tem ${p.prato}! ⭐\nQueijo derretendo, pão na chapa e aquele capricho.\n${p.preco?`R$ ${p.preco} 🤑 `:""}${p.extra||"Marca quem você traria junto."} 👇`,
+    p => `Sexta pede ${p.prato}. 🎉\n${p.extra||"Junta a galera e vem!"}\n${p.preco?`Combo a partir de R$ ${p.preco}.\n`:""}📍 Te esperamos na Cidade do Xis.`,
+  ];
+  let legIdx = 0;
+
+  // estado
+  let posts = [];   // {id, dia(0-6), tit, tipo, hora, canal, obs, feito}
+  let camps = [];   // {id, nome, ini, fim, meta, feito, obs}
+  let editPostId = null, editDia = 0, editCampId = null;
+  const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+  /* ---------- CALENDÁRIO ---------- */
+  function renderCal(){
+    const cal = document.getElementById('cal');
+    cal.innerHTML = DIAS.map((d,i)=>{
+      const fds = i>=5;
+      const lista = posts.filter(p=>p.dia===i)
+        .map(p=>`<div class="post b-${p.tipo} ${p.feito?'feito':''}" onclick="abrirPost('${p.id}')">
+            <div class="h">${TIPO_EMOJI[p.tipo]||''} ${p.hora||''}</div>
+            <div class="tit">${esc(p.tit)}</div>
+            <div class="canal">${esc(p.canal||'')}</div>
+          </div>`).join('');
+      return `<div class="dia-col">
+        <div class="cab ${fds?'fds':''}">${d}</div>
+        <div class="posts">${lista}</div>
+        <button class="add-post" onclick="abrirPost(null,${i})">+</button>
+      </div>`;
+    }).join('');
+  }
+  function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+  function abrirPost(id, dia){
+    editPostId = id;
+    const m = document.getElementById('maskPost');
+    if(id){
+      const p = posts.find(x=>x.id===id); editDia = p.dia;
+      document.getElementById('postTitulo').textContent = 'Editar post';
+      document.getElementById('pTit').value = p.tit;
+      document.getElementById('pTipo').value = p.tipo;
+      document.getElementById('pHora').value = p.hora||'';
+      document.getElementById('pCanal').value = p.canal||'Instagram';
+      document.getElementById('pObs').value = p.obs||'';
+      document.getElementById('pFeito').checked = !!p.feito;
+      document.getElementById('btnExcluir').style.display='';
+    }else{
+      editDia = dia;
+      document.getElementById('postTitulo').textContent = 'Novo post · '+DIAS[dia];
+      document.getElementById('pTit').value='';
+      document.getElementById('pTipo').value='foto';
+      document.getElementById('pHora').value='';
+      document.getElementById('pCanal').value='Instagram';
+      document.getElementById('pObs').value='';
+      document.getElementById('pFeito').checked=false;
+      document.getElementById('btnExcluir').style.display='none';
+    }
+    m.classList.add('on');
+  }
+  function fecharPost(){document.getElementById('maskPost').classList.remove('on')}
+  function salvarPost(){
+    const tit = document.getElementById('pTit').value.trim() || 'Post';
+    const dados = {
+      tit, tipo:document.getElementById('pTipo').value,
+      hora:document.getElementById('pHora').value.trim(),
+      canal:document.getElementById('pCanal').value,
+      obs:document.getElementById('pObs').value.trim(),
+      feito:document.getElementById('pFeito').checked
+    };
+    if(editPostId){ Object.assign(posts.find(x=>x.id===editPostId), dados); }
+    else { posts.push({id:uid(), dia:editDia, ...dados}); }
+    fecharPost(); renderCal(); save();
+  }
+  function excluirPost(){
+    posts = posts.filter(x=>x.id!==editPostId);
+    fecharPost(); renderCal(); save();
+  }
+
+  /* ---------- IDEIAS ---------- */
+  function renderIdeias(){
+    document.getElementById('ideias').innerHTML = IDEIAS.map((x,i)=>
+      `<div class="ideia" style="cursor:pointer" onclick="usarIdeia(${i})" title="Adicionar ao calendário">
+        <div class="e">${x.e}</div><div class="it">${x.t}</div><div class="id">${x.d}</div>
+      </div>`).join('');
+  }
+  function usarIdeia(i){
+    const x = IDEIAS[i];
+    abrirPost(null, hojeIdx());
+    document.getElementById('pTit').value = x.t;
+    document.getElementById('pTipo').value = x.tipo;
+    document.getElementById('pObs').value = x.d;
+  }
+  function hojeIdx(){ const d=new Date().getDay(); return d===0?6:d-1; } // dom=6
+
+  /* ---------- HORÁRIOS ---------- */
+  function renderHorarios(){
+    document.getElementById('horarios').innerHTML = HORARIOS.map(h=>
+      `<div class="hbox"><div class="e">${h.e}</div><div class="hh">${h.hh}</div><div class="hl">${h.hl}</div></div>`).join('');
+  }
+
+  /* ---------- LEGENDA ---------- */
+  function initLegenda(){
+    document.getElementById('legModelo').innerHTML =
+      MODELOS.map((_,i)=>`<option value="${i}">Modelo ${i+1}</option>`).join('');
+  }
+  function gerarLegenda(){
+    legIdx = parseInt(document.getElementById('legModelo').value)||0;
+    const p = {
+      prato:document.getElementById('legPrato').value.trim()||'nosso xis',
+      preco:document.getElementById('legPreco').value.trim(),
+      extra:document.getElementById('legExtra').value.trim()
+    };
+    document.getElementById('legOut').textContent = MODELOS[legIdx](p);
+  }
+  function copiarLegenda(){
+    const t = document.getElementById('legOut').textContent;
+    navigator.clipboard?.writeText(t).then(
+      ()=>flash('📋 Legenda copiada!'),
+      ()=>flash('Selecione e copie manualmente.')
+    );
+  }
+  function flash(msg){
+    const b=document.getElementById('legOut'); const o=b.textContent;
+    b.style.outline='2px solid var(--verde)'; setTimeout(()=>b.style.outline='',700);
+  }
+
+  /* ---------- CAMPANHAS ---------- */
+  function renderCamps(){
+    const el = document.getElementById('camps');
+    if(!camps.length){ el.innerHTML='<div class="hint" style="margin:0">Nenhuma campanha ainda. Crie a primeira abaixo.</div>'; return; }
+    el.innerHTML = camps.map(c=>{
+      const pct = c.meta>0 ? Math.min(100, Math.round(c.feito/c.meta*100)) : 0;
+      const per = (c.ini||c.fim) ? `${fmtData(c.ini)} ${c.fim?'→ '+fmtData(c.fim):''}` : 'sem período';
+      return `<div class="camp" onclick="abrirCamp('${c.id}')" style="cursor:pointer">
+        <div class="ct"><div>
+          <div class="cn">${esc(c.nome)}</div>
+          <div class="cp">${per}${c.obs?' · '+esc(c.obs):''}</div>
+        </div><div style="font-size:20px;font-weight:800;color:var(--vinho)">${pct}%</div></div>
+        <div class="barra"><i style="width:${pct}%"></i></div>
+        <div class="meta-l"><span>Vendidos: <b>${c.feito||0}</b></span><span>Meta: <b>${c.meta||0}</b> xis</span></div>
+      </div>`;
+    }).join('');
+  }
+  function fmtData(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${d}/${m}`; }
+
+  function abrirCamp(id){
+    editCampId = id||null;
+    if(id){
+      const c = camps.find(x=>x.id===id);
+      document.getElementById('campTitulo').textContent='Editar campanha';
+      cVal('cNome',c.nome);cVal('cIni',c.ini);cVal('cFim',c.fim);
+      cVal('cMeta',c.meta);cVal('cFeito',c.feito);cVal('cObs',c.obs);
+      document.getElementById('btnExcluirCamp').style.display='';
+    }else{
+      document.getElementById('campTitulo').textContent='Nova campanha';
+      ['cNome','cIni','cFim','cMeta','cFeito','cObs'].forEach(x=>cVal(x,''));
+      document.getElementById('btnExcluirCamp').style.display='none';
+    }
+    document.getElementById('maskCamp').classList.add('on');
+  }
+  function cVal(id,v){document.getElementById(id).value = v==null?'':v;}
+  function fecharCamp(){document.getElementById('maskCamp').classList.remove('on')}
+  function salvarCamp(){
+    const dados = {
+      nome:document.getElementById('cNome').value.trim()||'Campanha',
+      ini:document.getElementById('cIni').value, fim:document.getElementById('cFim').value,
+      meta:parseFloat(document.getElementById('cMeta').value)||0,
+      feito:parseFloat(document.getElementById('cFeito').value)||0,
+      obs:document.getElementById('cObs').value.trim()
+    };
+    if(editCampId){ Object.assign(camps.find(x=>x.id===editCampId), dados); }
+    else { camps.push({id:uid(), ...dados}); }
+    fecharCamp(); renderCamps(); save();
+  }
+  function excluirCamp(){ camps = camps.filter(x=>x.id!==editCampId); fecharCamp(); renderCamps(); save(); }
+
+  /* ---------- PERSISTÊNCIA ---------- */
+  const KEY='cidadeXis_midias';
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify({posts,camps})); }catch(e){} }
+  function load(){
+    try{ const d=JSON.parse(localStorage.getItem(KEY)); if(d){posts=d.posts||[];camps=d.camps||[];return true;} }catch(e){}
+    return false;
+  }
+  function exemplo(){
+    posts = [
+      {id:uid(),dia:0,tit:"Xis da semana",tipo:"foto",hora:"11h30",canal:"Instagram",obs:"",feito:false},
+      {id:uid(),dia:2,tit:"Montando o xis bacon",tipo:"reels",hora:"18h",canal:"Todos",obs:"Vídeo do preparo",feito:false},
+      {id:uid(),dia:4,tit:"Promo de sexta",tipo:"promo",hora:"17h",canal:"WhatsApp Status",obs:"Combo R$25",feito:false},
+      {id:uid(),dia:5,tit:"Madrugada do xis",tipo:"status",hora:"22h",canal:"Instagram",obs:"",feito:false},
+    ];
+    camps = [
+      {id:uid(),nome:"Promo Festival do Xis",ini:"2026-11-13",fim:"2026-11-15",meta:500,feito:120,obs:"combo xis + refri R$25"},
+    ];
+  }
+  function restaurar(){ exemplo(); renderCal(); renderCamps(); save(); }
+
+  // init
+  if(!load()) exemplo();
+  renderCal(); renderIdeias(); renderHorarios(); renderCamps();
+  initLegenda(); gerarLegenda();
+
+  // fechar modal clicando fora
+  document.querySelectorAll('.mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on')}));
+</script>
+</body>
+</html>

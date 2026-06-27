@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cidade do Xis · Painel Admin</title>
+<style>
+  :root{
+    --vinho:#9c2b1d;--vinho-2:#b23a2a;--vermelho:#c0392b;
+    --laranja:#e69a2c;--amarelo:#f2b441;
+    --creme:#f6edd6;--creme-2:#fbf6e7;--verde:#6ba53f;
+    --texto:#3a2420;--texto-suave:#7a6258;--linha:#e7d8b6;
+    --sombra:0 6px 22px rgba(120,40,25,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--creme);color:var(--texto);line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  .hide{display:none!important}
+  .lock{display:flex;align-items:flex-start;justify-content:center;padding:70px 20px}
+  .lock-card{max-width:460px;text-align:center;background:#fff;border:1px solid var(--linha);
+    border-radius:20px;padding:40px 34px;box-shadow:0 20px 50px rgba(102,35,130,.14)}
+  .lock-ico{font-size:46px;display:block;margin-bottom:10px}
+  .lock-card h2{margin:0 0 10px;color:var(--vinho);font-size:22px}
+  .lock-card p{margin:0;color:var(--texto-suave);font-size:14.5px;line-height:1.6}
+  input,select,textarea{font-family:inherit;font-size:14px;color:var(--texto);background:#fff;border:1px solid var(--linha);
+    border-radius:9px;padding:9px 10px;outline:none;width:100%;transition:border-color .15s,box-shadow .15s}
+  textarea{resize:vertical;min-height:54px}
+  input:focus,select:focus,textarea:focus{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(230,154,44,.18)}
+
+  /* ===== TOPO ===== */
+  .top{background:linear-gradient(135deg,var(--vinho),var(--vinho-2));color:var(--creme-2);
+    padding:14px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--sombra);position:sticky;top:0;z-index:30}
+  .top .mark{width:36px;height:36px;border-radius:10px;background:var(--amarelo);color:var(--vinho);
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px}
+  .top .ttl{font-weight:800;font-size:18px}.top .ttl .x{color:var(--amarelo)}
+  .top .ttl small{display:block;font-weight:500;font-size:11.5px;opacity:.8}
+  .top .nivel{margin-left:auto;background:rgba(246,237,214,.14);border:1px solid rgba(246,237,214,.3);
+    border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:700}
+  .top .voltar{background:var(--creme-2);color:var(--vinho);border:none;border-radius:9px;padding:8px 14px;
+    font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}
+  /* auth */
+  .auth{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .auth input{border:none;border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;width:170px;background:rgba(255,255,255,.92);color:var(--texto)}
+  .auth .btn-auth{background:var(--amarelo);color:var(--vinho);border:none;border-radius:8px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit}
+  .auth .who{background:rgba(246,237,214,.16);border:1px solid rgba(246,237,214,.3);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700}
+  .auth .sair{background:transparent;color:var(--creme-2);border:1px solid rgba(246,237,214,.5);border-radius:8px;padding:7px 13px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
+
+  /* ===== LAYOUT ===== */
+  .shell{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 64px)}
+  .side{background:var(--creme-2);border-right:1px solid var(--linha);padding:14px 10px}
+  .side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-suave);
+    font-weight:700;padding:14px 12px 6px}
+  .side a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;
+    font-weight:600;color:var(--texto);cursor:pointer;margin-bottom:2px}
+  .side a:hover{background:var(--creme)}
+  .side a.on{background:var(--vinho);color:var(--creme-2)}
+  .side a .bdg{margin-left:auto;background:var(--laranja);color:var(--vinho);font-size:11px;font-weight:800;
+    border-radius:999px;padding:1px 8px;min-width:20px;text-align:center}
+  .side a.on .bdg{background:var(--amarelo)}
+  .main{padding:26px 28px 60px;overflow:auto}
+  @media(max-width:780px){.shell{grid-template-columns:1fr}.side{display:flex;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--linha)}.side .grp{width:100%}.side a{flex:1;min-width:130px}}
+
+  .pane{display:none}.pane.on{display:block;animation:fade .2s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .h{font-size:22px;color:var(--vinho);font-weight:800;display:flex;align-items:center;gap:10px}
+  .sub{color:var(--texto-suave);font-size:14px;margin:4px 0 20px}
+  .ico{width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--amarelo);color:var(--vinho);font-size:17px}
+
+  .card{background:var(--creme-2);border:1px solid var(--linha);border-radius:14px;padding:18px;
+    box-shadow:var(--sombra);margin-bottom:18px}
+  .card h3{font-size:15px;color:var(--vinho);font-weight:800;margin-bottom:12px}
+
+  .btn{font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border-radius:10px;padding:10px 18px;
+    border:none;transition:transform .1s,filter .15s;display:inline-flex;align-items:center;gap:7px}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--laranja);color:var(--vinho)}.btn-primary:hover{filter:brightness(1.05)}
+  .btn-verde{background:var(--verde);color:#fff}
+  .btn-vermelho{background:var(--vermelho);color:#fff}
+  .btn-ghost{background:#fff;border:1.5px solid var(--linha);color:var(--texto-suave)}
+  .btn-ghost:hover{background:var(--creme)}
+  .btn-sm{padding:7px 13px;font-size:13px}
+
+  /* listas estab */
+  .row-e{display:flex;align-items:center;gap:14px;background:var(--creme-2);border:1px solid var(--linha);
+    border-radius:12px;padding:13px 15px;margin-bottom:10px}
+  .row-e .em{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto}
+  .row-e .nm{font-weight:800;font-size:15.5px}
+  .row-e .mt{font-size:12.5px;color:var(--texto-suave);margin-top:2px}
+  .row-e .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px}
+  .pill.pend{background:#fbe6c4;color:#9a6a16}.pill.pub{background:#dcecd0;color:#487a2a}
+
+  /* upload / mídia */
+  .drop{border:2px dashed var(--laranja);border-radius:14px;background:#fff;padding:26px;text-align:center;
+    cursor:pointer;transition:background .15s}
+  .drop:hover{background:var(--creme)}
+  .drop .e{font-size:38px}
+  .drop .t{font-weight:800;color:var(--vinho);margin-top:6px}
+  .drop .d{font-size:12.5px;color:var(--texto-suave);margin-top:3px}
+  .galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-top:18px}
+  .media{background:var(--creme-2);border:1px solid var(--linha);border-radius:12px;overflow:hidden;box-shadow:var(--sombra)}
+  .media .thumb{height:120px;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+  .media .thumb img,.media .thumb video{width:100%;height:100%;object-fit:cover}
+  .media .thumb .yt{color:#fff;font-size:40px}
+  .media .badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:10.5px;
+    font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase}
+  .media .cap{padding:9px 11px}
+  .media .cap .lg{font-size:13px;font-weight:600}
+  .media .cap .meta{font-size:11px;color:var(--texto-suave);margin-top:2px}
+  .media .cap .x{float:right;color:var(--vermelho);cursor:pointer;font-weight:800}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:620px){.grid2{grid-template-columns:1fr}}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px}
+  .field label .sub{font-weight:400;color:var(--texto-suave)}
+
+  /* logos parceiros */
+  .logos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;margin-top:16px}
+  .logo-c{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:12px;text-align:center;position:relative}
+  .logo-c .img{height:64px;display:flex;align-items:center;justify-content:center}
+  .logo-c .img img{max-height:64px;max-width:100%}
+  .logo-c .nm{font-size:12px;font-weight:700;margin-top:8px;color:var(--texto)}
+  .logo-c .x{position:absolute;top:6px;right:8px;color:var(--vermelho);cursor:pointer;font-weight:800}
+
+  /* imagens do topo */
+  .topo-info{background:#fff;border:1px solid var(--linha);border-left:4px solid var(--laranja);
+    border-radius:10px;padding:12px 14px;font-size:13px;color:var(--texto-suave);margin-bottom:16px}
+  .hist-row{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--linha)}
+  .hist-row:last-child{border-bottom:none}
+  .hist-row img{width:96px;height:96px;object-fit:cover;border-radius:10px;flex:none}
+  .hist-row .hr-body{flex:1;min-width:0}
+  .hist-row .hr-nome{font-weight:800;color:var(--vinho);font-size:15px;margin-bottom:3px}
+  .hist-row .hr-texto{font-size:13.5px;color:var(--texto);white-space:pre-wrap;line-height:1.45}
+  .hist-row .hr-acoes{display:flex;flex-direction:column;gap:6px;flex:none}
+  .topo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-top:16px}
+  .topo-c{border-radius:11px;overflow:hidden;border:1px solid var(--linha);position:relative;height:150px;background:#000}
+  .topo-c img{width:100%;height:100%;object-fit:cover}
+  .topo-c .n{position:absolute;top:6px;left:6px;background:var(--amarelo);color:var(--vinho);font-weight:800;
+    font-size:11px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .topo-c .lg{position:absolute;bottom:34px;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:4px 7px}
+  .topo-c .x{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border-radius:50%;
+    width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:800}
+  .topo-c .fundo{position:absolute;bottom:6px;left:6px;right:6px;border:none;cursor:pointer;border-radius:7px;
+    font-size:11px;font-weight:800;padding:6px 8px;background:rgba(255,255,255,.92);color:var(--vinho)}
+  .topo-c.is-fundo{outline:3px solid var(--amarelo);outline-offset:-3px}
+  .topo-c.is-fundo .fundo{background:var(--amarelo);color:var(--vinho)}
+
+  /* preview de marca/identidade */
+  .brand-prev{position:relative;min-height:120px;border:1px solid var(--linha);border-radius:14px;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+    background:linear-gradient(135deg,#4a1d63,#6a2c82);overflow:hidden}
+  .brand-prev.pref{background:#f4eef9}
+  .brand-prev img{max-width:100%;max-height:150px;object-fit:contain;display:block}
+  .brand-prev .empty{color:rgba(255,255,255,.7);font-size:13px;font-weight:600}
+  .brand-prev.pref .empty{color:var(--texto-suave)}
+  .brand-prev .rm{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border:none;
+    border-radius:50%;width:26px;height:26px;cursor:pointer;font-weight:800;font-size:13px;display:flex;
+    align-items:center;justify-content:center}
+
+  /* usuários */
+  .tbl{width:100%;border-collapse:collapse}
+  .tbl th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--texto-suave);
+    font-weight:700;padding:0 10px 9px}
+  .tbl td{padding:11px 10px;border-top:1px solid var(--linha);font-size:14px}
+  .tbl .role{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--creme);color:var(--vinho)}
+  .niveis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:6px}
+  .nivel-c{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:14px}
+  .nivel-c .t{font-weight:800;color:var(--vinho);font-size:14.5px}
+  .nivel-c .d{font-size:12.5px;color:var(--texto-suave);margin-top:4px}
+
+  /* relatório / kpis */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .kpi{background:var(--creme-2);border:1px solid var(--linha);border-radius:13px;padding:16px;box-shadow:var(--sombra)}
+  .kpi .v{font-size:26px;font-weight:800;color:var(--vinho)}
+  .kpi .k{font-size:12px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--vinho);
+    color:#fff;padding:12px 20px;border-radius:11px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);
+    opacity:0;pointer-events:none;transition:all .25s;z-index:60}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* modal de edição */
+  .ovl{position:fixed;inset:0;background:rgba(40,18,30,.55);display:none;align-items:flex-start;justify-content:center;
+    z-index:80;padding:40px 16px;overflow:auto}
+  .ovl.on{display:flex}
+  .modal{background:#fff;border-radius:18px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden}
+  .modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+    background:linear-gradient(135deg,var(--vinho),var(--vinho-2));color:#fff;font-weight:800;font-size:16px}
+  .modal-x{background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:8px;
+    font-size:15px;cursor:pointer}
+  .modal-b{padding:18px 20px;max-height:64vh;overflow:auto}
+  .modal-nm{font-weight:800;color:var(--vinho);font-size:15px;margin-bottom:14px}
+  .modal-f{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--linha);background:var(--creme)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <span class="mark">X</span>
+  <div class="ttl">Painel da Cidade do <span class="x">Xis</span><small>Curadoria e gestão · acesso restrito</small></div>
+  <div class="auth" id="authOut">
+    <input id="authEmail" type="email" placeholder="seu e-mail" autocomplete="username">
+    <input id="authPass" type="password" placeholder="senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')sbEntrar()">
+    <button class="btn-auth" onclick="sbEntrar()">Entrar</button>
+  </div>
+  <div class="auth hide" id="authIn">
+    <span class="who" id="authWho">—</span>
+    <button class="sair" onclick="sbSair()">Sair</button>
+  </div>
+  <button class="voltar" onclick="window.location.href='cidade-do-xis.html'">↩ Voltar ao site</button>
+</div>
+
+<div class="lock" id="lockScreen">
+  <div class="lock-card">
+    <span class="lock-ico">🔒</span>
+    <h2>Acesso restrito</h2>
+    <p>Esta é a área de curadoria e gestão da Cidade do Xis. Faça login com o e-mail e a senha da equipe (campo no topo da página) para acessar o painel.</p>
+  </div>
+</div>
+
+<div class="shell hide" id="shell">
+  <aside class="side">
+    <div class="grp">Curadoria</div>
+    <a class="on" data-p="pendentes" onclick="tab('pendentes')">⏳ Pendentes <span class="bdg" id="bdgPend">0</span></a>
+    <a data-p="publicados" onclick="tab('publicados')">✅ Publicados <span class="bdg" id="bdgPub">0</span></a>
+    <div class="grp">Mídia</div>
+    <a data-p="marca" onclick="tab('marca')">🎨 Marca / Identidade</a>
+    <a data-p="midia" onclick="tab('midia')">🖼️ Fotos e vídeos</a>
+    <a data-p="topo" onclick="tab('topo')">🏞️ Imagens da capa</a>
+    <a data-p="destaques" onclick="tab('destaques')">🏆 Destaques do Festival</a>
+    <a data-p="festival" onclick="tab('festival')">🎞️ Galeria do Festival</a>
+    <a data-p="historias" onclick="tab('historias')">📖 Histórias do Xis <span class="bdg" id="bdgHist">0</span></a>
+    <a data-p="parceiros" onclick="tab('parceiros')">🤝 Logos / Parceiros</a>
+    <div class="grp">Gestão</div>
+    <a data-p="usuarios" onclick="tab('usuarios')">👥 Usuários</a>
+    <a data-p="relatorio" onclick="tab('relatorio')">📊 Relatório</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- PENDENTES -->
+    <section class="pane on" id="p-pendentes">
+      <div class="h"><span class="ico">⏳</span> Estabelecimentos pendentes</div>
+      <div class="sub">Cadastros enviados pelo público aguardando curadoria. Aprove para publicar na vitrine.</div>
+
+      <div class="card">
+        <h3>➕ Cadastrar estabelecimento</h3>
+        <div class="sub" style="margin:-2px 0 12px">O endereço é convertido automaticamente em coordenadas para aparecer no mapa. Se preferir, cole a Latitude e a Longitude (do Google Maps) — quando preenchidas, elas têm prioridade.</div>
+        <div class="grid2">
+          <div>
+            <div class="field"><label>Nome *</label><input id="nNome" placeholder="Ex.: Xis do Viaduto"></div>
+            <div class="field"><label>Categoria</label>
+              <select id="nCat"><option>Trailer</option><option>Lanchonete</option><option>Restaurante</option></select></div>
+            <div class="field"><label>Bairro</label><input id="nBairro" placeholder="Ex.: Passo d'Areia"></div>
+            <div class="field"><label>Especialidade</label><input id="nEsp" placeholder="Ex.: Xis Calabresa"></div>
+          </div>
+          <div>
+            <div class="field"><label>Endereço completo *</label><input id="nEnd" placeholder="Rua, número, bairro"></div>
+            <div class="field"><label>Telefone / contato</label><input id="nTel" placeholder="(55) 9....."></div>
+            <div class="field"><label>Emoji</label><input id="nEmoji" placeholder="🌯" maxlength="2" style="width:80px"></div>
+            <div class="grid2" style="gap:10px">
+              <div class="field"><label>Latitude (opcional)</label><input id="nLat" placeholder="-29.68680"></div>
+              <div class="field"><label>Longitude (opcional)</label><input id="nLng" placeholder="-53.81490"></div>
+            </div>
+            <div id="nGeo" style="font-size:12.5px;color:var(--texto-suave);min-height:18px"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="nBtn" onclick="novoEstab()">📍 Cadastrar e localizar</button>
+      </div>
+
+      <div id="listaPend"></div>
+    </section>
+
+    <!-- PUBLICADOS -->
+    <section class="pane" id="p-publicados">
+      <div class="h"><span class="ico">✅</span> Estabelecimentos publicados</div>
+      <div class="sub">Visíveis na vitrine pública. Você pode despublicar a qualquer momento.</div>
+      <div id="listaPub"></div>
+    </section>
+
+    <!-- MARCA / IDENTIDADE -->
+    <section class="pane" id="p-marca">
+      <div class="h"><span class="ico">🎨</span> Marca / Identidade</div>
+      <div class="sub">Carregue o logo da Cidade do Xis (aparece no emblema da capa) e a logomarca da Prefeitura (aparece no cabeçalho do site).</div>
+      <div class="topo-info">📐 Recomendado: arquivos <b>PNG com fundo transparente</b> (ou SVG). Logo da Cidade do Xis na vertical/quadrado; logomarca da Prefeitura na horizontal. As imagens aparecem no site assim que você as envia.</div>
+
+      <div class="card">
+        <h3>🍔 Logo da Cidade do Xis <span class="sub">— emblema central da capa</span></h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" onclick="document.getElementById('inLogoXis').click()">
+              <div class="e">🍔</div><div class="t">Escolher logo da Cidade do Xis</div>
+              <div class="d">PNG transparente, JPG ou SVG</div>
+            </div>
+            <input type="file" id="inLogoXis" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="hide" onchange="addBrand('logo_site',this.files)">
+          </div>
+          <div>
+            <div style="font-size:12.5px;color:var(--texto-suave);margin-bottom:8px">Logo atual:</div>
+            <div class="brand-prev" id="prevLogoXis"><span class="empty">Nenhum logo enviado</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🏛️ Logomarca da Prefeitura <span class="sub">— cabeçalho do site</span></h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" onclick="document.getElementById('inLogoPref').click()">
+              <div class="e">🏛️</div><div class="t">Escolher logomarca da Prefeitura</div>
+              <div class="d">PNG transparente, JPG ou SVG</div>
+            </div>
+            <input type="file" id="inLogoPref" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="hide" onchange="addBrand('logo_prefeitura',this.files)">
+          </div>
+          <div>
+            <div style="font-size:12.5px;color:var(--texto-suave);margin-bottom:8px">Logomarca atual:</div>
+            <div class="brand-prev pref" id="prevLogoPref"><span class="empty">Nenhuma logomarca enviada</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÍDIA -->
+    <section class="pane" id="p-midia">
+      <div class="h"><span class="ico">🖼️</span> Fotos e vídeos</div>
+      <div class="sub">Importe imagens e vídeos para a galeria "A cidade em movimento". Até 50 MB por arquivo.</div>
+      <div class="card">
+        <h3>Importar arquivo</h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" onclick="document.getElementById('inMedia').click()">
+              <div class="e">📤</div>
+              <div class="t">Clique para escolher foto ou vídeo</div>
+              <div class="d">JPG, PNG, MP4, MOV — até 50 MB</div>
+            </div>
+            <input type="file" id="inMedia" accept="image/*,video/*" multiple class="hide" onchange="addMedia(this.files)">
+          </div>
+          <div>
+            <div class="field"><label>Legenda <span class="sub">(aplicada ao próximo upload)</span></label>
+              <input id="mLeg" placeholder="Ex.: Festival do Xis 2026"></div>
+            <div class="field"><label>Ou cole um link do YouTube</label>
+              <input id="mYt" placeholder="https://youtube.com/watch?v=..."></div>
+            <button class="btn btn-primary btn-sm" onclick="addYoutube()">+ Adicionar vídeo do YouTube</button>
+          </div>
+        </div>
+      </div>
+      <div class="galeria" id="galeria"></div>
+    </section>
+
+    <!-- IMAGENS DO TOPO -->
+    <section class="pane" id="p-topo">
+      <div class="h"><span class="ico">🏞️</span> Imagens da capa</div>
+      <div class="sub">Fotos verticais que emolduram a tela de capa, nas laterais (esquerda e direita do hero) da página inicial.</div>
+      <div class="topo-info">📐 Recomendado: fotos na <b>vertical (retrato)</b>, boa resolução, JPG ou PNG. Use até <b>6 imagens</b> — elas se alternam entre os lados (E/D) na ordem em que são adicionadas. As imagens aparecem na capa do site assim que você as adiciona.</div>
+      <div class="card">
+        <h3>Adicionar imagem da capa</h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" onclick="document.getElementById('inTopo').click()">
+              <div class="e">🖼️</div><div class="t">Escolher foto vertical</div>
+              <div class="d">JPG ou PNG · retrato</div>
+            </div>
+            <input type="file" id="inTopo" accept="image/*" class="hide" onchange="addTopo(this.files)">
+          </div>
+          <div>
+            <div class="field"><label>Legenda / local <span class="sub">(opcional)</span></label>
+              <input id="tLeg" placeholder="Ex.: Praça Saldanha Marinho"></div>
+            <div style="font-size:12.5px;color:var(--texto-suave)">Imagens cadastradas: <b id="topoCount">0</b> / 6</div>
+          </div>
+        </div>
+      </div>
+      <div class="topo-grid" id="topoGrid"></div>
+    </section>
+
+    <!-- DESTAQUES DO FESTIVAL -->
+    <section class="pane" id="p-destaques">
+      <div class="h"><span class="ico">🏆</span> Destaques do último Festival do XIS</div>
+      <div class="sub">Até 4 cards manuais que aparecem em destaque na capa do site. Cada destaque tem foto e textos próprios.</div>
+      <div class="topo-info">📐 Recomendado: foto <b>horizontal</b>, boa resolução, JPG ou PNG. Use até <b>4 destaques</b> — eles aparecem na ordem em que são adicionados. Se nenhum destaque for cadastrado, a seção fica oculta no site.</div>
+      <div class="card">
+        <h3>Adicionar destaque</h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" onclick="document.getElementById('inDest').click()">
+              <div class="e">🏆</div><div class="t">Escolher foto do destaque</div>
+              <div class="d">JPG ou PNG · paisagem</div>
+            </div>
+            <input type="file" id="inDest" accept="image/*" class="hide" onchange="dPrev(this.files)">
+            <img id="dPrev" class="hide" style="margin-top:10px;width:100%;max-height:150px;object-fit:cover;border-radius:11px">
+          </div>
+          <div>
+            <div class="field"><label>Nome do Xis</label><input id="dNome" placeholder="Ex.: Xis do Gaúcho"></div>
+            <div class="field"><label>Especialidade</label><input id="dEsp" placeholder="Ex.: Xis Cavalo lendário"></div>
+            <div class="grid2">
+              <div class="field"><label>Bairro</label><input id="dBairro" placeholder="Ex.: Centro"></div>
+              <div class="field"><label>Horário</label><input id="dHora" placeholder="Ex.: 18h–01h"></div>
+            </div>
+            <div class="field"><label>Categoria</label>
+              <select id="dCat"><option>Trailer</option><option>Lanchonete</option><option>Restaurante</option></select></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="addDestaque()">Adicionar destaque</button>
+            <div style="font-size:12.5px;color:var(--texto-suave);margin-top:8px">Destaques cadastrados: <b id="destCount">0</b> / 4</div>
+          </div>
+        </div>
+      </div>
+      <div class="topo-grid" id="destGrid"></div>
+    </section>
+
+    <!-- GALERIA DO FESTIVAL -->
+    <section class="pane" id="p-festival">
+      <div class="h"><span class="ico">🎞️</span> Galeria do Festival do XIS</div>
+      <div class="sub">Fotos e vídeos que aparecem na página pública “Festival do XIS”. Aparecem na ordem em que são adicionados.</div>
+      <div class="topo-info">📐 Fotos: JPG ou PNG, de preferência <b>horizontais</b> e em boa resolução. Vídeos: cole o <b>link do YouTube</b> — o vídeo abre dentro do site.</div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Adicionar foto</h3>
+          <div class="drop" onclick="document.getElementById('inFest').click()">
+            <div class="e">📷</div><div class="t">Escolher foto</div>
+            <div class="d">JPG ou PNG · paisagem</div>
+          </div>
+          <input type="file" id="inFest" accept="image/*" class="hide" onchange="fmPrev(this.files)">
+          <img id="fmPrev" class="hide" style="margin-top:10px;width:100%;max-height:150px;object-fit:cover;border-radius:11px">
+          <div class="field" style="margin-top:10px"><label>Legenda <span class="sub">(opcional)</span></label><input id="fmLegFoto" placeholder="Ex.: Abertura do Festival 2025"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="addFestFoto()">Adicionar foto</button>
+        </div>
+        <div class="card">
+          <h3>Adicionar vídeo (YouTube)</h3>
+          <div class="field"><label>Link do YouTube</label><input id="fmYt" placeholder="https://youtube.com/watch?v=..."></div>
+          <div class="field"><label>Legenda <span class="sub">(opcional)</span></label><input id="fmLegVid" placeholder="Ex.: Melhores momentos"></div>
+          <button class="btn btn-primary btn-sm" onclick="addFestVideo()">Adicionar vídeo</button>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--texto-suave);margin:6px 2px 0">Itens na galeria: <b id="festCount">0</b></div>
+      <div class="topo-grid" id="festGridAdm"></div>
+    </section>
+
+    <!-- HISTÓRIAS DO XIS (curadoria) -->
+    <section class="pane" id="p-historias">
+      <div class="h"><span class="ico">📖</span> Histórias do Xis</div>
+      <div class="sub">Histórias enviadas pelo público. Aprove para publicá-las no mural; só as aprovadas aparecem no site.</div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>⏳ Pendentes <span class="bdg" id="histPendCount">0</span></h3>
+        <div id="histListaPend"></div>
+      </div>
+      <div class="card">
+        <h3>✅ Publicadas <span class="bdg" id="histPubCount">0</span></h3>
+        <div id="histListaPub"></div>
+      </div>
+    </section>
+
+    <!-- PARCEIROS / LOGOS -->
+    <section class="pane" id="p-parceiros">
+      <div class="h"><span class="ico">🤝</span> Logos e parceiros</div>
+      <div class="sub">Logos de parceiros institucionais (Prefeitura, entidades, patrocinadores).</div>
+      <div class="card">
+        <h3>Adicionar parceiro</h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" id="lDrop" onclick="document.getElementById('inLogo').click()">
+              <div class="e">🏷️</div><div class="t">Escolher logo</div>
+              <div class="d">PNG, JPG ou SVG</div>
+            </div>
+            <img id="lPrev" class="hide" style="max-width:160px;max-height:120px;margin-top:10px;border-radius:10px">
+            <input type="file" id="inLogo" accept="image/png,image/jpeg,image/svg+xml" class="hide" onchange="lPrev(this.files)">
+          </div>
+          <div>
+            <div class="field"><label>Nome do parceiro</label><input id="lNome" placeholder="Ex.: Prefeitura de Santa Maria"></div>
+            <div class="field"><label>Link <span class="sub">(opcional)</span></label><input id="lLink" placeholder="https://..."></div>
+            <button class="btn btn-primary btn-sm" onclick="addLogo()">Adicionar parceiro</button>
+          </div>
+        </div>
+      </div>
+      <div class="logos" id="logosGrid"></div>
+    </section>
+
+    <!-- USUÁRIOS -->
+    <section class="pane" id="p-usuarios">
+      <div class="h"><span class="ico">👥</span> Usuários e níveis de acesso</div>
+      <div class="sub">Controle quem acessa o painel e o que cada pessoa pode fazer.</div>
+      <div class="card">
+        <h3>Conceder acesso</h3>
+        <div class="grid2">
+          <div class="field"><label>E-mail</label><input id="uEmail" placeholder="pessoa@email.com"></div>
+          <div class="field"><label>Nome</label><input id="uNome" placeholder="Nome da pessoa"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Nível de acesso</label>
+            <select id="uNivel">
+              <option value="Administrador total">Administrador total</option>
+              <option value="Editor">Editor de estabelecimentos</option>
+              <option value="Curador">Curador</option>
+              <option value="Visualizador">Visualizador / Relatórios</option>
+            </select></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addUser()">Salvar acesso</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Acessos cadastrados</h3>
+        <table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Nível</th><th></th></tr></thead>
+          <tbody id="userTbody"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>O que cada nível pode fazer</h3>
+        <div class="niveis">
+          <div class="nivel-c"><div class="t">Administrador total</div><div class="d">Acesso a tudo, inclusive financeiro e gestão de usuários.</div></div>
+          <div class="nivel-c"><div class="t">Editor de estabelecimentos</div><div class="d">Cadastra, edita e aprova estabelecimentos (sem financeiro).</div></div>
+          <div class="nivel-c"><div class="t">Curador</div><div class="d">Apenas aprova ou rejeita cadastros pendentes.</div></div>
+          <div class="nivel-c"><div class="t">Visualizador / Relatórios</div><div class="d">Apenas visualiza relatórios e gestão.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RELATÓRIO -->
+    <section class="pane" id="p-relatorio">
+      <div class="h"><span class="ico">📊</span> Relatório</div>
+      <div class="sub">Visão geral da Cidade do Xis.</div>
+      <div class="kpis" id="kpis"></div>
+      <div class="card" style="margin-top:18px">
+        <h3>Estabelecimentos por categoria</h3>
+        <div id="porCat"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Estabelecimentos por bairro</h3>
+        <div id="porBairro"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Estabelecimentos por rua</h3>
+        <div id="porRua"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL: editar estabelecimento -->
+<div class="ovl" id="editOvl">
+  <div class="modal">
+    <div class="modal-h">
+      <span>Editar estabelecimento</span>
+      <button class="modal-x" onclick="fecharEditar()">✕</button>
+    </div>
+    <div class="modal-b">
+      <div class="modal-nm" id="edNomeTit">—</div>
+      <div class="field">
+        <label>Imagem do estabelecimento</label>
+        <div class="drop" onclick="document.getElementById('edFoto').click()">
+          <div class="e">📷</div><div class="t">Trocar foto</div><div class="d">PNG, JPG ou WEBP · até 5MB</div>
+        </div>
+        <img id="edPrev" class="hide" style="max-width:200px;max-height:140px;margin-top:10px;border-radius:10px">
+        <input type="file" id="edFoto" accept="image/png,image/jpeg,image/webp" class="hide" onchange="edPrev(this.files)">
+      </div>
+      <div class="field"><label>Endereço</label><input id="edEndereco" placeholder="Rua, número, bairro"></div>
+      <div class="field"><label>Contato telefônico</label><input id="edTelefone" placeholder="(55) 99999-0000"></div>
+      <div class="field"><label>Site</label><input id="edSite" placeholder="https://..."></div>
+      <div class="field"><label>Instagram <span class="sub">(@usuário ou link do perfil)</span></label><input id="edInstagram" placeholder="@meu_xis"></div>
+      <div class="field">
+        <label>Localização no mapa <span class="sub">(Latitude e Longitude — copie do Google Maps)</span></label>
+        <div class="grid2" style="gap:10px">
+          <input id="edLat" placeholder="Latitude · -29.68680">
+          <input id="edLng" placeholder="Longitude · -53.81490">
+        </div>
+        <div id="edGeoMsg" class="sub" style="margin-top:6px">Deixe em branco para manter as coordenadas atuais.</div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-ghost btn-sm" onclick="fecharEditar()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="salvarEstab()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ===== CONEXÃO SUPABASE =====
+  const SUPABASE_URL = 'https://hlstcndhxzhdzbecfrhp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr';
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  const GOOGLE_MAPS_KEY = 'AIzaSyCCiI3RpPsrF4fx50QAmOtX5rVmj5rx7YM';
+
+  // Endereço -> {lat,lng}. Tenta o Google e, se falhar, usa o OpenStreetMap (gratuito,
+  // sem chave). Assim o Xis é localizado automaticamente mesmo que a "Geocoding API"
+  // do Google não esteja ativada na chave.
+  async function geocodeEndereco(endereco){
+    if(!endereco) return null;
+    const alvo = endereco + ', Santa Maria, RS, Brasil';
+    // 1) Google
+    if(GOOGLE_MAPS_KEY){
+      try{
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(alvo)}&key=${GOOGLE_MAPS_KEY}`;
+        const r = await fetch(url); const j = await r.json();
+        if(j.status === 'OK' && j.results && j.results[0]){
+          const loc = j.results[0].geometry.location;
+          return { lat: loc.lat, lng: loc.lng, formatado: j.results[0].formatted_address };
+        }
+      }catch(e){ /* cai para o reserva */ }
+    }
+    // 2) Reserva gratuito: OpenStreetMap / Nominatim
+    try{
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=${encodeURIComponent(alvo)}`;
+      const r = await fetch(url, { headers: { 'Accept':'application/json' } });
+      const arr = await r.json();
+      if(Array.isArray(arr) && arr[0] && arr[0].lat && arr[0].lon){
+        return { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon),
+                 formatado: arr[0].display_name || alvo };
+      }
+      return { erro: 'endereço não encontrado' };
+    }catch(e){ return { erro: 'rede' }; }
+  }
+
+  // ===== DADOS =====
+  let pendentes = [
+    {id:101, nome:"Xis do Viaduto", cat:"Trailer", bairro:"Passo d'Areia", esp:"Xis Calabresa", emoji:"🌯", cor:"#e69a2c", contato:"(55) 99888-1010"},
+    {id:102, nome:"Tancredo Lanches", cat:"Lanchonete", bairro:"Tancredo Neves", esp:"Xis Duplo", emoji:"🍔", cor:"#6ba53f", contato:"(55) 99888-2020"},
+  ];
+  let publicados = [
+    {id:1, nome:"Xis do Gaúcho", cat:"Trailer", bairro:"Centro", esp:"Xis Cavalo", emoji:"🌯", cor:"#e69a2c"},
+    {id:3, nome:"Camobi Lanches", cat:"Lanchonete", bairro:"Camobi", esp:"Xis universitário", emoji:"🍔", cor:"#6ba53f"},
+    {id:4, nome:"Xis do Patronato", cat:"Trailer", bairro:"Patronato", esp:"Xis Coração", emoji:"🌭", cor:"#b23a2a"},
+    {id:8, nome:"Medianeira Burguer", cat:"Trailer", bairro:"Medianeira", esp:"Xis artesanal", emoji:"🚐", cor:"#b23a2a"},
+  ];
+  let midia = [];   // {id,tipo:'img'|'video'|'yt',url,leg}
+  let topo = [];    // {id,url,leg} — carregado do Supabase (tabela imagens_capa)
+  let destaques = []; // {id,foto,nome,esp,bairro,hora,cat,nota} — tabela destaques_festival
+  let destFile = null; // arquivo de foto selecionado para o destaque
+  let sbUser = null;
+  let logos = [];   // {id,url,nome,link}
+  let usuarios = [
+    {nome:"Ronie Gabbi", email:"ronie.gabbi74@gmail.com", nivel:"Administrador total"},
+    {nome:"Curadoria SMTur", email:"curadoria@santamaria.rs.gov.br", nivel:"Curador"},
+  ];
+  const uid=()=>Date.now()+Math.floor(Math.random()*1000);
+
+  // ===== NAV =====
+  function tab(p){
+    document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('on', x.id==='p-'+p));
+    document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on', a.dataset.p===p));
+    if(p==='relatorio') renderRel();
+    window.scrollTo({top:0});
+  }
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+    clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200);}
+
+  // ===== CURADORIA =====
+  function rowEstab(e, tipo){
+    const acts = (tipo==='pend'
+      ? `<button class="btn btn-verde btn-sm" onclick="aprovar('${e.id}')">✓ Aprovar</button>
+         <button class="btn btn-vermelho btn-sm" onclick="rejeitar('${e.id}')">✕ Rejeitar</button>`
+      : `<button class="btn btn-ghost btn-sm" onclick="despublicar('${e.id}')">Despublicar</button>`)
+      + `<button class="btn btn-primary btn-sm" onclick="editarEstab('${e.id}')">Editar</button>`
+      + `<button class="btn btn-ghost btn-sm" onclick="exportarPDF('${e.id}')">Exportar PDF</button>`;
+    const pill = tipo==='pend' ? '<span class="pill pend">Pendente</span>' : '<span class="pill pub">Publicado</span>';
+    const det = [e.cat, e.bairro, e.esp].filter(Boolean).join(' · ');
+    const sub = [det, e.contato, e.responsavel?('Resp.: '+e.responsavel):''].filter(Boolean).join(' · ');
+    return `<div class="row-e">
+      <div class="em" style="background:linear-gradient(135deg,${esc(e.cor)}33,${esc(e.cor)}11)">${esc(e.emoji||'X')}</div>
+      <div><div class="nm">${esc(e.nome)} ${pill}</div>
+        <div class="mt">${esc(sub)}</div></div>
+      <div class="acts">${acts}</div></div>`;
+  }
+  function renderCuradoria(){
+    document.getElementById('listaPend').innerHTML = pendentes.length
+      ? pendentes.map(e=>rowEstab(e,'pend')).join('')
+      : '<div class="card" style="text-align:center;color:var(--texto-suave)">Nenhum cadastro pendente. 🎉</div>';
+    document.getElementById('listaPub').innerHTML = publicados.map(e=>rowEstab(e,'pub')).join('');
+    document.getElementById('bdgPend').textContent = pendentes.length;
+    document.getElementById('bdgPub').textContent = publicados.length;
+  }
+  async function aprovar(id){const i=pendentes.findIndex(e=>e.id===id);if(i<0)return;
+    const e=pendentes.splice(i,1)[0];publicados.push(e);renderCuradoria();
+    const upd={status:'publicado'};
+    // Sem coordenadas: tenta localizar pelo endereço, senão o Xis fica invisível no mapa
+    if((e.latitude==null||e.longitude==null) && e.endereco){
+      toast('📍 Localizando "'+e.nome+'" no mapa…');
+      const geo=await geocodeEndereco(e.endereco);
+      if(geo && geo.lat!=null){ upd.latitude=geo.lat; upd.longitude=geo.lng; e.latitude=geo.lat; e.longitude=geo.lng; }
+    }
+    if(SB && e.dbId){ try{ await SB.from('estabelecimentos').update(upd).eq('id',e.dbId); }catch(err){} }
+    toast((e.latitude!=null&&e.longitude!=null)
+      ? '✅ "'+e.nome+'" publicado na vitrine e no mapa'
+      : '⚠️ "'+e.nome+'" publicado — adicione Lat/Lng (Editar) para aparecer no mapa');}
+  function rejeitar(id){const i=pendentes.findIndex(e=>e.id===id);if(i<0)return;
+    const e=pendentes.splice(i,1)[0];renderCuradoria();toast('Cadastro de "'+e.nome+'" rejeitado');
+    if(SB && e.dbId) SB.from('estabelecimentos').update({status:'rejeitado'}).eq('id',e.dbId).then(()=>{});}
+  function despublicar(id){const i=publicados.findIndex(e=>e.id===id);if(i<0)return;
+    const e=publicados.splice(i,1)[0];pendentes.push(e);renderCuradoria();toast('"'+e.nome+'" voltou para pendentes');
+    if(SB && e.dbId) SB.from('estabelecimentos').update({status:'pendente'}).eq('id',e.dbId).then(()=>{});}
+
+  // ===== EDITAR ESTABELECIMENTO =====
+  let editId=null, editFotoFile=null;
+  // normaliza o Instagram para um link completo do perfil
+  function linkInsta(v){
+    v=String(v||'').trim(); if(!v) return '';
+    if(/^https?:\/\//i.test(v)) return v;
+    return 'https://instagram.com/'+v.replace(/^@/,'').replace(/^.*instagram\.com\//i,'');
+  }
+  function linkSite(v){
+    v=String(v||'').trim(); if(!v) return '';
+    return /^https?:\/\//i.test(v) ? v : 'https://'+v;
+  }
+  function edPrev(files){
+    const f=files&&files[0]; if(!f)return;
+    if(f.size>5*1024*1024){toast('⚠️ Máximo 5MB');return;}
+    editFotoFile=f;
+    const p=document.getElementById('edPrev');
+    p.src=URL.createObjectURL(f); p.classList.remove('hide');
+  }
+  function editarEstab(id){
+    const e=pendentes.find(x=>String(x.id)===String(id))||publicados.find(x=>String(x.id)===String(id));
+    if(!e){toast('Cadastro não encontrado');return;}
+    editId=id; editFotoFile=null;
+    document.getElementById('edNomeTit').textContent=e.nome||'—';
+    document.getElementById('edEndereco').value=e.endereco||'';
+    document.getElementById('edTelefone').value=e.telefone||'';
+    document.getElementById('edSite').value=e.site||'';
+    document.getElementById('edInstagram').value=e.instagram||'';
+    document.getElementById('edLat').value=(e.latitude!=null?e.latitude:'');
+    document.getElementById('edLng').value=(e.longitude!=null?e.longitude:'');
+    document.getElementById('edGeoMsg').textContent=(e.latitude!=null&&e.longitude!=null)
+      ? '📍 Já localizado. Edite para reposicionar no mapa.'
+      : '⚠️ Sem coordenadas — cole a Latitude e a Longitude para aparecer no mapa.';
+    const p=document.getElementById('edPrev');
+    if(e.foto){ p.src=e.foto; p.classList.remove('hide'); } else { p.src=''; p.classList.add('hide'); }
+    document.getElementById('edFoto').value='';
+    document.getElementById('editOvl').classList.add('on');
+  }
+  function fecharEditar(){ document.getElementById('editOvl').classList.remove('on'); editId=null; editFotoFile=null; }
+  async function salvarEstab(){
+    if(!editId) return;
+    const e=pendentes.find(x=>String(x.id)===String(editId))||publicados.find(x=>String(x.id)===String(editId));
+    if(!e){toast('Cadastro não encontrado');return;}
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para editar');return;}
+    const upd={
+      endereco:document.getElementById('edEndereco').value.trim()||null,
+      telefone:document.getElementById('edTelefone').value.trim()||null,
+      site:linkSite(document.getElementById('edSite').value)||null,
+      instagram:linkInsta(document.getElementById('edInstagram').value)||null
+    };
+    // Coordenadas: em branco = manter as atuais. Preenchidas = validar e atualizar.
+    const latRaw=document.getElementById('edLat').value.trim().replace(',','.');
+    const lngRaw=document.getElementById('edLng').value.trim().replace(',','.');
+    if(latRaw!=='' || lngRaw!==''){
+      const lat=parseFloat(latRaw), lng=parseFloat(lngRaw);
+      if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){
+        toast('⚠️ Latitude/Longitude inválidas'); return;
+      }
+      upd.latitude=lat; upd.longitude=lng;
+    }
+    toast('Salvando…');
+    try{
+      if(editFotoFile){
+        const ext=(editFotoFile.name.split('.').pop()||'jpg').toLowerCase();
+        const path=`cadastros/${Date.now()}.${ext}`;
+        const up=await SB.storage.from('estabelecimentos').upload(path,editFotoFile,{cacheControl:'3600',upsert:false,contentType:editFotoFile.type});
+        if(up.error) throw up.error;
+        const {data:pub}=SB.storage.from('estabelecimentos').getPublicUrl(path);
+        upd.foto=pub.publicUrl;
+      }
+      const r=await SB.from('estabelecimentos').update(upd).eq('id',e.dbId||editId);
+      if(r.error) throw r.error;
+      fecharEditar();
+      await loadCuradoria();
+      toast('Estabelecimento atualizado ✓');
+    }catch(err){ toast('❌ '+(err.message||'Falha ao salvar')); }
+  }
+
+  // Carrega pendentes e publicados do Supabase (inclui dados do responsável, só visíveis à equipe)
+  async function loadCuradoria(){
+    if(!SB) return; // offline: mantém os dados de exemplo
+    try{
+      const {data,error} = await SB.from('estabelecimentos')
+        .select('id,nome,categoria,bairro,especialidade,emoji,cor,foto,telefone,endereco,site,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
+        .in('status',['pendente','publicado'])
+        .order('criado_em',{ascending:false});
+      if(error || !Array.isArray(data)) return;
+      const map = r => {
+        const rr = r.estabelecimento_responsavel;
+        const resp = Array.isArray(rr) ? (rr[0]||{}) : (rr||{});
+        return { id:r.id, dbId:r.id, nome:r.nome, cat:r.categoria||'', categoria:r.categoria||'',
+          bairro:r.bairro||'', esp:r.especialidade||'', especialidade:r.especialidade||'',
+          emoji:r.emoji||'', cor:r.cor||'#662382', foto:r.foto||'',
+          contato:r.telefone||'', telefone:r.telefone||'',
+          endereco:r.endereco||'', site:r.site||'', instagram:r.instagram||'',
+          facebook:r.facebook||'', whatsapp:r.whatsapp||'',
+          latitude:r.latitude, longitude:r.longitude,
+          criado_em:r.criado_em,
+          responsavel:resp.responsavel||'', cpf:resp.cpf||'', cnpj:resp.cnpj||'' };
+      };
+      pendentes  = data.filter(r=>r.status==='pendente').map(map);
+      publicados = data.filter(r=>r.status==='publicado').map(map);
+      renderCuradoria();
+    }catch(e){}
+  }
+
+  // Exporta o cadastro em PDF (abre uma janela pronta para "Salvar como PDF")
+  function exportarPDF(id){
+    const e = pendentes.find(x=>x.id===id) || publicados.find(x=>x.id===id);
+    if(!e){ toast('Cadastro não encontrado'); return; }
+    const coords = (e.latitude!=null && e.longitude!=null)
+      ? Number(e.latitude).toFixed(5)+', '+Number(e.longitude).toFixed(5) : 'não localizado';
+    const status = publicados.indexOf(e)>=0 ? 'Publicado' : 'Pendente';
+    const linha = (k,v)=>`<tr><td class="k">${esc(k)}</td><td>${esc(v||'—')}</td></tr>`;
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const html = `<!doctype html><html lang="pt-br"><head><meta charset="utf-8">
+      <title>Cadastro - ${esc(e.nome)}</title>
+      <style>
+        *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#23123a;margin:0;padding:40px}
+        .hd{border-bottom:3px solid #662382;padding-bottom:14px;margin-bottom:22px}
+        .hd h1{margin:0;font-size:22px;color:#662382} .hd .s{font-size:12px;color:#777;margin-top:4px}
+        h2{font-size:14px;color:#E5006D;margin:22px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+        table{width:100%;border-collapse:collapse} td{padding:9px 10px;border-bottom:1px solid #eee;font-size:13.5px;vertical-align:top}
+        td.k{width:210px;color:#888;font-weight:bold} .ft{margin-top:30px;font-size:11px;color:#999;text-align:center}
+        .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:bold;background:#f3e8fb;color:#662382}
+      </style></head>
+      <body onload="window.print()">
+        <div class="hd"><h1>Cadastro — Cidade do Xis</h1>
+          <div class="s">Santa Maria · RS &nbsp;·&nbsp; Emitido em ${hoje} &nbsp;·&nbsp; <span class="badge">${status}</span></div></div>
+        <h2>Estabelecimento</h2>
+        <table>
+          ${linha('Nome do Xis', e.nome)}
+          ${linha('Categoria', e.cat)}
+          ${linha('Telefone do Xis', e.telefone)}
+          ${linha('Endereço do Xis', e.endereco)}
+          ${linha('Coordenadas (mapa)', coords)}
+        </table>
+        <h2>Responsável</h2>
+        <table>
+          ${linha('Nome do Responsável', e.responsavel)}
+          ${linha('CPF do Responsável', e.cpf)}
+          ${linha('CNPJ do Xis', e.cnpj)}
+        </table>
+        <div class="ft">Documento gerado pela plataforma Cidade do Xis — uso interno da curadoria.</div>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    if(!w){ toast('Permita pop-ups para exportar o PDF'); return; }
+    w.document.write(html); w.document.close();
+  }
+
+  // ===== NOVO ESTABELECIMENTO (com geocodificação) =====
+  async function novoEstab(){
+    const g=id=>document.getElementById(id);
+    const nome=g('nNome').value.trim(), endereco=g('nEnd').value.trim();
+    if(!nome || !endereco){ toast('⚠️ Informe nome e endereço'); return; }
+    const cat=g('nCat').value, bairro=g('nBairro').value.trim(), esp=g('nEsp').value.trim();
+    const tel=g('nTel').value.trim(), emoji=g('nEmoji').value.trim()||'🌯';
+    const nota=g('nGeo'), btn=g('nBtn');
+    // Latitude/Longitude colados manualmente têm prioridade sobre a geocodificação.
+    const latMan = parseFloat((g('nLat').value||'').replace(',','.'));
+    const lngMan = parseFloat((g('nLng').value||'').replace(',','.'));
+    const manualOk = Number.isFinite(latMan) && Number.isFinite(lngMan)
+      && Math.abs(latMan)<=90 && Math.abs(lngMan)<=180;
+    let lat=null, lng=null;
+    btn.disabled=true;
+    if(manualOk){
+      lat=latMan; lng=lngMan;
+      nota.style.color='#1c7a3e';
+      nota.textContent='✅ Coordenadas manuais · ' + lat.toFixed(5) + ', ' + lng.toFixed(5);
+    } else {
+      nota.style.color='var(--texto-suave)'; nota.textContent='📍 Localizando endereço...';
+      const geo = await geocodeEndereco(endereco);
+      if(!geo || geo.erro){
+        nota.style.color='#b23a2a';
+        nota.textContent='⚠️ Não foi possível localizar (' + ((geo&&geo.erro)||'erro') + '). O cadastro será salvo sem coordenadas.';
+      } else {
+        nota.style.color='#1c7a3e';
+        nota.textContent='✅ ' + geo.formatado + '  ·  ' + geo.lat.toFixed(5) + ', ' + geo.lng.toFixed(5);
+        lat=geo.lat; lng=geo.lng;
+      }
+    }
+    const reg = { nome, cat, categoria:cat, bairro, esp, especialidade:esp,
+      emoji, cor:'#662382', contato:tel, telefone:tel, endereco, status:'pendente',
+      latitude:lat, longitude:lng, id:uid() };
+    if(SB){
+      try{
+        const {data,error} = await SB.from('estabelecimentos').insert({
+          nome, categoria:cat, bairro, especialidade:esp, emoji, cor:'#662382',
+          telefone:tel, endereco, status:'pendente', latitude:lat, longitude:lng
+        }).select('id').single();
+        if(!error && data) reg.dbId = data.id;
+      }catch(e){}
+    }
+    pendentes.push(reg); renderCuradoria();
+    ['nNome','nBairro','nEsp','nEnd','nTel','nEmoji','nLat','nLng'].forEach(x=>g(x).value='');
+    btn.disabled=false;
+    toast('⏳ "'+nome+'" cadastrado em pendentes');
+  }
+
+  // ===== MÍDIA (fotos/vídeos) =====
+  function addMedia(files){
+    [...files].forEach(f=>{
+      if(f.size > 50*1024*1024){toast('⚠️ '+f.name+' passa de 50 MB');return;}
+      const url = URL.createObjectURL(f);
+      const tipo = f.type.startsWith('video') ? 'video' : 'img';
+      midia.push({id:uid(), tipo, url, leg:document.getElementById('mLeg').value.trim()||f.name});
+    });
+    document.getElementById('mLeg').value='';
+    document.getElementById('inMedia').value='';
+    renderMidia(); toast('Mídia importada ✓');
+  }
+  function ytId(u){const m=u.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);return m?m[1]:null;}
+  function addYoutube(){
+    const u=document.getElementById('mYt').value.trim();const id=ytId(u);
+    if(!id){toast('⚠️ Link do YouTube inválido');return;}
+    midia.push({id:uid(),tipo:'yt',url:'https://img.youtube.com/vi/'+id+'/hqdefault.jpg',leg:document.getElementById('mLeg').value.trim()||'Vídeo do YouTube'});
+    document.getElementById('mYt').value='';document.getElementById('mLeg').value='';
+    renderMidia();toast('Vídeo do YouTube adicionado ✓');
+  }
+  function renderMidia(){
+    const g=document.getElementById('galeria');
+    if(!midia.length){g.innerHTML='<div class="card" style="text-align:center;color:var(--texto-suave)">Nenhuma mídia ainda. Importe acima. 📷</div>';return;}
+    g.innerHTML=midia.map(m=>{
+      let thumb, bdg;
+      if(m.tipo==='video'){thumb=`<video src="${esc(m.url)}" muted></video>`;bdg='Vídeo';}
+      else if(m.tipo==='yt'){thumb=`<img src="${esc(m.url)}"><div class="yt" style="position:absolute">▶</div>`;bdg='YouTube';}
+      else{thumb=`<img src="${esc(m.url)}">`;bdg='Foto';}
+      return `<div class="media"><div class="thumb"><span class="badge">${bdg}</span>${thumb}</div>
+        <div class="cap"><span class="x" onclick="delMedia(${m.id})">✕</span><div class="lg">${esc(m.leg)}</div></div></div>`;
+    }).join('');
+  }
+  function delMedia(id){midia=midia.filter(m=>m.id!==id);renderMidia();}
+
+  // ===== IMAGENS DA CAPA / TOPO =====
+  // Persistem em localStorage('xis_capa_imgs') como data URLs, lidas pelo hero
+  // público (cidade-do-xis.html). Abra os dois arquivos no mesmo navegador.
+  const CAPA_KEY='xis_capa_imgs';
+  function saveCapa(){
+    try{ localStorage.setItem(CAPA_KEY, JSON.stringify(topo.map(t=>({src:t.url,cap:t.leg})))); }catch(e){}
+  }
+  // Lê as imagens da capa do Supabase (leitura pública).
+  async function loadCapa(){
+    if(!SB){ renderTopo(); return; }
+    try{
+      let {data,error} = await SB.from('imagens_capa')
+        .select('id,url,legenda,ordem,fundo').order('ordem',{ascending:true});
+      if(error){ // coluna fundo pode não existir ainda
+        ({data,error} = await SB.from('imagens_capa')
+          .select('id,url,legenda,ordem').order('ordem',{ascending:true}));
+      }
+      if(error) throw error;
+      topo = (data||[]).map(r=>({id:r.id,url:r.url,leg:r.legenda||'',fundo:r.fundo===true}));
+    }catch(e){ /* offline: mantém o que houver */ }
+    renderTopo();
+  }
+  async function addTopo(files){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para enviar imagens');return;}
+    if(topo.length>=6){toast('⚠️ Máximo de 6 imagens da capa');return;}
+    const f=files[0];if(!f)return;
+    const leg=document.getElementById('tLeg').value.trim();
+    toast('Enviando imagem…');
+    try{
+      const safe=f.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      const path=`${Date.now()}_${safe}`;
+      const up=await SB.storage.from('capa').upload(path,f,{cacheControl:'3600',upsert:false});
+      if(up.error) throw up.error;
+      const {data:pub}=SB.storage.from('capa').getPublicUrl(path);
+      const ins=await SB.from('imagens_capa')
+        .insert({url:pub.publicUrl, legenda:leg||null, ordem:topo.length, ativo:true});
+      if(ins.error) throw ins.error;
+      document.getElementById('tLeg').value='';document.getElementById('inTopo').value='';
+      await loadCapa();
+      toast('Imagem da capa adicionada ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha no upload')); }
+  }
+  function renderTopo(){
+    document.getElementById('topoCount').textContent=topo.length;
+    document.getElementById('topoGrid').innerHTML=topo.map((t,i)=>
+      `<div class="topo-c${t.fundo?' is-fundo':''}"><span class="n">${i%2===0?'E':'D'} ${i+1}</span><span class="x" onclick="delTopo('${t.id}')">✕</span>
+        <img src="${esc(t.url)}">${t.leg?`<div class="lg">${esc(t.leg)}</div>`:''}
+        <button class="fundo" onclick="setFundo('${t.id}')">${t.fundo?'★ Fundo da capa':'Usar de fundo'}</button></div>`).join('');
+  }
+  async function setFundo(id){
+    if(!sbUser){toast('🔒 Faça login para definir o fundo');return;}
+    try{
+      let r=await SB.from('imagens_capa').update({fundo:false}).neq('id',id);
+      if(r.error) throw r.error;
+      r=await SB.from('imagens_capa').update({fundo:true}).eq('id',id);
+      if(r.error) throw r.error;
+      await loadCapa();
+      toast('Foto de fundo definida ★');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao definir fundo')); }
+  }
+  async function delTopo(id){
+    if(!sbUser){toast('🔒 Faça login para remover');return;}
+    const t=topo.find(x=>String(x.id)===String(id));
+    try{
+      const del=await SB.from('imagens_capa').delete().eq('id',id);
+      if(del.error) throw del.error;
+      // Remove o arquivo do Storage (best-effort)
+      if(t&&t.url){ const m=t.url.split('/capa/')[1]; if(m){ try{ await SB.storage.from('capa').remove([m]); }catch(_){} } }
+      await loadCapa();
+      toast('Imagem removida');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+
+  // ===== DESTAQUES DO FESTIVAL =====
+  function dPrev(files){
+    const f=files[0]; const img=document.getElementById('dPrev');
+    if(!f){ destFile=null; img.classList.add('hide'); return; }
+    if(f.size>5*1024*1024){ toast('⚠️ Imagem acima de 5MB'); return; }
+    destFile=f; img.src=URL.createObjectURL(f); img.classList.remove('hide');
+  }
+  async function loadDestaques(){
+    if(!SB){ renderDestaques(); return; }
+    try{
+      const {data,error}=await SB.from('destaques_festival')
+        .select('id,foto,nome,especialidade,bairro,horario,categoria,ordem')
+        .order('ordem',{ascending:true});
+      if(error) throw error;
+      destaques=(data||[]).map(r=>({id:r.id,foto:r.foto||'',nome:r.nome,esp:r.especialidade||'',
+        bairro:r.bairro||'',hora:r.horario||'',cat:r.categoria||''}));
+    }catch(e){ /* offline: mantém o que houver */ }
+    renderDestaques();
+  }
+  async function addDestaque(){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para enviar destaques');return;}
+    if(destaques.length>=4){toast('⚠️ Máximo de 4 destaques');return;}
+    if(!destFile){toast('Escolha uma foto para o destaque');return;}
+    const nome=document.getElementById('dNome').value.trim();
+    if(!nome){toast('Informe o nome do Xis');return;}
+    toast('Enviando destaque…');
+    try{
+      const ext=(destFile.name.split('.').pop()||'jpg').toLowerCase();
+      const path=`destaques/${Date.now()}.${ext}`;
+      const up=await SB.storage.from('capa').upload(path,destFile,{cacheControl:'3600',upsert:false,contentType:destFile.type});
+      if(up.error) throw up.error;
+      const {data:pub}=SB.storage.from('capa').getPublicUrl(path);
+      const ins=await SB.from('destaques_festival').insert({
+        foto:pub.publicUrl, nome,
+        especialidade:document.getElementById('dEsp').value.trim()||null,
+        bairro:document.getElementById('dBairro').value.trim()||null,
+        horario:document.getElementById('dHora').value.trim()||null,
+        categoria:document.getElementById('dCat').value,
+        ordem:destaques.length
+      });
+      if(ins.error) throw ins.error;
+      destFile=null;
+      ['dNome','dEsp','dBairro','dHora'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('inDest').value='';
+      document.getElementById('dPrev').classList.add('hide');
+      await loadDestaques();
+      toast('Destaque adicionado ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao enviar')); }
+  }
+  function renderDestaques(){
+    document.getElementById('destCount').textContent=destaques.length;
+    const g=document.getElementById('destGrid');
+    if(!g) return;
+    g.innerHTML=destaques.map((d,i)=>
+      `<div class="topo-c"><span class="n">${i+1}</span><span class="x" onclick="delDestaque('${esc(d.id)}')">✕</span>
+        <img src="${esc(d.foto)}">
+        <div class="lg">${esc(d.nome)}${d.esp?' · '+esc(d.esp):''}</div></div>`).join('');
+  }
+  async function delDestaque(id){
+    if(!sbUser){toast('🔒 Faça login para remover');return;}
+    const d=destaques.find(x=>String(x.id)===String(id));
+    try{
+      const del=await SB.from('destaques_festival').delete().eq('id',id);
+      if(del.error) throw del.error;
+      if(d&&d.foto){ const m=d.foto.split('/capa/')[1]; if(m){ try{ await SB.storage.from('capa').remove([m]); }catch(_){} } }
+      await loadDestaques();
+      toast('Destaque removido');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+
+  // ===== GALERIA DO FESTIVAL =====
+  let festMidia = [];   // {id,tipo:'foto'|'video',url,legenda}
+  let festFile = null;
+  function fmPrev(files){
+    const f=files[0]; const img=document.getElementById('fmPrev');
+    if(!f){ festFile=null; img.classList.add('hide'); return; }
+    if(f.size>5*1024*1024){ toast('⚠️ Imagem acima de 5MB'); return; }
+    festFile=f; img.src=URL.createObjectURL(f); img.classList.remove('hide');
+  }
+  async function loadFestMidia(){
+    if(!SB){ renderFestMidia(); return; }
+    try{
+      const {data,error}=await SB.from('festival_midia')
+        .select('id,tipo,url,legenda,ordem')
+        .order('ordem',{ascending:true});
+      if(error) throw error;
+      festMidia=(data||[]).map(r=>({id:r.id,tipo:(r.tipo==='video'?'video':'foto'),url:r.url||'',legenda:r.legenda||''}));
+    }catch(e){ /* offline */ }
+    renderFestMidia();
+  }
+  async function addFestFoto(){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para enviar fotos');return;}
+    if(!festFile){toast('Escolha uma foto');return;}
+    toast('Enviando foto…');
+    try{
+      const ext=(festFile.name.split('.').pop()||'jpg').toLowerCase();
+      const path=`festival/${Date.now()}.${ext}`;
+      const up=await SB.storage.from('capa').upload(path,festFile,{cacheControl:'3600',upsert:false,contentType:festFile.type});
+      if(up.error) throw up.error;
+      const {data:pub}=SB.storage.from('capa').getPublicUrl(path);
+      const ins=await SB.from('festival_midia').insert({
+        tipo:'foto', url:pub.publicUrl,
+        legenda:document.getElementById('fmLegFoto').value.trim()||null,
+        ordem:festMidia.length
+      });
+      if(ins.error) throw ins.error;
+      festFile=null;
+      document.getElementById('fmLegFoto').value='';
+      document.getElementById('inFest').value='';
+      document.getElementById('fmPrev').classList.add('hide');
+      await loadFestMidia();
+      toast('Foto adicionada ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao enviar')); }
+  }
+  async function addFestVideo(){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para enviar vídeos');return;}
+    const u=document.getElementById('fmYt').value.trim();
+    if(!ytId(u)){toast('⚠️ Link do YouTube inválido');return;}
+    toast('Adicionando vídeo…');
+    try{
+      const ins=await SB.from('festival_midia').insert({
+        tipo:'video', url:u,
+        legenda:document.getElementById('fmLegVid').value.trim()||null,
+        ordem:festMidia.length
+      });
+      if(ins.error) throw ins.error;
+      document.getElementById('fmYt').value='';
+      document.getElementById('fmLegVid').value='';
+      await loadFestMidia();
+      toast('Vídeo adicionado ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao adicionar')); }
+  }
+  function renderFestMidia(){
+    const cEl=document.getElementById('festCount'); if(cEl) cEl.textContent=festMidia.length;
+    const g=document.getElementById('festGridAdm');
+    if(!g) return;
+    g.innerHTML=festMidia.map((m,i)=>{
+      const thumb=m.tipo==='video' ? 'https://img.youtube.com/vi/'+ytId(m.url)+'/hqdefault.jpg' : m.url;
+      return `<div class="topo-c"><span class="n">${i+1}${m.tipo==='video'?' ▶':''}</span>
+        <span class="x" onclick="delFestMidia('${esc(m.id)}')">✕</span>
+        <img src="${esc(thumb)}">
+        <div class="lg">${m.legenda?esc(m.legenda):(m.tipo==='video'?'Vídeo':'Foto')}</div></div>`;
+    }).join('');
+  }
+  async function delFestMidia(id){
+    if(!sbUser){toast('🔒 Faça login para remover');return;}
+    const m=festMidia.find(x=>String(x.id)===String(id));
+    try{
+      const del=await SB.from('festival_midia').delete().eq('id',id);
+      if(del.error) throw del.error;
+      if(m&&m.tipo==='foto'&&m.url){ const p=m.url.split('/capa/')[1]; if(p){ try{ await SB.storage.from('capa').remove([p]); }catch(_){} } }
+      await loadFestMidia();
+      toast('Item removido');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+
+  // ===== HISTÓRIAS DO XIS (curadoria) =====
+  let historias = [];   // {id,nome,foto,texto,audio,status}
+  async function loadHistorias(){
+    if(!SB){ renderHistorias(); return; }
+    try{
+      const {data,error}=await SB.from('historias')
+        .select('id,nome,foto,texto,audio,status,criado_em')
+        .order('criado_em',{ascending:false});
+      if(error) throw error;
+      historias=(data||[]).map(r=>({id:r.id,nome:r.nome||'',foto:r.foto||'',texto:r.texto||'',audio:r.audio||'',status:r.status||'pendente'}));
+    }catch(e){ /* offline */ }
+    renderHistorias();
+  }
+  function histRow(h, acoes){
+    return `<div class="hist-row">
+      <img src="${esc(h.foto)}" alt="">
+      <div class="hr-body">
+        ${h.nome?`<div class="hr-nome">${esc(h.nome)}</div>`:'<div class="hr-nome" style="color:var(--texto-suave)">Sem nome</div>'}
+        ${h.texto?`<div class="hr-texto">${esc(h.texto)}</div>`:''}
+        ${h.audio?`<audio controls src="${esc(h.audio)}" style="width:100%;margin-top:8px"></audio>`:''}
+      </div>
+      <div class="hr-acoes">${acoes}</div>
+    </div>`;
+  }
+  function renderHistorias(){
+    const pend=historias.filter(h=>h.status==='pendente');
+    const pub=historias.filter(h=>h.status==='aprovada');
+    const bdg=document.getElementById('bdgHist'); if(bdg) bdg.textContent=pend.length;
+    const pc=document.getElementById('histPendCount'); if(pc) pc.textContent=pend.length;
+    const ubc=document.getElementById('histPubCount'); if(ubc) ubc.textContent=pub.length;
+    const lp=document.getElementById('histListaPend');
+    if(lp) lp.innerHTML = pend.length ? pend.map(h=>histRow(h,
+      `<button class="btn btn-primary btn-sm" onclick="aprovarHistoria('${esc(h.id)}')">Aprovar</button>
+       <button class="btn btn-outline btn-sm" onclick="rejeitarHistoria('${esc(h.id)}')">Rejeitar</button>`)).join('')
+      : '<div style="color:var(--texto-suave);font-size:14px">Nenhuma história pendente.</div>';
+    const lu=document.getElementById('histListaPub');
+    if(lu) lu.innerHTML = pub.length ? pub.map(h=>histRow(h,
+      `<button class="btn btn-outline btn-sm" onclick="rejeitarHistoria('${esc(h.id)}')">Tirar do mural</button>
+       <button class="btn btn-outline btn-sm" onclick="delHistoria('${esc(h.id)}')">Excluir</button>`)).join('')
+      : '<div style="color:var(--texto-suave);font-size:14px">Nenhuma história publicada ainda.</div>';
+  }
+  async function aprovarHistoria(id){
+    if(!sbUser){toast('🔒 Faça login para moderar');return;}
+    try{
+      const r=await SB.from('historias').update({status:'aprovada'}).eq('id',id);
+      if(r.error) throw r.error;
+      await loadHistorias(); toast('História publicada no mural ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao aprovar')); }
+  }
+  async function rejeitarHistoria(id){
+    if(!sbUser){toast('🔒 Faça login para moderar');return;}
+    try{
+      const r=await SB.from('historias').update({status:'rejeitada'}).eq('id',id);
+      if(r.error) throw r.error;
+      await loadHistorias(); toast('História retirada do mural');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao atualizar')); }
+  }
+  async function delHistoria(id){
+    if(!sbUser){toast('🔒 Faça login para remover');return;}
+    if(!confirm('Excluir esta história de vez? Isso remove também a foto e o áudio.')) return;
+    const h=historias.find(x=>String(x.id)===String(id));
+    try{
+      const del=await SB.from('historias').delete().eq('id',id);
+      if(del.error) throw del.error;
+      [h&&h.foto, h&&h.audio].forEach(u=>{ if(u){ const p=u.split('/estabelecimentos/')[1]; if(p){ try{ SB.storage.from('estabelecimentos').remove([p]); }catch(_){} } } });
+      await loadHistorias(); toast('História excluída');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao excluir')); }
+  }
+
+  // ===== AUTENTICAÇÃO (Supabase) =====
+  async function sbEntrar(){
+    if(!SB){toast('⚠️ Supabase indisponível');return;}
+    const email=document.getElementById('authEmail').value.trim();
+    const pass=document.getElementById('authPass').value;
+    if(!email||!pass){toast('Informe e-mail e senha');return;}
+    const {data,error}=await SB.auth.signInWithPassword({email,password:pass});
+    if(error){toast('❌ '+error.message);return;}
+    sbUser=data.user; document.getElementById('authPass').value='';
+    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria();
+  }
+  async function sbSair(){ if(SB) await SB.auth.signOut(); sbUser=null; refreshAuthUI(); toast('Sessão encerrada'); }
+  function refreshAuthUI(){
+    const out=document.getElementById('authOut'), inn=document.getElementById('authIn');
+    const shell=document.getElementById('shell'), lock=document.getElementById('lockScreen');
+    if(sbUser){ out.classList.add('hide'); inn.classList.remove('hide');
+      document.getElementById('authWho').textContent='● '+(sbUser.email||'conectado');
+      if(shell) shell.classList.remove('hide'); if(lock) lock.classList.add('hide'); }
+    else{ inn.classList.add('hide'); out.classList.remove('hide');
+      if(shell) shell.classList.add('hide'); if(lock) lock.classList.remove('hide'); }
+  }
+
+  // ===== LOGOS / PARCEIROS =====
+  let logoFile=null;
+  function lPrev(files){
+    const f=files&&files[0]; if(!f)return;
+    if(f.size>5*1024*1024){toast('⚠️ Máximo 5MB');return;}
+    logoFile=f;
+    const p=document.getElementById('lPrev');
+    p.src=URL.createObjectURL(f); p.classList.remove('hide');
+  }
+  async function loadLogos(){
+    if(!SB){ renderLogos(); return; }
+    try{
+      const {data,error}=await SB.from('parceiros')
+        .select('id,logo,nome,link,ordem').order('ordem',{ascending:true});
+      if(error) throw error;
+      logos=(data||[]).map(r=>({id:r.id,url:r.logo||'',nome:r.nome||'',link:r.link||''}));
+    }catch(e){ /* offline: mantém o que houver */ }
+    renderLogos();
+  }
+  async function addLogo(){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para enviar parceiros');return;}
+    if(!logoFile){toast('⚠️ Escolha um logo primeiro');return;}
+    toast('Enviando parceiro…');
+    try{
+      const ext=(logoFile.name.split('.').pop()||'png').toLowerCase();
+      const path=`parceiros/${Date.now()}.${ext}`;
+      const up=await SB.storage.from('capa').upload(path,logoFile,{cacheControl:'3600',upsert:false,contentType:logoFile.type});
+      if(up.error) throw up.error;
+      const {data:pub}=SB.storage.from('capa').getPublicUrl(path);
+      const ins=await SB.from('parceiros').insert({
+        logo:pub.publicUrl,
+        nome:document.getElementById('lNome').value.trim()||null,
+        link:document.getElementById('lLink').value.trim()||null,
+        ordem:logos.length
+      });
+      if(ins.error) throw ins.error;
+      logoFile=null;
+      document.getElementById('lNome').value='';document.getElementById('lLink').value='';
+      document.getElementById('inLogo').value='';
+      const p=document.getElementById('lPrev');p.src='';p.classList.add('hide');
+      await loadLogos();
+      toast('Parceiro adicionado ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao enviar')); }
+  }
+  function renderLogos(){
+    const g=document.getElementById('logosGrid');
+    if(!logos.length){g.innerHTML='<div class="card" style="text-align:center;color:var(--texto-suave);grid-column:1/-1">Nenhum parceiro ainda. 🤝</div>';return;}
+    g.innerHTML=logos.map(l=>`<div class="logo-c"><span class="x" onclick="delLogo('${esc(l.id)}')">✕</span>
+      <div class="img"><img src="${esc(l.url)}"></div><div class="nm">${esc(l.nome)}</div></div>`).join('');
+  }
+  async function delLogo(id){
+    if(!sbUser){toast('🔒 Faça login para remover');return;}
+    const l=logos.find(x=>String(x.id)===String(id));
+    try{
+      const del=await SB.from('parceiros').delete().eq('id',id);
+      if(del.error) throw del.error;
+      if(l&&l.url){ const m=l.url.split('/capa/')[1]; if(m){ try{ await SB.storage.from('capa').remove([m]); }catch(_){} } }
+      await loadLogos();
+      toast('Parceiro removido');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+
+  // ===== MARCA / IDENTIDADE (logos do site) =====
+  // Guarda no localStorage (preview imediato no mesmo navegador) e na tabela
+  // public.config do Supabase (chave/valor) para o site público ler em qualquer lugar.
+  const BRAND_KEYS = { logo_site:'xis_logo_site', logo_prefeitura:'xis_logo_prefeitura' };
+  function getBrandLocal(kind){ try{ return localStorage.getItem(BRAND_KEYS[kind])||''; }catch(e){ return ''; } }
+  function setBrandLocal(kind,url){ try{ url?localStorage.setItem(BRAND_KEYS[kind],url):localStorage.removeItem(BRAND_KEYS[kind]); }catch(e){} }
+
+  async function addBrand(kind, files){
+    const f = files && files[0]; if(!f) return;
+    if(!SB){ toast('⚠️ Supabase indisponível (offline)'); return; }
+    if(!sbUser){ toast('🔒 Faça login para enviar imagens'); return; }
+    toast('Enviando…');
+    try{
+      const safe = f.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      const path = `branding/${kind}_${Date.now()}_${safe}`;
+      const up = await SB.storage.from('capa').upload(path, f, {cacheControl:'3600', upsert:true});
+      if(up.error) throw up.error;
+      const {data:pub} = SB.storage.from('capa').getPublicUrl(path);
+      const url = pub.publicUrl;
+      const ins = await SB.from('config').upsert({chave:kind, valor:url, atualizado_em:new Date().toISOString()});
+      if(ins.error) throw ins.error;
+      setBrandLocal(kind, url);
+      renderBrand(kind, url);
+      document.getElementById(kind==='logo_site'?'inLogoXis':'inLogoPref').value='';
+      toast('Logo atualizado ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha no upload')); }
+  }
+
+  function renderBrand(kind, url){
+    const box = document.getElementById(kind==='logo_site'?'prevLogoXis':'prevLogoPref');
+    if(!box) return;
+    if(url){
+      box.innerHTML = `<button class="rm" title="Remover" onclick="delBrand('${kind}')">✕</button><img src="${esc(url)}" alt="">`;
+    }else{
+      box.innerHTML = `<span class="empty">${kind==='logo_site'?'Nenhum logo enviado':'Nenhuma logomarca enviada'}</span>`;
+    }
+  }
+
+  async function delBrand(kind){
+    if(!sbUser){ toast('🔒 Faça login para remover'); return; }
+    try{
+      const cur = getBrandLocal(kind);
+      const del = await SB.from('config').delete().eq('chave', kind);
+      if(del.error) throw del.error;
+      if(cur){ const m = cur.split('/capa/')[1]; if(m){ try{ await SB.storage.from('capa').remove([m]); }catch(_){} } }
+      setBrandLocal(kind, '');
+      renderBrand(kind, '');
+      toast('Logo removido');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+
+  async function loadBranding(){
+    // 1) preview imediato do localStorage; 2) confirma com o Supabase
+    ['logo_site','logo_prefeitura'].forEach(k=> renderBrand(k, getBrandLocal(k)));
+    if(!SB) return;
+    try{
+      const {data,error} = await SB.from('config').select('chave,valor').in('chave',['logo_site','logo_prefeitura']);
+      if(error || !data) return;
+      const map = {}; data.forEach(r=> map[r.chave]=r.valor);
+      ['logo_site','logo_prefeitura'].forEach(k=>{ setBrandLocal(k, map[k]||''); renderBrand(k, map[k]||''); });
+    }catch(e){ /* offline: mantém localStorage */ }
+  }
+
+  // ===== USUÁRIOS =====
+  function addUser(){
+    const email=document.getElementById('uEmail').value.trim();
+    if(!email){toast('⚠️ Informe o e-mail');return;}
+    usuarios.push({nome:document.getElementById('uNome').value.trim()||'—',email,nivel:document.getElementById('uNivel').value});
+    document.getElementById('uEmail').value='';document.getElementById('uNome').value='';
+    renderUsers();toast('Acesso concedido ✓');
+  }
+  function renderUsers(){
+    document.getElementById('userTbody').innerHTML=usuarios.map((u,i)=>
+      `<tr><td><b>${esc(u.nome)}</b></td><td>${esc(u.email)}</td><td><span class="role">${u.nivel}</span></td>
+        <td style="text-align:right"><span style="color:var(--vermelho);cursor:pointer;font-weight:800" onclick="delUser(${i})">remover</span></td></tr>`).join('');
+  }
+  function delUser(i){usuarios.splice(i,1);renderUsers();}
+
+  // ===== RELATÓRIO =====
+  // Extrai a "rua" a partir do endereço completo (texto antes da 1ª vírgula, sem o número).
+  function ruaDe(end){
+    if(!end) return '— sem endereço';
+    let s = String(end).split(',')[0];          // "R. Dr. Pantaleão" | "Av. Roraima 1000"
+    s = s.replace(/\s+\d[\d.\-\/]*\s*$/,'');     // remove número no final, se houver
+    s = s.trim();
+    return s || '— sem endereço';
+  }
+  // Conta ocorrências de uma chave numa lista.
+  function _contar(lista, chaveFn){
+    const m={};
+    lista.forEach(e=>{ const k=(chaveFn(e)||'—').trim()||'—'; m[k]=(m[k]||0)+1; });
+    return m;
+  }
+  // Gera as barras horizontais ordenadas (maior → menor). opts.top agrupa o excedente.
+  function _barras(mapa, opts){
+    opts=opts||{};
+    let ent=Object.entries(mapa).sort((a,b)=>b[1]-a[1]);
+    if(opts.top && ent.length>opts.top){
+      const head=ent.slice(0,opts.top);
+      const restoN=ent.slice(opts.top).reduce((s,[,n])=>s+n,0);
+      const restoK=ent.length-opts.top;
+      head.push(['+ outras '+restoK+' ruas', restoN]);
+      ent=head;
+    }
+    const max=Math.max(1,...ent.map(([,n])=>n));
+    return ent.map(([c,n])=>
+      `<div style="display:flex;align-items:center;gap:12px;margin:8px 0">
+        <span style="width:185px;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c)}">${esc(c)}</span>
+        <div style="flex:1;background:#eaddbf;border-radius:99px;height:14px;overflow:hidden">
+          <div style="width:${n/max*100}%;height:100%;background:linear-gradient(90deg,var(--laranja),var(--vinho))"></div></div>
+        <b style="width:30px;text-align:right">${n}</b></div>`).join('')
+      || '<div style="color:var(--texto-suave)">Sem dados.</div>';
+  }
+  function renderRel(){
+    const totalGeral = publicados.length + pendentes.length;
+    const byCat    = _contar(publicados, e=>e.cat);
+    const byBairro = _contar(publicados, e=>e.bairro);
+    const byRua    = _contar(publicados, e=>ruaDe(e.endereco));
+    const kpis=[
+      {v:publicados.length,k:"Publicados"},
+      {v:pendentes.length,k:"Pendentes"},
+      {v:totalGeral,k:"Total geral"},
+      {v:Object.keys(byBairro).length,k:"Bairros"},
+      {v:Object.keys(byRua).length,k:"Ruas"},
+    ];
+    document.getElementById('kpis').innerHTML=kpis.map(x=>`<div class="kpi"><div class="v">${x.v}</div><div class="k">${x.k}</div></div>`).join('');
+    document.getElementById('porCat').innerHTML    = _barras(byCat);
+    document.getElementById('porBairro').innerHTML = _barras(byBairro);
+    document.getElementById('porRua').innerHTML    = _barras(byRua, {top:15});
+  }
+
+  function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+  // ===== INIT =====
+  renderCuradoria(); renderMidia(); renderTopo(); renderDestaques(); renderLogos(); renderUsers();
+  (async ()=>{
+    if(SB){
+      try{ const {data}=await SB.auth.getSession();
+        sbUser = data && data.session ? data.session.user : null; }catch(e){}
+    }
+    refreshAuthUI();
+    loadCapa();
+    loadDestaques();
+    loadFestMidia();
+    loadHistorias();
+    loadLogos();
+    loadBranding();
+    loadCuradoria();
+  })();
+</script>
+</body>
+</html>
