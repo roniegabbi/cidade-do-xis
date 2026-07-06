@@ -324,7 +324,24 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <div class="card">
+        <h3>📖 Imagem da página "Tudo sobre o XIS" <span class="sub">— aparece no topo da página, acima das perguntas</span></h3>
+        <div class="grid2">
+          <div>
+            <div class="drop" onclick="document.getElementById('inImgSobre').click()">
+              <div class="e">📖</div><div class="t">Escolher imagem da página</div>
+              <div class="d">JPG, PNG ou WebP — horizontal (ex.: 1600×700)</div>
+            </div>
+            <input type="file" id="inImgSobre" accept="image/png,image/jpeg,image/webp" class="hide" onchange="addBrand('imagem_sobre',this.files)">
+          </div>
+          <div>
+            <div style="font-size:12.5px;color:var(--texto-suave);margin-bottom:8px">Imagem atual:</div>
+            <div class="brand-prev" id="prevImgSobre"><span class="empty">Nenhuma imagem enviada</span></div>
+          </div>
+        </div>
+      </div>
+</section>
 
     <!-- MÍDIA -->
     <section class="pane" id="p-midia">
@@ -1346,7 +1363,10 @@
   // ===== MARCA / IDENTIDADE (logos do site) =====
   // Guarda no localStorage (preview imediato no mesmo navegador) e na tabela
   // public.config do Supabase (chave/valor) para o site público ler em qualquer lugar.
-  const BRAND_KEYS = { logo_site:'xis_logo_site', logo_prefeitura:'xis_logo_prefeitura' };
+  const BRAND_KEYS = { logo_site:'xis_logo_site', logo_prefeitura:'xis_logo_prefeitura', imagem_sobre:'xis_imagem_sobre' };
+  const BRAND_BOX  = { logo_site:'prevLogoXis', logo_prefeitura:'prevLogoPref', imagem_sobre:'prevImgSobre' };
+  const BRAND_IN   = { logo_site:'inLogoXis', logo_prefeitura:'inLogoPref', imagem_sobre:'inImgSobre' };
+  const BRAND_VAZIO= { logo_site:'Nenhum logo enviado', logo_prefeitura:'Nenhuma logomarca enviada', imagem_sobre:'Nenhuma imagem enviada' };
   function getBrandLocal(kind){ try{ return localStorage.getItem(BRAND_KEYS[kind])||''; }catch(e){ return ''; } }
   function setBrandLocal(kind,url){ try{ url?localStorage.setItem(BRAND_KEYS[kind],url):localStorage.removeItem(BRAND_KEYS[kind]); }catch(e){} }
 
@@ -1366,18 +1386,18 @@
       if(ins.error) throw ins.error;
       setBrandLocal(kind, url);
       renderBrand(kind, url);
-      document.getElementById(kind==='logo_site'?'inLogoXis':'inLogoPref').value='';
-      toast('Logo atualizado ✓');
+      document.getElementById(BRAND_IN[kind]).value='';
+      toast(kind==='imagem_sobre'?'Imagem atualizada ✓':'Logo atualizado ✓');
     }catch(e){ toast('❌ '+(e.message||'Falha no upload')); }
   }
 
   function renderBrand(kind, url){
-    const box = document.getElementById(kind==='logo_site'?'prevLogoXis':'prevLogoPref');
+    const box = document.getElementById(BRAND_BOX[kind]);
     if(!box) return;
     if(url){
       box.innerHTML = `<button class="rm" title="Remover" onclick="delBrand('${kind}')">✕</button><img src="${esc(url)}" alt="">`;
     }else{
-      box.innerHTML = `<span class="empty">${kind==='logo_site'?'Nenhum logo enviado':'Nenhuma logomarca enviada'}</span>`;
+      box.innerHTML = `<span class="empty">${BRAND_VAZIO[kind]}</span>`;
     }
   }
 
@@ -1396,13 +1416,13 @@
 
   async function loadBranding(){
     // 1) preview imediato do localStorage; 2) confirma com o Supabase
-    ['logo_site','logo_prefeitura'].forEach(k=> renderBrand(k, getBrandLocal(k)));
+    ['logo_site','logo_prefeitura','imagem_sobre'].forEach(k=> renderBrand(k, getBrandLocal(k)));
     if(!SB) return;
     try{
-      const {data,error} = await SB.from('config').select('chave,valor').in('chave',['logo_site','logo_prefeitura']);
+      const {data,error} = await SB.from('config').select('chave,valor').in('chave',['logo_site','logo_prefeitura','imagem_sobre']);
       if(error || !data) return;
       const map = {}; data.forEach(r=> map[r.chave]=r.valor);
-      ['logo_site','logo_prefeitura'].forEach(k=>{ setBrandLocal(k, map[k]||''); renderBrand(k, map[k]||''); });
+      ['logo_site','logo_prefeitura','imagem_sobre'].forEach(k=>{ setBrandLocal(k, map[k]||''); renderBrand(k, map[k]||''); });
     }catch(e){ /* offline: mantém localStorage */ }
   }
 
