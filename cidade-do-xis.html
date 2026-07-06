@@ -1871,12 +1871,28 @@
     });
     GINFO = new google.maps.InfoWindow();
     GMARKERS = [];
+    // Pino personalizado: mini xis (pão, queijo, alface e carne) nas cores da marca
+    const XIS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 44">
+      <ellipse cx="20" cy="41" rx="9" ry="2.6" fill="rgba(0,0,0,.25)"/>
+      <circle cx="20" cy="18" r="17" fill="#fdf6e3" stroke="#8a2a2a" stroke-width="2.5"/>
+      <path d="M8.5 17.5 a11.5 8.5 0 0 1 23 0 z" fill="#e8913a" stroke="#8a2a2a" stroke-width="1.4"/>
+      <circle cx="15" cy="12.5" r=".9" fill="#fdf6e3"/><circle cx="20" cy="11" r=".9" fill="#fdf6e3"/><circle cx="25" cy="12.5" r=".9" fill="#fdf6e3"/>
+      <path d="M8.5 18 h23 l-2.5 3 -3 -2 -3 2 -3 -2 -3 2 -3 -2 -3 2 z" fill="#f4c542"/>
+      <path d="M9 21.5 q3 2.4 5.5 0 q3 2.4 5.5 0 q3 2.4 5.5 0 q3 2.4 5.5 0 l-.7 2.2 h-20.3 z" fill="#5ea54b"/>
+      <rect x="9.5" y="23.8" width="21" height="3.6" rx="1.8" fill="#8a4b2a" stroke="#6b3517" stroke-width=".8"/>
+      <path d="M9.5 28.6 h21 a1.8 1.8 0 0 1 -1.8 3.4 h-17.4 a1.8 1.8 0 0 1 -1.8 -3.4 z" fill="#e8913a" stroke="#8a2a2a" stroke-width="1.2"/>
+      <path d="M20 35.5 l-4 5.5 h8 z" fill="#8a2a2a"/>
+    </svg>`;
+    const XIS_ICON = {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(XIS_SVG),
+      scaledSize: new google.maps.Size(40, 44),
+      anchor: new google.maps.Point(20, 42)
+    };
     ESTAB.forEach(e=>{
       if(typeof e.lat!=='number' || typeof e.lng!=='number') return;
       const mk = new google.maps.Marker({
         position:{lat:e.lat, lng:e.lng}, map:GMAP, title:e.nome,
-        label:{ text:'X', color:'#fff', fontWeight:'800' },
-        icon:{ path:google.maps.SymbolPath.CIRCLE, scale:13, fillColor:e.cor, fillOpacity:1, strokeColor:'#fff', strokeWeight:2.5 }
+        icon: XIS_ICON
       });
       mk.addListener('click', ()=>{
         const maps = 'https://www.google.com/maps/search/?api=1&query='+e.lat+','+e.lng;
