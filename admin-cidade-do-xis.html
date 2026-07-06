@@ -564,6 +564,10 @@
     <div class="modal-b">
       <div class="modal-nm" id="edNomeTit">—</div>
       <div class="field">
+        <label>Nome fantasia <span class="sub">(nome que aparece na vitrine e no mapa — corrija se estiver como razão social)</span></label>
+        <input id="edNome" placeholder="Ex.: Xis do Gaúcho">
+      </div>
+      <div class="field">
         <label>Imagem do estabelecimento</label>
         <div class="drop" onclick="document.getElementById('edFoto').click()">
           <div class="e">📷</div><div class="t">Trocar foto</div><div class="d">PNG, JPG ou WEBP · até 5MB</div>
@@ -762,6 +766,7 @@
     if(!e){toast('Cadastro não encontrado');return;}
     editId=id; editFotoFile=null;
     document.getElementById('edNomeTit').textContent=e.nome||'—';
+    document.getElementById('edNome').value=e.nome||'';
     document.getElementById('edEndereco').value=e.endereco||'';
     document.getElementById('edTelefone').value=e.telefone||'';
     document.getElementById('edSite').value=e.site||'';
@@ -783,7 +788,10 @@
     if(!e){toast('Cadastro não encontrado');return;}
     if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
     if(!sbUser){toast('🔒 Faça login para editar');return;}
+    const novoNome=document.getElementById('edNome').value.trim();
+    if(!novoNome){ toast('⚠️ O nome fantasia não pode ficar vazio'); return; }
     const upd={
+      nome:novoNome,
       endereco:document.getElementById('edEndereco').value.trim()||null,
       telefone:document.getElementById('edTelefone').value.trim()||null,
       site:linkSite(document.getElementById('edSite').value)||null,
