@@ -233,6 +233,7 @@
     <a data-p="historias" onclick="tab('historias')">📖 Histórias do Xis <span class="bdg" id="bdgHist">0</span></a>
     <a data-p="parceiros" onclick="tab('parceiros')">🤝 Logos / Parceiros</a>
     <div class="grp">Gestão</div>
+    <a data-p="loja" onclick="tab('loja')">🛍️ Loja do Xis</a>
     <a data-p="usuarios" onclick="tab('usuarios')">👥 Usuários</a>
     <a data-p="relatorio" onclick="tab('relatorio')">📊 Relatório</a>
   </aside>
@@ -493,6 +494,30 @@
         </div>
       </div>
       <div class="logos" id="logosGrid"></div>
+    </section>
+
+    <!-- LOJA DO XIS -->
+    <section class="pane" id="p-loja">
+      <div class="h"><span class="ico">🛍️</span> Loja do Xis</div>
+      <div class="sub">Produtos oficiais exibidos na aba "Loja do Xis" do site. Foto quadrada fica melhor (ex.: 800×800).</div>
+      <div class="card">
+        <h3>Adicionar produto</h3>
+        <div class="grid2">
+          <div class="field"><label>Nome do produto *</label><input id="prNome" placeholder="Ex.: Camiseta Cidade do Xis"></div>
+          <div class="field"><label>Preço (R$)</label><input id="prPreco" placeholder="Ex.: 59,90" inputmode="decimal"></div>
+        </div>
+        <div class="field"><label>Descrição</label><input id="prDesc" placeholder="Ex.: 100% algodão, tamanhos P ao GG"></div>
+        <div class="field"><label>Link de compra <span class="sub">(WhatsApp, formulário ou loja externa)</span></label><input id="prLink" placeholder="https://wa.me/5555999990000?text=Quero a camiseta"></div>
+        <div class="field">
+          <label>Foto do produto *</label>
+          <input type="file" id="prFoto" accept="image/png,image/jpeg,image/webp">
+        </div>
+        <button class="btn btn-primary" onclick="addProduto()">Publicar produto</button>
+      </div>
+      <div class="card">
+        <h3>Produtos cadastrados</h3>
+        <div id="lojaLista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px"></div>
+      </div>
     </section>
 
     <!-- USUÁRIOS -->
@@ -1305,7 +1330,7 @@
     const {data,error}=await SB.auth.signInWithPassword({email,password:pass});
     if(error){toast('❌ '+error.message);return;}
     sbUser=data.user; document.getElementById('authPass').value='';
-    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria();
+    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria(); loadProdutos();
   }
   async function sbSair(){ if(SB) await SB.auth.signOut(); sbUser=null; refreshAuthUI(); toast('Sessão encerrada'); }
   function refreshAuthUI(){
@@ -1461,6 +1486,72 @@
         <td style="text-align:right"><span style="color:var(--vermelho);cursor:pointer;font-weight:800" onclick="delUser(${i})">remover</span></td></tr>`).join('');
   }
   function delUser(i){usuarios.splice(i,1);renderUsers();}
+
+  // ===== LOJA DO XIS =====
+  let produtos=[];
+  async function loadProdutos(){
+    if(!SB) return;
+    try{
+      const {data,error}=await SB.from('produtos').select('*').order('ordem').order('criado_em',{ascending:false});
+      if(error) throw error;
+      produtos=data||[]; renderProdutos();
+    }catch(e){ /* silencioso */ }
+  }
+  function renderProdutos(){
+    const g=document.getElementById('lojaLista'); if(!g) return;
+    if(!produtos.length){ g.innerHTML='<div style="color:var(--texto-suave)">Nenhum produto ainda. Adicione o primeiro acima. 🛍️</div>'; return; }
+    g.innerHTML=produtos.map(p=>`
+      <div style="border:1px solid var(--borda,#e6dcc8);border-radius:12px;overflow:hidden;background:#fff;${p.ativo?'':'opacity:.5'}">
+        <div style="aspect-ratio:1/1;background:url('${esc(p.foto||'')}') center/cover no-repeat;background-color:#f4ecdb"></div>
+        <div style="padding:10px 12px;font-size:13px">
+          <b>${esc(p.nome)}</b><br>
+          <span style="color:var(--texto-suave)">${p.preco!=null?('R$ '+Number(p.preco).toFixed(2).replace('.',',')):'sem preço'}</span>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-ghost btn-sm" onclick="toggleProduto('${esc(p.id)}',${p.ativo?'false':'true'})">${p.ativo?'Ocultar':'Publicar'}</button>
+            <button class="btn btn-vermelho btn-sm" onclick="delProduto('${esc(p.id)}')">Excluir</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  async function addProduto(){
+    if(!SB||!sbUser){ toast('🔒 Faça login'); return; }
+    const nome=document.getElementById('prNome').value.trim();
+    const foto=document.getElementById('prFoto').files[0];
+    if(!nome){ toast('⚠️ Informe o nome do produto'); return; }
+    if(!foto){ toast('⚠️ Escolha a foto do produto'); return; }
+    const precoRaw=document.getElementById('prPreco').value.trim().replace(/\./g,'').replace(',','.');
+    const preco=precoRaw?parseFloat(precoRaw):null;
+    if(precoRaw && !Number.isFinite(preco)){ toast('⚠️ Preço inválido'); return; }
+    toast('Enviando…');
+    try{
+      const safe=foto.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      const path=`loja/${Date.now()}_${safe}`;
+      const up=await SB.storage.from('capa').upload(path,foto,{cacheControl:'3600',upsert:true});
+      if(up.error) throw up.error;
+      const {data:pub}=SB.storage.from('capa').getPublicUrl(path);
+      const ins=await SB.from('produtos').insert({
+        nome, foto:pub.publicUrl, preco,
+        descricao:document.getElementById('prDesc').value.trim()||null,
+        link:document.getElementById('prLink').value.trim()||null
+      });
+      if(ins.error) throw ins.error;
+      ['prNome','prPreco','prDesc','prLink','prFoto'].forEach(i=>document.getElementById(i).value='');
+      toast('Produto publicado ✓'); loadProdutos();
+    }catch(e){ toast('❌ '+(e.message||'Falha ao publicar')); }
+  }
+  async function toggleProduto(id,ativo){
+    try{ const r=await SB.from('produtos').update({ativo:ativo==='true'||ativo===true}).eq('id',id); if(r.error) throw r.error; loadProdutos(); }
+    catch(e){ toast('❌ '+(e.message||'Falha')); }
+  }
+  async function delProduto(id){
+    try{
+      const p=produtos.find(x=>x.id===id);
+      const del=await SB.from('produtos').delete().eq('id',id);
+      if(del.error) throw del.error;
+      if(p&&p.foto){ const m=p.foto.split('/capa/')[1]; if(m){ try{ SB.storage.from('capa').remove([m]); }catch(_){} } }
+      toast('Produto excluído'); loadProdutos();
+    }catch(e){ toast('❌ '+(e.message||'Falha ao excluir')); }
+  }
 
   // ===== RELATÓRIO =====
   // Extrai a "rua" a partir do endereço completo (texto antes da 1ª vírgula, sem o número).

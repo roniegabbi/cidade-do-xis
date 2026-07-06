@@ -553,6 +553,7 @@
       <a data-v="vitrinehist" onclick="go('vitrinehist')">Vitrine de Histórias</a>
       <a data-v="festival" onclick="go('festival')">Festival do XIS</a>
       <a data-v="sobre" onclick="go('sobre')">Tudo sobre o XIS</a>
+      <a data-v="loja" onclick="go('loja')">Loja do Xis</a>
       <a data-v="cadastro" onclick="go('cadastro')">Cadastre seu Xis</a>
       <a data-v="area" onclick="goArea()" id="navArea">Sou empreendedor</a>
       <a class="nav-admin" data-v="admin" onclick="window.location.href='admin-cidade-do-xis.html'">Painel Admin</a>
@@ -752,6 +753,15 @@
       <button class="btn btn-primary" onclick="go('cadastro')" style="justify-content:center">Cadastre seu Xis</button>
       <button class="btn btn-outline" onclick="go('vitrine')" style="justify-content:center;margin-left:8px">Conheça a vitrine</button>
     </p>
+  </section>
+
+  <!-- ============ LOJA DO XIS ============ -->
+  <section class="view" id="v-loja">
+    <div class="sec-eyebrow">Produtos Oficiais</div>
+    <div class="sec-h">Loja do <span class="x" style="color:var(--coral)">XIS</span></div>
+    <div class="sec-sub">Vista a camiseta da pauta: produtos oficiais da Cidade do Xis. Cada compra fortalece o Festival e a cadeia do xis.</div>
+    <div id="lojaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;max-width:1080px;margin:24px auto"></div>
+    <div id="lojaVazio" class="hide" style="text-align:center;color:var(--texto-suave);padding:40px 0">Os produtos oficiais chegam em breve. 🛍️</div>
   </section>
 
   <!-- Lightbox da galeria -->
@@ -1022,7 +1032,7 @@
   ];
 
   // ===== ROTEAMENTO =====
-  const views = ['home','vitrine','detalhe','mapa','festival','historia','vitrinehist','login','painel','cadastro','sobre'];
+  const views = ['home','vitrine','detalhe','mapa','festival','historia','vitrinehist','login','painel','cadastro','sobre','loja'];
   let logado = false;
   function toggleMenu(){
     const nav=document.querySelector('nav');
@@ -1041,6 +1051,7 @@
     views.forEach(x=>document.getElementById('v-'+x).classList.toggle('on', x===v));
     document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('on', a.dataset.v===v));
     window.scrollTo({top:0,behavior:'smooth'});
+    if(v==='loja'){ loadLoja(); }
     if(v==='mapa'){
       initMapa();
       renderBairroStats();
@@ -1817,6 +1828,34 @@
     go('detalhe');
   }
 
+  // ===== LOJA DO XIS =====
+  async function loadLoja(){
+    const g=document.getElementById('lojaGrid'), vz=document.getElementById('lojaVazio');
+    if(!g || !SB) return;
+    let lista=[];
+    try{
+      const {data,error}=await SB.from('produtos')
+        .select('id,nome,descricao,preco,foto,link')
+        .eq('ativo',true).order('ordem').order('criado_em',{ascending:false});
+      if(!error && Array.isArray(data)) lista=data;
+    }catch(_){}
+    if(!lista.length){ g.innerHTML=''; vz.classList.remove('hide'); return; }
+    vz.classList.add('hide');
+    const brl=v=> v!=null ? 'R$ '+Number(v).toFixed(2).replace('.',',') : '';
+    g.innerHTML = lista.map(p=>`
+      <div style="background:#fff;border:1px solid var(--borda,#e7deef);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 22px #66238212">
+        <div style="aspect-ratio:1/1;background:url('${encodeURI(p.foto||FOTO_PADRAO)}') center/cover no-repeat"></div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:6px;flex:1">
+          <b style="font-size:15.5px">${esc(p.nome)}</b>
+          ${p.descricao?`<span style="font-size:13px;color:var(--texto-suave)">${esc(p.descricao)}</span>`:''}
+          <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px">
+            <b style="color:var(--roxo,#662382);font-size:16px">${brl(p.preco)}</b>
+            ${p.link?`<a href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="text-decoration:none">Quero esse</a>`:''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
   // ===== ESTATÍSTICAS: XIS POR BAIRRO =====
   function renderBairroStats(){
     const box=document.getElementById('bairroBars'); if(!box) return;
@@ -1885,8 +1924,8 @@
     </svg>`;
     const XIS_ICON = {
       url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(XIS_SVG),
-      scaledSize: new google.maps.Size(40, 44),
-      anchor: new google.maps.Point(20, 42)
+      scaledSize: new google.maps.Size(26, 29),
+      anchor: new google.maps.Point(13, 28)
     };
     ESTAB.forEach(e=>{
       if(typeof e.lat!=='number' || typeof e.lng!=='number') return;
