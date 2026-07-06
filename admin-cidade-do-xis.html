@@ -645,11 +645,11 @@
   // ===== CURADORIA =====
   function rowEstab(e, tipo){
     const acts = (tipo==='pend'
-      ? `<button class="btn btn-verde btn-sm" onclick="aprovar('${e.id}')">✓ Aprovar</button>
-         <button class="btn btn-vermelho btn-sm" onclick="rejeitar('${e.id}')">✕ Rejeitar</button>`
-      : `<button class="btn btn-ghost btn-sm" onclick="despublicar('${e.id}')">Despublicar</button>`)
-      + `<button class="btn btn-primary btn-sm" onclick="editarEstab('${e.id}')">Editar</button>`
-      + `<button class="btn btn-ghost btn-sm" onclick="exportarPDF('${e.id}')">Exportar PDF</button>`;
+      ? `<button class="btn btn-verde btn-sm" onclick="aprovar('${esc(e.id)}')">✓ Aprovar</button>
+         <button class="btn btn-vermelho btn-sm" onclick="rejeitar('${esc(e.id)}')">✕ Rejeitar</button>`
+      : `<button class="btn btn-ghost btn-sm" onclick="despublicar('${esc(e.id)}')">Despublicar</button>`)
+      + `<button class="btn btn-primary btn-sm" onclick="editarEstab('${esc(e.id)}')">Editar</button>`
+      + `<button class="btn btn-ghost btn-sm" onclick="exportarPDF('${esc(e.id)}')">Exportar PDF</button>`;
     const pill = tipo==='pend' ? '<span class="pill pend">Pendente</span>' : '<span class="pill pub">Publicado</span>';
     const det = [e.cat, e.bairro, e.esp].filter(Boolean).join(' · ');
     const sub = [det, e.contato, e.responsavel?('Resp.: '+e.responsavel):''].filter(Boolean).join(' · ');
@@ -1160,10 +1160,10 @@
     if(!SB){ renderHistorias(); return; }
     try{
       const {data,error}=await SB.from('historias')
-        .select('id,nome,foto,texto,audio,status,criado_em')
+        .select('id,nome,foto,texto,audio,video,status,criado_em')
         .order('criado_em',{ascending:false});
       if(error) throw error;
-      historias=(data||[]).map(r=>({id:r.id,nome:r.nome||'',foto:r.foto||'',texto:r.texto||'',audio:r.audio||'',status:r.status||'pendente'}));
+      historias=(data||[]).map(r=>({id:r.id,nome:r.nome||'',foto:r.foto||'',texto:r.texto||'',audio:r.audio||'',video:r.video||'',status:r.status||'pendente'}));
     }catch(e){ /* offline */ }
     renderHistorias();
   }
@@ -1174,6 +1174,7 @@
         ${h.nome?`<div class="hr-nome">${esc(h.nome)}</div>`:'<div class="hr-nome" style="color:var(--texto-suave)">Sem nome</div>'}
         ${h.texto?`<div class="hr-texto">${esc(h.texto)}</div>`:''}
         ${h.audio?`<audio controls src="${esc(h.audio)}" style="width:100%;margin-top:8px"></audio>`:''}
+        ${h.video?`<video controls playsinline preload="metadata" src="${esc(h.video)}" style="width:100%;max-height:260px;margin-top:8px;border-radius:8px;background:#000"></video>`:''}
       </div>
       <div class="hr-acoes">${acoes}</div>
     </div>`;
@@ -1218,7 +1219,7 @@
     try{
       const del=await SB.from('historias').delete().eq('id',id);
       if(del.error) throw del.error;
-      [h&&h.foto, h&&h.audio].forEach(u=>{ if(u){ const p=u.split('/estabelecimentos/')[1]; if(p){ try{ SB.storage.from('estabelecimentos').remove([p]); }catch(_){} } } });
+      [h&&h.foto, h&&h.audio, h&&h.video].forEach(u=>{ if(u){ const p=u.split('/estabelecimentos/')[1]; if(p){ try{ SB.storage.from('estabelecimentos').remove([p]); }catch(_){} } } });
       await loadHistorias(); toast('História excluída');
     }catch(e){ toast('❌ '+(e.message||'Falha ao excluir')); }
   }
@@ -1381,7 +1382,7 @@
   }
   function renderUsers(){
     document.getElementById('userTbody').innerHTML=usuarios.map((u,i)=>
-      `<tr><td><b>${esc(u.nome)}</b></td><td>${esc(u.email)}</td><td><span class="role">${u.nivel}</span></td>
+      `<tr><td><b>${esc(u.nome)}</b></td><td>${esc(u.email)}</td><td><span class="role">${esc(u.nivel)}</span></td>
         <td style="text-align:right"><span style="color:var(--vermelho);cursor:pointer;font-weight:800" onclick="delUser(${i})">remover</span></td></tr>`).join('');
   }
   function delUser(i){usuarios.splice(i,1);renderUsers();}

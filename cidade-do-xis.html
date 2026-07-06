@@ -777,8 +777,19 @@
             </label>
             <audio id="hAudioPrev" class="hide" controls style="width:100%;margin-top:10px"></audio>
           </div>
+          <div class="field cad-full">
+            <label>Ou mande em vídeo <span style="font-weight:500;color:var(--texto-suave)">(opcional)</span></label>
+            <label class="cad-drop cad-drop-sm" id="hVideoDrop" for="hVideo">
+              <input id="hVideo" type="file" accept="video/mp4,video/webm,video/quicktime" hidden onchange="hisPreviewVideo(this)">
+              <div class="cad-drop-txt" id="hVideoTxt">
+                <strong>Clique para escolher um vídeo</strong>
+                <span>MP4, MOV ou WebM, até 50&nbsp;MB.</span>
+              </div>
+            </label>
+            <video id="hVideoPrev" class="hide" controls playsinline style="width:100%;margin-top:10px;border-radius:12px"></video>
+          </div>
         </div>
-        <p class="cad-nota" style="margin-top:0">Envie pelo menos a <b>história em texto ou em áudio</b> — e não esqueça a foto.</p>
+        <p class="cad-nota" style="margin-top:0">Envie pelo menos a <b>história em texto, áudio ou vídeo</b> — e não esqueça a foto.</p>
         <div class="cad-msg" id="hisMsg"></div>
         <button class="btn btn-primary" id="hBtn" style="justify-content:center" onclick="enviarHistoria()">Enviar minha história</button>
       </div>
@@ -1083,19 +1094,29 @@
     txt.querySelector('span').textContent = f.name;
     hisMsg('','info');
   }
+  function hisPreviewVideo(inp){
+    const f = inp.files && inp.files[0]; if(!f) return;
+    if(f.size > 50*1024*1024){ hisMsg('O vídeo deve ter até 50 MB.','erro'); inp.value=''; return; }
+    const vd=document.getElementById('hVideoPrev'), txt=document.getElementById('hVideoTxt');
+    vd.src = URL.createObjectURL(f); vd.classList.remove('hide');
+    txt.querySelector('strong').textContent = 'Trocar vídeo';
+    txt.querySelector('span').textContent = f.name;
+    hisMsg('','info');
+  }
   async function enviarHistoria(){
     const g=id=>document.getElementById(id);
     const nome=g('hNome').value.trim();
     const texto=g('hTexto').value.trim();
     const foto = g('hFoto').files && g('hFoto').files[0];
     const audio = g('hAudio').files && g('hAudio').files[0];
+    const video = g('hVideo').files && g('hVideo').files[0];
     if(!foto){ hisMsg('Adicione uma foto para a sua história.','erro'); return; }
-    if(!texto && !audio){ hisMsg('Conte a sua história em texto ou em áudio.','erro'); return; }
+    if(!texto && !audio && !video){ hisMsg('Conte a sua história em texto, áudio ou vídeo.','erro'); return; }
     if(!SB){ hisMsg('Sem conexão com o servidor no momento. Tente novamente mais tarde.','erro'); return; }
     const btn=g('hBtn'); btn.disabled=true;
     hisMsg('Enviando a sua história…','info');
     const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('his-'+Date.now()+Math.random().toString(16).slice(2));
-    let fotoUrl=null, audioUrl=null;
+    let fotoUrl=null, audioUrl=null, videoUrl=null;
     try{
       const ext = (foto.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
       const path = 'historias/'+id+'.'+ext;
@@ -1109,13 +1130,21 @@
         if(eA) throw eA;
         audioUrl = SB.storage.from('estabelecimentos').getPublicUrl(apath).data.publicUrl;
       }
+      if(video){
+        hisMsg('Enviando o vídeo… isso pode levar um minuto.','info');
+        const vext = (video.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+        const vpath = 'historias/'+id+'-video.'+vext;
+        const { error:eV } = await SB.storage.from('estabelecimentos').upload(vpath, video, { contentType: video.type||'video/mp4', upsert:true });
+        if(eV) throw eV;
+        videoUrl = SB.storage.from('estabelecimentos').getPublicUrl(vpath).data.publicUrl;
+      }
     }catch(err){
       hisMsg('Não foi possível enviar os arquivos ('+(err.message||'erro')+'). Tente novamente.','erro');
       btn.disabled=false; return;
     }
     try{
       const { error:e1 } = await SB.from('historias').insert({
-        id, nome: nome||null, foto: fotoUrl, texto: texto||null, audio: audioUrl, status:'pendente'
+        id, nome: nome||null, foto: fotoUrl, texto: texto||null, audio: audioUrl, video: videoUrl, status:'pendente'
       });
       if(e1) throw e1;
     }catch(err){
@@ -1127,11 +1156,13 @@
     g('hisOk').classList.remove('hide');
   }
   function resetHistoria(){
-    ['hNome','hTexto','hFoto','hAudio'].forEach(x=>{const el=document.getElementById(x); if(el) el.value='';});
+    ['hNome','hTexto','hFoto','hAudio','hVideo'].forEach(x=>{const el=document.getElementById(x); if(el) el.value='';});
     const fp=document.getElementById('hFotoPrev'); if(fp){ fp.src=''; fp.classList.add('hide'); }
     const dt=document.getElementById('hDropTxt'); if(dt){ dt.querySelector('strong').textContent='Clique para escolher uma foto'; dt.querySelector('span').textContent='Você comendo o xis, o trailer, a turma… JPG ou PNG, até 5 MB.'; }
     const au=document.getElementById('hAudioPrev'); if(au){ au.src=''; au.classList.add('hide'); }
     const at=document.getElementById('hAudioTxt'); if(at){ at.querySelector('strong').textContent='Clique para escolher um áudio'; at.querySelector('span').textContent='MP3, M4A ou WAV, até 10 MB.'; }
+    const vp=document.getElementById('hVideoPrev'); if(vp){ vp.src=''; vp.classList.add('hide'); }
+    const vt=document.getElementById('hVideoTxt'); if(vt){ vt.querySelector('strong').textContent='Clique para escolher um vídeo'; vt.querySelector('span').textContent='MP4, MOV ou WebM, até 50 MB.'; }
     hisMsg('','info');
     document.getElementById('hisOk').classList.add('hide');
     document.getElementById('hisForm').classList.remove('hide');
@@ -1144,7 +1175,7 @@
     if(SB){
       try{
         const {data,error} = await SB.from('historias')
-          .select('id,nome,foto,texto,audio,criado_em')
+          .select('id,nome,foto,texto,audio,video,criado_em')
           .eq('status','aprovada')
           .order('criado_em',{ascending:false});
         if(!error && Array.isArray(data)) lista=data;
@@ -1158,7 +1189,9 @@
     if(vazio) vazio.classList.add('hide');
     mural.innerHTML = lista.map(h=>`
       <div class="hist-card">
-        <img src="${encodeURI(h.foto||'')}" alt="${esc(h.nome||'História com o xis')}">
+        ${h.video
+          ? `<video controls playsinline preload="metadata" poster="${encodeURI(h.foto||'')}" src="${encodeURI(h.video)}" style="width:100%;display:block"></video>`
+          : `<img src="${encodeURI(h.foto||'')}" alt="${esc(h.nome||'História com o xis')}">`}
         <div class="hc-body">
           ${h.nome?`<div class="hc-nome">${esc(h.nome)}</div>`:''}
           ${h.texto?`<div class="hc-texto">${esc(h.texto)}</div>`:''}
@@ -1856,8 +1889,19 @@
     document.getElementById('toolFrame').src = 'about:blank';
   }
 
+  // ===== DEEP LINK =====
+  // Permite compartilhar links diretos para uma seção, ex.:
+  //   https://cidadedoxis.com/#cadastro  → abre "Cadastre seu Xis"
+  //   https://cidadedoxis.com/#historia  → abre "Conte sua História"
+  function deepLink(){
+    const v = (location.hash || '').replace('#','').toLowerCase();
+    if(v && views.includes(v) && v !== 'painel' && v !== 'login'){ go(v); }
+  }
+  window.addEventListener('hashchange', deepLink);
+
   // ===== INIT =====
   initHome(); initFiltros(); renderVitrine(); authTab('entrar');
+  deepLink(); // abre a seção do link compartilhado (#cadastro etc.)
   loadEstab(); // lê estabelecimentos do Supabase (com fallback local)
   loadDestaques(); // destaques do Festival (cards manuais do Painel Admin)
   loadBranding(); // logos da Cidade do Xis e da Prefeitura (Painel Admin)
