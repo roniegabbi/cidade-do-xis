@@ -566,6 +566,7 @@
       <div class="field">
         <label>Nome fantasia <span class="sub">(nome que aparece na vitrine e no mapa — corrija se estiver como razão social)</span></label>
         <input id="edNome" placeholder="Ex.: Xis do Gaúcho">
+        <div id="edRazao" class="sub" style="margin-top:6px;padding:8px 10px;background:#f6f1e8;border-radius:8px">Carregando razão social…</div>
       </div>
       <div class="field">
         <label>Imagem do estabelecimento</label>
@@ -780,6 +781,18 @@
     if(e.foto){ p.src=e.foto; p.classList.remove('hide'); } else { p.src=''; p.classList.add('hide'); }
     document.getElementById('edFoto').value='';
     document.getElementById('editOvl').classList.add('on');
+    // Razão social e CNPJ (tabela protegida) — somente leitura, nunca alterados pela edição.
+    const rz=document.getElementById('edRazao');
+    rz.textContent='Carregando razão social…';
+    if(SB){
+      SB.from('estabelecimento_responsavel').select('responsavel,cnpj').eq('estabelecimento_id', e.dbId||id).maybeSingle()
+        .then(({data})=>{
+          rz.innerHTML = data && (data.responsavel||data.cnpj)
+            ? `🔒 <b>Razão social (Receita):</b> ${esc(data.responsavel||'—')}${data.cnpj?` · <b>CNPJ:</b> ${esc(data.cnpj)}`:''} <span style="opacity:.7">— preservada; a edição acima muda só o nome de exibição.</span>`
+            : 'Sem razão social registrada (cadastro feito pelo formulário do site).';
+        })
+        .catch(()=>{ rz.textContent='Não foi possível carregar a razão social.'; });
+    } else { rz.textContent=''; }
   }
   function fecharEditar(){ document.getElementById('editOvl').classList.remove('on'); editId=null; editFotoFile=null; }
   async function salvarEstab(){
