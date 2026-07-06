@@ -668,6 +668,13 @@
         <span id="mapaNota">Mapa de Santa Maria — toque num pino para abrir o estabelecimento.</span>
       </div>
     </div>
+
+    <!-- ===== ESTATÍSTICAS: XIS POR BAIRRO ===== -->
+    <div id="bairroStats" style="max-width:760px;margin:34px auto 10px">
+      <h2 style="text-align:center;font-size:22px">🍔 Xis por bairro</h2>
+      <p style="text-align:center;color:var(--texto-suave);font-size:14px;margin:6px 0 18px">Onde a cadeia do xis está concentrada em Santa Maria.</p>
+      <div id="bairroBars"></div>
+    </div>
   </section>
 
   <!-- ============ FESTIVAL DO XIS (galeria) ============ -->
@@ -984,6 +991,7 @@
     window.scrollTo({top:0,behavior:'smooth'});
     if(v==='mapa'){
       initMapa();
+      renderBairroStats();
       // o Google Maps precisa recalcular o tamanho quando a aba fica visível
       if(GMAP && window.google){ setTimeout(()=>{ google.maps.event.trigger(GMAP,'resize'); GMAP.setCenter(SM_CENTRO); }, 60); }
     }
@@ -1754,6 +1762,26 @@
         </div>
       </div>`;
     go('detalhe');
+  }
+
+  // ===== ESTATÍSTICAS: XIS POR BAIRRO =====
+  function renderBairroStats(){
+    const box=document.getElementById('bairroBars'); if(!box) return;
+    const cont={};
+    ESTAB.forEach(e=>{ const b=(e.bairro||'').trim(); if(b) cont[b]=(cont[b]||0)+1; });
+    const rank=Object.entries(cont).sort((a,b)=>b[1]-a[1]);
+    if(!rank.length){ box.innerHTML=''; return; }
+    const max=rank[0][1], top=rank.slice(0,12);
+    const resto=rank.slice(12).reduce((s,[,n])=>s+n,0);
+    box.innerHTML = top.map(([b,n],i)=>`
+      <div style="display:flex;align-items:center;gap:12px;margin:7px 0">
+        <span style="width:190px;font-size:13.5px;font-weight:${i<3?'800':'600'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;color:${i<3?'var(--roxo,#662382)':'inherit'}" title="${esc(b)}">${i+1}º ${esc(b)}</span>
+        <div style="flex:1;background:#eee3f5;border-radius:99px;height:16px;overflow:hidden">
+          <div style="width:${Math.max(4,Math.round(n/max*100))}%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--roxo,#662382),var(--coral,#e6683c))"></div>
+        </div>
+        <b style="width:34px;font-size:14px">${n}</b>
+      </div>`).join('')
+      + (resto>0?`<p style="text-align:center;color:var(--texto-suave);font-size:12.5px;margin-top:10px">+ ${resto} em outros ${rank.length-12} bairros · total de ${ESTAB.length} estabelecimentos</p>`:'');
   }
 
   // ===== MAPA =====
