@@ -276,6 +276,12 @@
     <section class="pane" id="p-publicados">
       <div class="h"><span class="ico">✅</span> Estabelecimentos publicados</div>
       <div class="sub">Visíveis na vitrine pública. Você pode despublicar a qualquer momento.</div>
+      <div class="card" style="margin-bottom:16px">
+        <h3>📍 Mapa</h3>
+        <p style="font-size:13.5px;color:var(--texto-suave);margin:6px 0 12px">Busca as coordenadas de todos os estabelecimentos sem localização (pelo endereço) e as salva no banco. Só depois disso eles aparecem no mapa do site. Pode levar alguns minutos — deixe esta aba aberta.</p>
+        <button class="btn btn-primary" id="btnGeoTodos" onclick="geocodificarTodos()">📍 Localizar todos no mapa</button>
+        <span id="geoProg" style="margin-left:12px;font-size:13.5px;font-weight:700;color:var(--texto-suave)"></span>
+      </div>
       <div id="listaPub"></div>
     </section>
 
@@ -582,6 +588,34 @@
   // Endereço -> {lat,lng}. Tenta o Google e, se falhar, usa o OpenStreetMap (gratuito,
   // sem chave). Assim o Xis é localizado automaticamente mesmo que a "Geocoding API"
   // do Google não esteja ativada na chave.
+  // Geocodifica EM LOTE todos os estabelecimentos sem coordenadas e salva no banco.
+  async function geocodificarTodos(){
+    if(!SB){ toast('Sem conexão com o Supabase'); return; }
+    const btn=document.getElementById('btnGeoTodos'), prog=document.getElementById('geoProg');
+    btn.disabled=true;
+    prog.textContent='Buscando estabelecimentos…';
+    const {data,error} = await SB.from('estabelecimentos')
+      .select('id,nome,endereco').is('latitude',null).not('endereco','is',null);
+    if(error){ toast('❌ '+error.message); btn.disabled=false; return; }
+    if(!data || !data.length){ prog.textContent='Todos já têm localização ✓'; btn.disabled=false; return; }
+    let ok=0, falha=0;
+    for(let i=0;i<data.length;i++){
+      const e=data[i];
+      prog.textContent=`Localizando ${i+1} de ${data.length}… (✓${ok} ✗${falha})`;
+      try{
+        const geo=await geocodeEndereco(e.endereco);
+        if(geo && geo.lat!=null){
+          const r=await SB.from('estabelecimentos').update({latitude:geo.lat,longitude:geo.lng}).eq('id',e.id);
+          if(r.error) throw r.error;
+          ok++;
+        } else falha++;
+      }catch(_){ falha++; }
+      await new Promise(rs=>setTimeout(rs, GOOGLE_MAPS_KEY?120:1100)); // respeita limites das APIs
+    }
+    prog.textContent=`Concluído: ${ok} localizados, ${falha} sem coordenada (edite o endereço e rode de novo).`;
+    toast(`📍 ${ok} estabelecimentos localizados no mapa`);
+    btn.disabled=false;
+  }
   async function geocodeEndereco(endereco){
     if(!endereco) return null;
     const alvo = endereco + ', Santa Maria, RS, Brasil';
