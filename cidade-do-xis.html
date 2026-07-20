@@ -102,6 +102,31 @@
   .fest-item .fi-play::after{content:"";position:absolute;border-style:solid;border-width:11px 0 11px 18px;
     border-color:transparent transparent transparent #fff;margin-left:4px}
   .fest-vazio{text-align:center;color:var(--texto-suave);padding:60px 20px;font-size:15px}
+  /* Data e programação do Festival */
+  .fest-info{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;margin:4px auto 30px}
+  .fest-info .fi-badge{background:var(--grad-quente);color:#fff;font-weight:800;font-size:17px;
+    padding:12px 24px;border-radius:99px;box-shadow:0 8px 22px rgba(229,0,109,.35)}
+  .fest-info .fi-local{background:#fff;border:1.5px solid rgba(102,35,130,.22);color:var(--vinho);
+    font-weight:700;font-size:15px;padding:11px 20px;border-radius:99px}
+  .prog-h{text-align:center;font-family:var(--display);color:var(--roxo,#662382);font-size:26px;margin:0 0 14px}
+  .prog-dia{font-weight:800;color:var(--roxo,#662382);font-size:16px;margin:22px 0 10px;text-transform:capitalize;
+    border-bottom:2px solid rgba(102,35,130,.15);padding-bottom:6px}
+  .prog-item{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--borda,#e7deef);
+    border-radius:14px;padding:14px 18px;margin-bottom:10px}
+  .prog-hora{font-weight:800;color:var(--coral,#ff5a5f);font-size:15px;white-space:nowrap;min-width:52px}
+  .prog-tit{font-weight:800;font-size:15.5px}
+  .prog-desc{font-size:14px;color:var(--texto-suave);margin-top:3px;line-height:1.5}
+  .prog-loc{font-size:13px;color:var(--texto-suave);margin-top:4px}
+  .prog-cat{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:4px 10px;
+    border-radius:99px;white-space:nowrap;margin-left:auto}
+  .prog-cat.gastronomica{background:#ffe3ec;color:#c2185b}
+  .prog-cat.cultural{background:#ede3f7;color:#662382}
+  .prog-cat.expositores{background:#fff4d6;color:#9a6b00}
+  .prog-cat.outros{background:#e8eaef;color:#4a5568}
+  @media(max-width:640px){
+    .prog-item{flex-wrap:wrap}
+    .prog-cat{margin-left:0;order:3}
+  }
 
   /* ===== Mural de histórias ===== */
   .cad-drop-sm{min-height:auto;padding:16px}
@@ -663,11 +688,34 @@
     </div>
   </section>
 
-  <!-- ============ FESTIVAL DO XIS (galeria) ============ -->
+  <!-- ============ FESTIVAL DO XIS ============ -->
   <section class="view" id="v-festival">
-    <div class="sec-eyebrow">A Galeria</div>
+    <div class="sec-eyebrow">O Evento</div>
     <div class="sec-h">Festival do <span class="x" style="color:var(--coral)">XIS</span></div>
-    <div class="sec-sub">A galeria oficial do Festival do Xis de Santa Maria. Fotos e vídeos dos melhores momentos.</div>
+    <div class="sec-sub">O maior evento gastronômico de Santa Maria. Confira quando acontece, a programação completa e os melhores momentos.</div>
+
+    <!-- Data de realização (editável no Painel Admin → Festival) -->
+    <div id="festInfo" class="fest-info hide">
+      <div class="fi-badge">📅 <span id="festDatas"></span></div>
+      <div class="fi-local hide" id="festLocalWrap">📍 <span id="festLocal"></span></div>
+    </div>
+
+    <!-- Programação (editável no Painel Admin → Festival) -->
+    <div id="festProgWrap" class="hide" style="max-width:860px;margin:0 auto 40px">
+      <h2 class="prog-h">Programação</h2>
+      <div class="fest-filtros" id="progFiltros" style="justify-content:center">
+        <button class="ff on" data-c="todas" onclick="progFiltro('todas')">Tudo</button>
+        <button class="ff" data-c="gastronomica" onclick="progFiltro('gastronomica')">Gastronômicas</button>
+        <button class="ff" data-c="cultural" onclick="progFiltro('cultural')">Culturais</button>
+        <button class="ff" data-c="expositores" onclick="progFiltro('expositores')">Expositores</button>
+        <button class="ff" data-c="outros" onclick="progFiltro('outros')">Outros</button>
+      </div>
+      <div id="progLista"></div>
+      <div class="fest-vazio hide" id="progVazio">Nenhuma atividade nesta categoria.</div>
+    </div>
+
+    <div class="sec-eyebrow" style="margin-top:10px">A Galeria</div>
+    <div class="sec-sub" style="margin-bottom:14px">Fotos e vídeos dos melhores momentos.</div>
     <div style="text-align:center;margin:6px 0 22px">
       <a href="https://www.instagram.com/festivalnacionaldoxis" target="_blank" rel="noopener"
          style="display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:99px;font-weight:800;font-size:15.5px;color:#fff;text-decoration:none;background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);box-shadow:0 8px 22px #cc236655">
@@ -1060,7 +1108,7 @@
       // o Google Maps precisa recalcular o tamanho quando a aba fica visível
       if(GMAP && window.google){ setTimeout(()=>{ google.maps.event.trigger(GMAP,'resize'); GMAP.setCenter(SM_CENTRO); }, 60); }
     }
-    if(v==='festival'){ loadFestival(); }
+    if(v==='festival'){ loadFestival(); loadProgramacao(); }
     if(v==='historia'){ loadHistorias(); }
     if(v==='vitrinehist'){ loadHistorias(); }
     if(v==='cadastro'){
@@ -1713,6 +1761,78 @@
       }));
       initHome();
     }catch(e){ /* offline: seção fica oculta */ }
+  }
+
+  // ===== FESTIVAL: DATA E PROGRAMAÇÃO =====
+  let PROG = [];               // linhas de festival_programacao
+  let PROG_FILTRO = 'todas';
+  let PROG_CARREGADO = false;
+  const PROG_CATS = {gastronomica:'Gastronômica', cultural:'Cultural', expositores:'Expositores', outros:'Outros'};
+
+  async function loadProgramacao(){
+    if(PROG_CARREGADO){ renderProg(); return; }
+    if(!SB) return;
+    try{
+      // Data e local do evento (config) + programação, em paralelo
+      const [cfg, prog] = await Promise.all([
+        SB.from('config').select('chave,valor').in('chave',['festival_datas','festival_local']),
+        SB.from('festival_programacao').select('id,dia,horario,titulo,descricao,categoria,local,ordem')
+          .eq('ativo',true).order('dia').order('ordem').order('horario')
+      ]);
+      if(!cfg.error && Array.isArray(cfg.data)){
+        const map={}; cfg.data.forEach(r=> map[r.chave]=r.valor||'');
+        const info=document.getElementById('festInfo');
+        if(map.festival_datas){
+          document.getElementById('festDatas').textContent = map.festival_datas;
+          info.classList.remove('hide');
+        }
+        if(map.festival_local){
+          document.getElementById('festLocal').textContent = map.festival_local;
+          document.getElementById('festLocalWrap').classList.remove('hide');
+        }
+      }
+      if(!prog.error && Array.isArray(prog.data)) PROG = prog.data;
+    }catch(e){ /* offline: blocos ficam ocultos */ }
+    PROG_CARREGADO = true;
+    renderProg();
+  }
+
+  function progFiltro(c){
+    PROG_FILTRO = c;
+    document.querySelectorAll('#progFiltros .ff').forEach(b=>b.classList.toggle('on', b.dataset.c===c));
+    renderProg();
+  }
+
+  function progDiaLabel(iso){
+    const d = new Date(iso+'T12:00:00');
+    return d.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+  }
+
+  function renderProg(){
+    const wrap = document.getElementById('festProgWrap');
+    const lista = document.getElementById('progLista');
+    const vazio = document.getElementById('progVazio');
+    if(!wrap || !lista) return;
+    if(!PROG.length){ wrap.classList.add('hide'); return; }
+    wrap.classList.remove('hide');
+    const res = PROG.filter(p=> PROG_FILTRO==='todas' ? true : p.categoria===PROG_FILTRO);
+    if(!res.length){ lista.innerHTML=''; vazio.classList.remove('hide'); return; }
+    vazio.classList.add('hide');
+    const dias = {};
+    res.forEach(p=>{ (dias[p.dia] = dias[p.dia] || []).push(p); });
+    lista.innerHTML = Object.keys(dias).sort().map(dia=>
+      `<div class="prog-dia">${esc(progDiaLabel(dia))}</div>` +
+      dias[dia].map(p=>`
+        <div class="prog-item">
+          ${p.horario?`<span class="prog-hora">${esc(p.horario)}</span>`:''}
+          <div style="min-width:0">
+            <div class="prog-tit">${esc(p.titulo)}</div>
+            ${p.descricao?`<div class="prog-desc">${esc(p.descricao)}</div>`:''}
+            ${p.local?`<div class="prog-loc">📍 ${esc(p.local)}</div>`:''}
+          </div>
+          <span class="prog-cat ${esc(p.categoria)}">${esc(PROG_CATS[p.categoria]||p.categoria)}</span>
+        </div>`).join('')
+    ).join('');
   }
 
   // ===== GALERIA DO FESTIVAL DO XIS =====

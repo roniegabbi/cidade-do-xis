@@ -230,6 +230,7 @@
     <a data-p="topo" onclick="tab('topo')">🏞️ Imagens da capa</a>
     <a data-p="destaques" onclick="tab('destaques')">🏆 Destaques do Festival</a>
     <a data-p="festival" onclick="tab('festival')">🎞️ Galeria do Festival</a>
+    <a data-p="programacao" onclick="tab('programacao')">📅 Data & Programação</a>
     <a data-p="historias" onclick="tab('historias')">📖 Histórias do Xis <span class="bdg" id="bdgHist">0</span></a>
     <a data-p="parceiros" onclick="tab('parceiros')">🤝 Logos / Parceiros</a>
     <div class="grp">Gestão</div>
@@ -455,6 +456,44 @@
       </div>
       <div style="font-size:12.5px;color:var(--texto-suave);margin:6px 2px 0">Itens na galeria: <b id="festCount">0</b></div>
       <div class="topo-grid" id="festGridAdm"></div>
+    </section>
+
+    <!-- DATA & PROGRAMAÇÃO DO FESTIVAL -->
+    <section class="pane" id="p-programacao">
+      <div class="h"><span class="ico">📅</span> Data &amp; Programação do Festival</div>
+      <div class="sub">Data de realização e programação completa exibidas na página pública "Festival do XIS".</div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Data de realização</h3>
+        <div class="grid2">
+          <div class="field"><label>Quando <span class="sub">— texto livre</span></label><input id="fpDatas" placeholder="Ex.: 11 a 13 de setembro de 2026"></div>
+          <div class="field"><label>Onde <span class="sub">(opcional)</span></label><input id="fpLocal" placeholder="Ex.: Praça Saldanha Marinho"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveFestInfo()">Salvar data e local</button>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Adicionar atividade</h3>
+        <div class="grid2">
+          <div class="field"><label>Dia</label><input id="fpDia" type="date"></div>
+          <div class="field"><label>Horário <span class="sub">(opcional)</span></label><input id="fpHora" placeholder="Ex.: 19h ou 14h–18h"></div>
+        </div>
+        <div class="field"><label>Título</label><input id="fpTitulo" placeholder="Ex.: Abertura oficial / Show com banda X / Praça de expositores"></div>
+        <div class="field"><label>Descrição <span class="sub">(opcional)</span></label><input id="fpDesc" placeholder="Detalhes da atividade"></div>
+        <div class="grid2">
+          <div class="field"><label>Categoria</label>
+            <select id="fpCat">
+              <option value="gastronomica">Gastronômica</option>
+              <option value="cultural">Cultural</option>
+              <option value="expositores">Expositores</option>
+              <option value="outros">Outros</option>
+            </select></div>
+          <div class="field"><label>Local <span class="sub">(opcional)</span></label><input id="fpLoc" placeholder="Ex.: Palco principal"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addProgItem()">Adicionar à programação</button>
+      </div>
+      <div class="card">
+        <h3>Programação cadastrada <span class="bdg" id="fpCount">0</span></h3>
+        <div id="fpLista" style="font-size:14px"></div>
+      </div>
     </section>
 
     <!-- HISTÓRIAS DO XIS (curadoria) -->
@@ -1163,6 +1202,91 @@
     }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
   }
 
+  // ===== DATA & PROGRAMAÇÃO DO FESTIVAL =====
+  let progItens = []; // linhas de festival_programacao
+  const PROG_CATS_ADM = {gastronomica:'Gastronômica', cultural:'Cultural', expositores:'Expositores', outros:'Outros'};
+
+  async function loadProgAdm(){
+    if(!SB) return;
+    try{
+      const [cfg, prog] = await Promise.all([
+        SB.from('config').select('chave,valor').in('chave',['festival_datas','festival_local']),
+        SB.from('festival_programacao').select('id,dia,horario,titulo,descricao,categoria,local,ordem')
+          .order('dia').order('ordem').order('horario')
+      ]);
+      if(!cfg.error && Array.isArray(cfg.data)){
+        const map={}; cfg.data.forEach(r=> map[r.chave]=r.valor||'');
+        document.getElementById('fpDatas').value = map.festival_datas||'';
+        document.getElementById('fpLocal').value = map.festival_local||'';
+      }
+      if(!prog.error && Array.isArray(prog.data)) progItens = prog.data;
+    }catch(e){ /* offline */ }
+    renderProgAdm();
+  }
+  async function saveFestInfo(){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para salvar');return;}
+    try{
+      const agora = new Date().toISOString();
+      const up = await SB.from('config').upsert([
+        {chave:'festival_datas', valor:document.getElementById('fpDatas').value.trim(), atualizado_em:agora},
+        {chave:'festival_local', valor:document.getElementById('fpLocal').value.trim(), atualizado_em:agora}
+      ]);
+      if(up.error) throw up.error;
+      toast('Data do Festival salva ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao salvar')); }
+  }
+  async function addProgItem(){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para adicionar');return;}
+    const dia = document.getElementById('fpDia').value;
+    const titulo = document.getElementById('fpTitulo').value.trim();
+    if(!dia){toast('Informe o dia');return;}
+    if(!titulo){toast('Informe o título da atividade');return;}
+    try{
+      const ins = await SB.from('festival_programacao').insert({
+        dia, titulo,
+        horario:document.getElementById('fpHora').value.trim()||null,
+        descricao:document.getElementById('fpDesc').value.trim()||null,
+        categoria:document.getElementById('fpCat').value,
+        local:document.getElementById('fpLoc').value.trim()||null,
+        ordem:progItens.length
+      });
+      if(ins.error) throw ins.error;
+      ['fpHora','fpTitulo','fpDesc','fpLoc'].forEach(id=>document.getElementById(id).value='');
+      await loadProgAdm();
+      toast('Atividade adicionada ✓');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao adicionar')); }
+  }
+  async function delProgItem(id){
+    if(!sbUser){toast('🔒 Faça login para remover');return;}
+    try{
+      const del = await SB.from('festival_programacao').delete().eq('id',id);
+      if(del.error) throw del.error;
+      await loadProgAdm();
+      toast('Atividade removida');
+    }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+  function renderProgAdm(){
+    document.getElementById('fpCount').textContent = progItens.length;
+    const el = document.getElementById('fpLista');
+    if(!el) return;
+    if(!progItens.length){ el.innerHTML = '<div style="color:var(--texto-suave)">Nenhuma atividade cadastrada ainda.</div>'; return; }
+    const dias = {};
+    progItens.forEach(p=>{ (dias[p.dia] = dias[p.dia] || []).push(p); });
+    el.innerHTML = Object.keys(dias).sort().map(dia=>{
+      const d = new Date(dia+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      return `<div style="font-weight:800;color:var(--roxo,#662382);margin:12px 0 6px;text-transform:capitalize">${esc(d)}</div>` +
+        dias[dia].map(p=>`
+          <div style="display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--borda,#e7deef);border-radius:10px;margin-bottom:6px">
+            ${p.horario?`<b style="white-space:nowrap">${esc(p.horario)}</b>`:''}
+            <span style="min-width:0">${esc(p.titulo)}${p.local?` <span style="color:var(--texto-suave)">· ${esc(p.local)}</span>`:''}</span>
+            <span style="margin-left:auto;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--texto-suave);white-space:nowrap">${esc(PROG_CATS_ADM[p.categoria]||p.categoria)}</span>
+            <span style="cursor:pointer;color:#c00;font-weight:800" title="Remover" onclick="delProgItem('${esc(p.id)}')">✕</span>
+          </div>`).join('');
+    }).join('');
+  }
+
   // ===== GALERIA DO FESTIVAL =====
   let festMidia = [];   // {id,tipo:'foto'|'video',url,legenda}
   let festFile = null;
@@ -1330,7 +1454,7 @@
     const {data,error}=await SB.auth.signInWithPassword({email,password:pass});
     if(error){toast('❌ '+error.message);return;}
     sbUser=data.user; document.getElementById('authPass').value='';
-    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria(); loadProdutos();
+    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadProgAdm(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria(); loadProdutos();
   }
   async function sbSair(){ if(SB) await SB.auth.signOut(); sbUser=null; refreshAuthUI(); toast('Sessão encerrada'); }
   function refreshAuthUI(){
@@ -1619,6 +1743,7 @@
     loadCapa();
     loadDestaques();
     loadFestMidia();
+    loadProgAdm();
     loadHistorias();
     loadLogos();
     loadBranding();
