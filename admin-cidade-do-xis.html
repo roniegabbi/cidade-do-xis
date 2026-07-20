@@ -224,6 +224,7 @@
     <div class="grp">Curadoria</div>
     <a class="on" data-p="pendentes" onclick="tab('pendentes')">⏳ Pendentes <span class="bdg" id="bdgPend">0</span></a>
     <a data-p="publicados" onclick="tab('publicados')">✅ Publicados <span class="bdg" id="bdgPub">0</span></a>
+    <a data-p="atualizacoes" onclick="tab('atualizacoes')">🔄 Atualizações <span class="bdg" id="bdgAtu">0</span></a>
     <div class="grp">Mídia</div>
     <a data-p="marca" onclick="tab('marca')">🎨 Marca / Identidade</a>
     <a data-p="midia" onclick="tab('midia')">🖼️ Fotos e vídeos</a>
@@ -494,6 +495,14 @@
         <h3>Programação cadastrada <span class="bdg" id="fpCount">0</span></h3>
         <div id="fpLista" style="font-size:14px"></div>
       </div>
+    </section>
+
+    <!-- ATUALIZAÇÕES CADASTRAIS (coleta via link) -->
+    <section class="pane" id="p-atualizacoes">
+      <div class="h"><span class="ico">🔄</span> Atualizações cadastrais</div>
+      <div class="sub">Respostas enviadas pelos estabelecimentos através do link de atualização. Revise e aplique — só então as mudanças entram na vitrine.</div>
+      <div class="topo-info">🔗 Para coletar: use o botão <b>Link</b> ao lado de cada estabelecimento (em Pendentes/Publicados), copie e envie ao responsável. O formulário abre já preenchido com os dados atuais.</div>
+      <div id="listaAtu"></div>
     </section>
 
     <!-- HISTÓRIAS DO XIS (curadoria) -->
@@ -770,6 +779,7 @@
          <button class="btn btn-vermelho btn-sm" onclick="rejeitar('${esc(e.id)}')">✕ Rejeitar</button>`
       : `<button class="btn btn-ghost btn-sm" onclick="despublicar('${esc(e.id)}')">Despublicar</button>`)
       + `<button class="btn btn-primary btn-sm" onclick="editarEstab('${esc(e.id)}')">Editar</button>`
+      + `<button class="btn btn-ghost btn-sm" onclick="copiarLinkAtu('${esc(e.id)}')" title="Copiar link para o estabelecimento atualizar os próprios dados">🔗 Link</button>`
       + `<button class="btn btn-ghost btn-sm" onclick="exportarPDF('${esc(e.id)}')">Exportar PDF</button>`;
     const pill = tipo==='pend' ? '<span class="pill pend">Pendente</span>' : '<span class="pill pub">Publicado</span>';
     const det = [e.cat, e.bairro, e.esp].filter(Boolean).join(' · ');
@@ -1205,6 +1215,112 @@
     }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
   }
 
+  // ===== COLETA DE ATUALIZAÇÕES CADASTRAIS (via link) =====
+  let atualizacoes = []; // fila pendente de atualizacoes_cadastro
+  const ATU_LABELS = {nome:'Nome', categoria:'Categoria', bairro:'Bairro', especialidade:'Especialidade',
+    descricao:'Descrição', horario:'Horário', telefone:'Telefone', endereco:'Endereço',
+    whatsapp:'WhatsApp', instagram:'Instagram', facebook:'Facebook', site:'Site', link_venda:'Link de vendas'};
+
+  async function copiarLinkAtu(id){
+    if(!SB){toast('⚠️ Supabase indisponível (offline)');return;}
+    if(!sbUser){toast('🔒 Faça login para gerar o link');return;}
+    const e=pendentes.find(x=>String(x.id)===String(id))||publicados.find(x=>String(x.id)===String(id));
+    if(!e){toast('Estabelecimento não encontrado');return;}
+    const estId=e.dbId||id;
+    try{
+      let {data} = await SB.from('tokens_atualizacao').select('token').eq('estabelecimento_id',estId).maybeSingle();
+      if(!data){
+        const ins = await SB.from('tokens_atualizacao').insert({estabelecimento_id:estId}).select('token').single();
+        if(ins.error) throw ins.error;
+        data = ins.data;
+      }
+      const url = new URL('atualize-seu-xis.html?t='+data.token, location.href).href;
+      await navigator.clipboard.writeText(url);
+      toast('🔗 Link de "'+e.nome+'" copiado — é só enviar ao responsável');
+    }catch(err){ toast('❌ '+(err.message||'Falha ao gerar o link')); }
+  }
+
+  async function loadAtualizacoes(){
+    if(!SB) return;
+    try{
+      const {data,error} = await SB.from('atualizacoes_cadastro')
+        .select('id,estabelecimento_id,dados,criado_em,estabelecimentos(nome)')
+        .eq('status','pendente').order('criado_em',{ascending:false});
+      if(error || !Array.isArray(data)) return;
+      atualizacoes = data;
+    }catch(e){ /* offline */ }
+    renderAtualizacoes();
+  }
+  function renderAtualizacoes(){
+    document.getElementById('bdgAtu').textContent = atualizacoes.length;
+    const el = document.getElementById('listaAtu');
+    if(!el) return;
+    if(!atualizacoes.length){
+      el.innerHTML = '<div class="card" style="text-align:center;color:var(--texto-suave)">Nenhuma atualização aguardando revisão. Use o botão 🔗 Link nos estabelecimentos para coletar.</div>';
+      return;
+    }
+    el.innerHTML = atualizacoes.map(a=>{
+      const atual = pendentes.find(x=>String(x.dbId||x.id)===String(a.estabelecimento_id))
+                 || publicados.find(x=>String(x.dbId||x.id)===String(a.estabelecimento_id)) || {};
+      const nome = (a.estabelecimentos && a.estabelecimentos.nome) || atual.nome || '—';
+      const quando = a.criado_em ? new Date(a.criado_em).toLocaleString('pt-BR') : '';
+      const linhas = Object.keys(ATU_LABELS).filter(k=>k in (a.dados||{})).map(k=>{
+        const de = (atual[k]!==undefined?atual[k]:(atual[k==='categoria'?'cat':k]||'')) || '';
+        const para = a.dados[k]||'';
+        const mudou = String(de||'').trim() !== String(para||'').trim();
+        return `<tr${mudou?' style="background:#fff8e6"':''}>
+          <td style="padding:6px 10px;font-weight:700;white-space:nowrap">${ATU_LABELS[k]}</td>
+          <td style="padding:6px 10px;color:var(--texto-suave)">${esc(String(de||'—'))}</td>
+          <td style="padding:6px 10px">${mudou?'<b>'+esc(String(para||'—'))+'</b>':esc(String(para||'—'))}</td></tr>`;
+      }).join('');
+      return `<div class="card" style="margin-bottom:14px">
+        <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">${esc(nome)}
+          <span style="font-size:12px;font-weight:400;color:var(--texto-suave)">enviado em ${esc(quando)}</span></h3>
+        <div style="overflow-x:auto;margin-top:8px">
+          <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+            <tr style="color:var(--texto-suave);font-size:12px;text-transform:uppercase">
+              <th style="text-align:left;padding:6px 10px">Campo</th>
+              <th style="text-align:left;padding:6px 10px">Atual</th>
+              <th style="text-align:left;padding:6px 10px">Enviado</th></tr>
+            ${linhas}
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-verde btn-sm" onclick="aplicarAtu('${esc(a.id)}')">✓ Aplicar na vitrine</button>
+          <button class="btn btn-vermelho btn-sm" onclick="rejeitarAtu('${esc(a.id)}')">✕ Rejeitar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  async function aplicarAtu(id){
+    if(!sbUser){toast('🔒 Faça login para aplicar');return;}
+    const a = atualizacoes.find(x=>String(x.id)===String(id));
+    if(!a){toast('Atualização não encontrada');return;}
+    try{
+      const upd = {};
+      Object.keys(ATU_LABELS).forEach(k=>{ if(k in (a.dados||{})) upd[k] = a.dados[k]||null; });
+      if(!upd.nome){ delete upd.nome; }
+      const r1 = await SB.from('estabelecimentos').update(upd).eq('id', a.estabelecimento_id);
+      if(r1.error) throw r1.error;
+      const r2 = await SB.from('atualizacoes_cadastro')
+        .update({status:'aplicada', revisado_em:new Date().toISOString()}).eq('id', id);
+      if(r2.error) throw r2.error;
+      await loadCuradoria();
+      await loadAtualizacoes();
+      toast('✅ Atualização aplicada na vitrine');
+    }catch(err){ toast('❌ '+(err.message||'Falha ao aplicar')); }
+  }
+  async function rejeitarAtu(id){
+    if(!sbUser){toast('🔒 Faça login para rejeitar');return;}
+    try{
+      const r = await SB.from('atualizacoes_cadastro')
+        .update({status:'rejeitada', revisado_em:new Date().toISOString()}).eq('id', id);
+      if(r.error) throw r.error;
+      await loadAtualizacoes();
+      toast('Atualização rejeitada');
+    }catch(err){ toast('❌ '+(err.message||'Falha ao rejeitar')); }
+  }
+
   // ===== DATA & PROGRAMAÇÃO DO FESTIVAL =====
   let progItens = []; // linhas de festival_programacao
   const PROG_CATS_ADM = {gastronomica:'Gastronômica', cultural:'Cultural', expositores:'Expositores', outros:'Outros'};
@@ -1457,7 +1573,7 @@
     const {data,error}=await SB.auth.signInWithPassword({email,password:pass});
     if(error){toast('❌ '+error.message);return;}
     sbUser=data.user; document.getElementById('authPass').value='';
-    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadProgAdm(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria(); loadProdutos();
+    refreshAuthUI(); toast('Conectado ✓'); loadCapa(); loadDestaques(); loadFestMidia(); loadProgAdm(); loadHistorias(); loadLogos(); loadBranding(); loadCuradoria(); loadProdutos(); loadAtualizacoes();
   }
   async function sbSair(){ if(SB) await SB.auth.signOut(); sbUser=null; refreshAuthUI(); toast('Sessão encerrada'); }
   function refreshAuthUI(){
@@ -1747,6 +1863,7 @@
     loadDestaques();
     loadFestMidia();
     loadProgAdm();
+    loadAtualizacoes();
     loadHistorias();
     loadLogos();
     loadBranding();

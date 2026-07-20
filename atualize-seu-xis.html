@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atualize seu Xis · Cidade do Xis · Santa Maria</title>
+<meta name="description" content="Confira e atualize os dados do seu estabelecimento na vitrine oficial da Cidade do Xis de Santa Maria.">
+<meta property="og:title" content="Atualize seu Xis · Cidade do Xis">
+<meta property="og:description" content="Confira e atualize os dados do seu Xis na vitrine oficial de Santa Maria.">
+<meta name="robots" content="noindex">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57; --vermelho:#d63344;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#f8f3fc,#f3e9f8 60%,#fdeef7);min-height:100vh;color:var(--texto);padding:18px 14px 40px}
+  .form-wrap{max-width:640px;margin:0 auto}
+  .topo{background:linear-gradient(135deg,var(--roxo),var(--rosa));border-radius:18px 18px 0 0;padding:26px 26px 22px;color:#fff}
+  .topo .marca{font-size:13px;letter-spacing:2px;text-transform:uppercase;opacity:.9;font-weight:700}
+  .topo h1{font-size:26px;margin-top:6px;line-height:1.2}
+  .topo p{margin-top:10px;font-size:14.5px;opacity:.95;line-height:1.5}
+  .cartao{background:#fff;border:1px solid var(--borda);border-top:none;border-radius:0 0 18px 18px;padding:26px;box-shadow:0 12px 34px #66238218}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .full{grid-column:1/-1}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--borda);border-radius:10px;font-size:15px;background:#fdfbff;color:var(--texto);font-family:inherit}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--roxo)}
+  .hide{display:none!important}
+  .msg{margin:16px 0 0;font-size:14px;font-weight:600;min-height:20px}
+  .msg.erro{color:var(--vermelho)} .msg.info{color:var(--roxo)}
+  .btn{width:100%;margin-top:16px;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;font-size:16.5px;font-weight:800;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .nota{font-size:12.5px;color:var(--texto-suave);margin-top:14px;text-align:center;line-height:1.5}
+  .ok{text-align:center;padding:30px 10px}
+  .ok .check{width:64px;height:64px;border-radius:50%;background:var(--verde);color:#fff;font-size:34px;line-height:64px;margin:0 auto 16px}
+  .ok h3{font-size:22px;color:var(--roxo-esc)}
+  .ok p{margin-top:10px;font-size:15px;color:var(--texto);line-height:1.55}
+  .ok .btn2{display:inline-block;margin-top:20px;padding:12px 22px;border:2px solid var(--roxo);border-radius:11px;color:var(--roxo);font-weight:800;font-size:15px;background:#fff;cursor:pointer;text-decoration:none}
+  .rodape{text-align:center;margin-top:18px;font-size:12.5px;color:var(--texto-suave)}
+  .rodape a{color:var(--roxo);font-weight:700;text-decoration:none}
+  .carregando{text-align:center;padding:40px 10px;color:var(--texto-suave);font-size:15px}
+</style>
+</head>
+<body>
+<div class="form-wrap">
+  <div class="topo">
+    <div class="marca">Cidade do Xis · Santa Maria · RS</div>
+    <h1>Atualize seu Xis 🍔</h1>
+    <p>Confira os dados do seu estabelecimento na vitrine oficial e atualize o que mudou. As alterações passam por uma rápida revisão da equipe antes de irem ao ar.</p>
+  </div>
+  <div class="cartao">
+    <div id="carregando" class="carregando">Carregando os dados do seu estabelecimento…</div>
+    <div id="linkErro" class="ok hide">
+      <h3>Link inválido</h3>
+      <p>Este link de atualização não é válido ou expirou. Fale com a equipe da Cidade do Xis para receber um novo link.</p>
+    </div>
+    <div id="cadForm" class="hide">
+      <div class="grid">
+        <div class="field"><label>Nome do Xis *</label><input id="fNome"></div>
+        <div class="field"><label>Categoria</label>
+          <select id="fCat"><option>Trailer</option><option>Lanchonete</option><option>Restaurante</option></select></div>
+        <div class="field"><label>Telefone</label><input id="fTel" placeholder="(55) 99999-0000" inputmode="tel"></div>
+        <div class="field"><label>Bairro</label><input id="fBairro" placeholder="Ex.: Camobi"></div>
+        <div class="field full"><label>Endereço</label><input id="fEnd" placeholder="Rua, número — Santa Maria/RS"></div>
+        <div class="field"><label>Horário de funcionamento</label><input id="fHora" placeholder="Ex.: Ter–Dom, 18h–23h30"></div>
+        <div class="field"><label>Especialidade</label><input id="fEsp" placeholder="Ex.: Xis Coração lendário"></div>
+        <div class="field full"><label>Descrição</label><textarea id="fDesc" rows="3" placeholder="Conte em poucas linhas o que faz seu Xis ser especial"></textarea></div>
+        <div class="field"><label>WhatsApp</label><input id="fWhats" placeholder="(55) 99999-0000" inputmode="tel"></div>
+        <div class="field"><label>Instagram</label><input id="fInsta" placeholder="@seuxis ou link"></div>
+        <div class="field"><label>Facebook</label><input id="fFace" placeholder="usuário ou link da página"></div>
+        <div class="field"><label>Site</label><input id="fSite" placeholder="www.seuxis.com.br"></div>
+        <div class="field full"><label>Link de vendas — seu principal canal</label><input id="fVenda" placeholder="Ex.: iFood, cardápio digital, delivery próprio"></div>
+      </div>
+      <div class="msg" id="cadMsg"></div>
+      <button class="btn" id="fBtn" onclick="enviarAtualizacao()">Enviar atualização</button>
+      <p class="nota">Ao enviar, a equipe da Cidade do Xis revisa e aplica as mudanças na vitrine.<br>Iniciativa da SMDEI · Prefeitura Municipal de Santa Maria.</p>
+    </div>
+    <div id="cadOk" class="ok hide">
+      <div class="check">✓</div>
+      <h3>Atualização enviada!</h3>
+      <p>Recebemos as informações do seu Xis. A equipe revisa e aplica as mudanças na vitrine em breve. Obrigado por manter seu cadastro em dia!</p>
+      <a class="btn2" href="https://cidadedoxis.com" target="_blank" rel="noopener">Conhecer a Cidade do Xis</a>
+    </div>
+  </div>
+  <div class="rodape">Vitrine oficial: <a href="https://cidadedoxis.com" target="_blank" rel="noopener">cidadedoxis.com</a></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://hlstcndhxzhdzbecfrhp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr';
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  const TOKEN = new URLSearchParams(location.search).get('t') || '';
+
+  function soDigitos(s){ return (s||'').replace(/\D/g,''); }
+  function linkInstagram(v){ v=(v||'').trim(); if(!v) return ''; if(/^https?:\/\//i.test(v)) return v;
+    return 'https://instagram.com/'+v.replace(/^@/,'').replace(/^.*instagram\.com\//i,''); }
+  function linkFacebook(v){ v=(v||'').trim(); if(!v) return ''; if(/^https?:\/\//i.test(v)) return v;
+    return 'https://facebook.com/'+v.replace(/^@/,'').replace(/^.*facebook\.com\//i,''); }
+  function linkSite(v){ v=(v||'').trim(); if(!v) return ''; return /^https?:\/\//i.test(v)?v:'https://'+v; }
+  function linkWhatsapp(v){ v=(v||'').trim(); if(!v) return '';
+    if(/^https?:\/\//i.test(v)) return v; let d=soDigitos(v); if(!d) return '';
+    if(d.length<=11) d='55'+d; return 'https://wa.me/'+d; }
+  function cadMsg(txt, tipo){ const m=document.getElementById('cadMsg'); m.className='msg '+(tipo||'info'); m.textContent=txt||''; }
+  function mostrar(id){
+    ['carregando','linkErro','cadForm','cadOk'].forEach(x=>document.getElementById(x).classList.add('hide'));
+    document.getElementById(id).classList.remove('hide');
+  }
+
+  async function carregar(){
+    if(!SB || !TOKEN){ mostrar('linkErro'); return; }
+    try{
+      const {data,error} = await SB.rpc('obter_cadastro_por_token', { p_token: TOKEN });
+      if(error || !data){ mostrar('linkErro'); return; }
+      const g=id=>document.getElementById(id);
+      g('fNome').value=data.nome||'';
+      if(data.categoria) g('fCat').value=data.categoria;
+      g('fTel').value=data.telefone||'';
+      g('fBairro').value=data.bairro||'';
+      g('fEnd').value=data.endereco||'';
+      g('fHora').value=data.horario||'';
+      g('fEsp').value=data.especialidade||'';
+      g('fDesc').value=data.descricao||'';
+      g('fWhats').value=data.whatsapp||'';
+      g('fInsta').value=data.instagram||'';
+      g('fFace').value=data.facebook||'';
+      g('fSite').value=data.site||'';
+      g('fVenda').value=data.link_venda||'';
+      mostrar('cadForm');
+    }catch(e){ mostrar('linkErro'); }
+  }
+
+  async function enviarAtualizacao(){
+    const g=id=>document.getElementById(id);
+    const nome=g('fNome').value.trim();
+    if(!nome){ cadMsg('O nome do Xis não pode ficar em branco.','erro'); return; }
+    const dados={
+      nome,
+      categoria:g('fCat').value,
+      telefone:g('fTel').value.trim(),
+      bairro:g('fBairro').value.trim(),
+      endereco:g('fEnd').value.trim(),
+      horario:g('fHora').value.trim(),
+      especialidade:g('fEsp').value.trim(),
+      descricao:g('fDesc').value.trim(),
+      whatsapp:linkWhatsapp(g('fWhats').value),
+      instagram:linkInstagram(g('fInsta').value),
+      facebook:linkFacebook(g('fFace').value),
+      site:linkSite(g('fSite').value),
+      link_venda:linkSite(g('fVenda').value)
+    };
+    const btn=g('fBtn'); btn.disabled=true;
+    cadMsg('Enviando…','info');
+    try{
+      const {error} = await SB.rpc('enviar_atualizacao', { p_token: TOKEN, p_dados: dados });
+      if(error) throw error;
+      mostrar('cadOk');
+    }catch(e){
+      cadMsg('Não foi possível enviar agora ('+(e.message||'erro')+'). Tente novamente.','erro');
+    }
+    btn.disabled=false;
+  }
+
+  carregar();
+</script>
+</body>
+</html>
