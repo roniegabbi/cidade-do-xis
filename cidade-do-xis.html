@@ -215,11 +215,13 @@
   .hero h1 .x{color:var(--amarelo)}
   .hero p{font-size:18px;opacity:.95;margin-top:18px;max-width:540px;font-family:var(--sans)}
   .hero-btns{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;margin-top:0;position:relative;z-index:1}
-  .counters{display:flex;flex-wrap:nowrap;gap:9px;margin-top:48px;position:relative;z-index:1}
-  .counter{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:14px;
-    padding:9px 14px;backdrop-filter:blur(4px);flex:1 1 0;min-width:0;text-align:center}
-  .counter .n{font-size:19px;font-weight:800;color:var(--amarelo);font-family:var(--display)}
-  .counter .l{font-size:9.5px;opacity:.9;text-transform:uppercase;letter-spacing:.4px;margin-top:1px;white-space:nowrap}
+  .counters{display:flex;flex-wrap:nowrap;gap:12px;margin-top:48px;position:relative;z-index:1}
+  .counter{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:16px;
+    padding:16px 18px;backdrop-filter:blur(4px);flex:1 1 0;min-width:0;text-align:center;
+    box-shadow:0 4px 18px rgba(0,0,0,.18)}
+  .counter .n{font-size:34px;font-weight:800;color:var(--amarelo);font-family:var(--display);line-height:1;
+    text-shadow:0 2px 10px rgba(0,0,0,.25)}
+  .counter .l{font-size:11px;opacity:.95;text-transform:uppercase;letter-spacing:.6px;margin-top:5px;white-space:nowrap}
 
   /* emblema da marca — lado direito do hero */
   .hero-brand{position:absolute;top:34px;left:40px;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -524,9 +526,9 @@
     .hero{padding:38px 20px 34px}
     .hero h1{font-size:34px}
     .counters{margin-top:36px;flex-wrap:wrap}
-    .counter{flex:1 1 calc(50% - 5px);padding:9px 10px}
-    .counter .n{font-size:17px}
-    .counter .l{font-size:9px;white-space:normal}
+    .counter{flex:1 1 calc(50% - 6px);padding:13px 12px}
+    .counter .n{font-size:26px}
+    .counter .l{font-size:9.5px;white-space:normal}
   }
 
   /* ===== TOAST (aviso flutuante) ===== */
@@ -1322,11 +1324,13 @@
 
   // ===== HOME =====
   function initHome(){
+    // Números oficiais vêm da view estatisticas_publicas (total cadastrado,
+    // publicado ou não). ESTAB.length fica só como fallback offline.
     const bairros = new Set(ESTAB.map(e=>e.bairro));
     const c = [
-      {n:ESTAB.length, l:"Estabelecimentos"},
-      {n:bairros.size, l:"Bairros"},
-      {n:CATS.length, l:"Categorias"},
+      {n: STATS ? STATS.estabelecimentos : ESTAB.length, l:"Estabelecimentos"},
+      {n: STATS ? STATS.bairros : bairros.size, l:"Bairros"},
+      {n: STATS ? STATS.categorias : CATS.length, l:"Categorias"},
       {n:"#1", l:"Capital do Xis"},
     ];
     document.getElementById('counters').innerHTML = c.map(x=>{
@@ -1641,13 +1645,40 @@
   }
 
   // ===== DADOS DO SUPABASE (fonte oficial; cai pro array local se offline) =====
+  // Números oficiais do dashboard (view agregada no banco — conta TODOS os
+  // estabelecimentos cadastrados e independe do limite de 1000 linhas da API).
+  let STATS = null;
+  async function loadStats(){
+    if(!SB) return;
+    try{
+      const {data,error} = await SB.from('estatisticas_publicas').select('*').single();
+      if(error || !data) return;
+      STATS = data;
+      initHome(); // re-renderiza contadores com números exatos
+    }catch(e){ /* offline: contadores usam a contagem local */ }
+  }
   async function loadEstab(){
     if(!SB) return;
     try{
-      const {data,error} = await SB.from('estabelecimentos')
-        .select('id,nome,categoria,bairro,especialidade,descricao,nota,emoji,cor,foto,horario,telefone,endereco,whatsapp,instagram,facebook,site,map_x,map_y,latitude,longitude,estabelecimento_itens(nome,ordem)')
-        .eq('status','publicado');
-      if(error || !Array.isArray(data)) return; // offline/erro: mantém o fallback local
+      // Paginação: a API do Supabase devolve no máximo 1000 linhas por chamada.
+      const COLS = 'id,nome,categoria,bairro,especialidade,descricao,nota,emoji,cor,foto,horario,telefone,endereco,whatsapp,instagram,facebook,site,map_x,map_y,latitude,longitude,estabelecimento_itens(nome,ordem)';
+      const PASSO = 1000;
+      let data = [], de = 0;
+      while(true){
+        const r = await SB.from('estabelecimentos')
+          .select(COLS)
+          .eq('status','publicado')
+          .order('id')
+          .range(de, de+PASSO-1);
+        if(r.error || !Array.isArray(r.data)){
+          if(de===0) return; // offline/erro na 1ª página: mantém o fallback local
+          break;             // erro no meio: usa o que já veio
+        }
+        data = data.concat(r.data);
+        if(r.data.length < PASSO) break;
+        de += PASSO;
+      }
+      if(!Array.isArray(data)) return; // offline/erro: mantém o fallback local
       // Resposta válida do servidor (mesmo que vazia) substitui os dados de exemplo
       ESTAB = data.map(r=>({
         id:r.id, nome:r.nome, cat:r.categoria||'', bairro:r.bairro||'',
@@ -2055,6 +2086,7 @@
   initHome(); initFiltros(); renderVitrine(); authTab('entrar');
   deepLink(); // abre a seção do link compartilhado (#cadastro etc.)
   loadEstab(); // lê estabelecimentos do Supabase (com fallback local)
+  loadStats(); // números oficiais do dashboard (view estatisticas_publicas)
   loadDestaques(); // destaques do Festival (cards manuais do Painel Admin)
   loadBranding(); // logos da Cidade do Xis e da Prefeitura (Painel Admin)
   loadParceiros(); // logos dos parceiros exibidos sobre a capa (Painel Admin)
