@@ -643,6 +643,7 @@
       <div class="field"><label>Endereço</label><input id="edEndereco" placeholder="Rua, número, bairro"></div>
       <div class="field"><label>Contato telefônico</label><input id="edTelefone" placeholder="(55) 99999-0000"></div>
       <div class="field"><label>Site</label><input id="edSite" placeholder="https://..."></div>
+      <div class="field"><label>Link de vendas <span class="sub">(iFood, cardápio digital, delivery)</span></label><input id="edVenda" placeholder="https://..."></div>
       <div class="field"><label>Instagram <span class="sub">(@usuário ou link do perfil)</span></label><input id="edInstagram" placeholder="@meu_xis"></div>
       <div class="field">
         <label>Localização no mapa <span class="sub">(Latitude e Longitude — copie do Google Maps)</span></label>
@@ -835,6 +836,7 @@
     document.getElementById('edEndereco').value=e.endereco||'';
     document.getElementById('edTelefone').value=e.telefone||'';
     document.getElementById('edSite').value=e.site||'';
+    document.getElementById('edVenda').value=e.link_venda||'';
     document.getElementById('edInstagram').value=e.instagram||'';
     document.getElementById('edLat').value=(e.latitude!=null?e.latitude:'');
     document.getElementById('edLng').value=(e.longitude!=null?e.longitude:'');
@@ -872,6 +874,7 @@
       endereco:document.getElementById('edEndereco').value.trim()||null,
       telefone:document.getElementById('edTelefone').value.trim()||null,
       site:linkSite(document.getElementById('edSite').value)||null,
+      link_venda:linkSite(document.getElementById('edVenda').value)||null,
       instagram:linkInsta(document.getElementById('edInstagram').value)||null
     };
     // Coordenadas: em branco = manter as atuais. Preenchidas = validar e atualizar.
@@ -907,7 +910,7 @@
     if(!SB) return; // offline: mantém os dados de exemplo
     try{
       const {data,error} = await SB.from('estabelecimentos')
-        .select('id,nome,categoria,bairro,especialidade,emoji,cor,foto,telefone,endereco,site,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
+        .select('id,nome,categoria,bairro,especialidade,emoji,cor,foto,telefone,endereco,site,link_venda,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
         .in('status',['pendente','publicado'])
         .order('criado_em',{ascending:false});
       if(error || !Array.isArray(data)) return;
@@ -918,7 +921,7 @@
           bairro:r.bairro||'', esp:r.especialidade||'', especialidade:r.especialidade||'',
           emoji:r.emoji||'', cor:r.cor||'#662382', foto:r.foto||'',
           contato:r.telefone||'', telefone:r.telefone||'',
-          endereco:r.endereco||'', site:r.site||'', instagram:r.instagram||'',
+          endereco:r.endereco||'', site:r.site||'', link_venda:r.link_venda||'', instagram:r.instagram||'',
           facebook:r.facebook||'', whatsapp:r.whatsapp||'',
           latitude:r.latitude, longitude:r.longitude,
           criado_em:r.criado_em,

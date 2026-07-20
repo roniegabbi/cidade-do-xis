@@ -465,6 +465,9 @@
   .redes .rede{font-size:12.5px;font-weight:700;color:var(--vinho);text-decoration:none;
     border:1.5px solid rgba(102,35,130,.22);border-radius:999px;padding:7px 14px;transition:.15s;background:#fff}
   .redes .rede:hover{background:rgba(102,35,130,.08);border-color:var(--coral);color:var(--coral)}
+  .redes .rede.venda{background:var(--grad-quente);color:#fff;border-color:transparent;
+    box-shadow:0 4px 12px rgba(229,0,109,.35)}
+  .redes .rede.venda:hover{opacity:.9;color:#fff}
   #cdBtn{width:100%;margin-top:20px}
   .cad-msg{font-size:13.5px;margin-top:14px;min-height:18px;font-weight:600}
   .cad-msg.erro{color:#b23a2a} .cad-msg.ok{color:#1c7a3e} .cad-msg.info{color:var(--texto-suave)}
@@ -864,6 +867,7 @@
           <div class="field"><label>Instagram</label><input id="cdInsta" placeholder="@seuxis ou link"></div>
           <div class="field"><label>Facebook</label><input id="cdFace" placeholder="usuário ou link da página"></div>
           <div class="field"><label>Site</label><input id="cdSite" placeholder="www.seuxis.com.br"></div>
+          <div class="field"><label>Link de vendas <span style="font-weight:400">— seu principal canal</span></label><input id="cdVenda" placeholder="Ex.: iFood, cardápio digital, delivery próprio"></div>
           <div class="field cad-full">
             <label>Foto do estabelecimento *</label>
             <label class="cad-drop" id="cdDrop" for="cdFoto">
@@ -1171,7 +1175,8 @@
           tel=g('cdTel').value.trim(), bairro=g('cdBairro').value.trim(), end=g('cdEnd').value.trim(),
           resp=g('cdResp').value.trim(), cpf=g('cdCpf').value.trim(), cnpj=g('cdCnpj').value.trim();
     const whatsapp=linkWhatsapp(g('cdWhats').value), instagram=linkInstagram(g('cdInsta').value),
-          facebook=linkFacebook(g('cdFace').value), site=linkSite(g('cdSite').value);
+          facebook=linkFacebook(g('cdFace').value), site=linkSite(g('cdSite').value),
+          link_venda=linkSite(g('cdVenda').value);
     const foto = g('cdFoto').files && g('cdFoto').files[0];
     if(!nome || !tel || !bairro || !end || !resp || !cpf){ cadMsg('Preencha todos os campos obrigatórios (*).','erro'); return; }
     if(!foto){ cadMsg('Adicione uma foto do estabelecimento.','erro'); return; }
@@ -1198,7 +1203,7 @@
       const { error:e1 } = await SB.from('estabelecimentos').insert({
         id, nome, categoria:cat, bairro, telefone:tel, endereco:end,
         cor:'#662382', status:'pendente', foto: fotoUrl,
-        whatsapp, instagram, facebook, site,
+        whatsapp, instagram, facebook, site, link_venda,
         latitude: geo?geo.lat:null, longitude: geo?geo.lng:null
       });
       if(e1) throw e1;
@@ -1218,7 +1223,7 @@
       : 'Recebemos o cadastro de "'+nome+'". A equipe vai confirmar o endereço no mapa e aprovar o cadastro para publicação na vitrine.';
   }
   function resetCadastro(){
-    ['cdNome','cdTel','cdBairro','cdEnd','cdResp','cdCpf','cdCnpj','cdWhats','cdInsta','cdFace','cdSite','cdFoto'].forEach(x=>{const el=document.getElementById(x); if(el) el.value='';});
+    ['cdNome','cdTel','cdBairro','cdEnd','cdResp','cdCpf','cdCnpj','cdWhats','cdInsta','cdFace','cdSite','cdVenda','cdFoto'].forEach(x=>{const el=document.getElementById(x); if(el) el.value='';});
     document.getElementById('cdCat').value='Trailer';
     const fp=document.getElementById('cdFotoPrev'); if(fp){ fp.src=''; fp.classList.add('hide'); }
     const dt=document.getElementById('cdDropTxt'); if(dt){ dt.querySelector('strong').textContent='Clique para escolher uma foto'; dt.querySelector('span').textContent='Esta imagem aparece na vitrine. JPG ou PNG, até 5 MB.'; }
@@ -1553,6 +1558,7 @@
   }
   function redesHTML(e){
     const links=[];
+    if(e.venda)     links.push(`<a class="rede venda" href="${esc(safeUrl(e.venda))}" target="_blank" rel="noopener">🛒 Pedir agora</a>`);
     if(e.whatsapp)  links.push(`<a class="rede" href="${esc(safeUrl(e.whatsapp))}" target="_blank" rel="noopener">WhatsApp</a>`);
     if(e.instagram) links.push(`<a class="rede" href="${esc(safeUrl(e.instagram))}" target="_blank" rel="noopener">Instagram</a>`);
     if(e.facebook)  links.push(`<a class="rede" href="${esc(safeUrl(e.facebook))}" target="_blank" rel="noopener">Facebook</a>`);
@@ -1709,7 +1715,7 @@
     if(!SB) return;
     try{
       // Paginação: a API do Supabase devolve no máximo 1000 linhas por chamada.
-      const COLS = 'id,nome,categoria,bairro,especialidade,descricao,nota,emoji,cor,foto,horario,telefone,endereco,whatsapp,instagram,facebook,site,map_x,map_y,latitude,longitude,estabelecimento_itens(nome,ordem)';
+      const COLS = 'id,nome,categoria,bairro,especialidade,descricao,nota,emoji,cor,foto,horario,telefone,endereco,whatsapp,instagram,facebook,site,link_venda,map_x,map_y,latitude,longitude,estabelecimento_itens(nome,ordem)';
       const PASSO = 1000;
       let data = [], de = 0;
       while(true){
@@ -1734,7 +1740,7 @@
         emoji:r.emoji||'🍔', cor:r.cor||'#662382', foto:r.foto||'', desc:r.descricao||'',
         itens:(r.estabelecimento_itens||[]).slice().sort((a,b)=>(a.ordem||0)-(b.ordem||0)).map(i=>i.nome),
         hora:r.horario||'', tel:r.telefone||'', end:r.endereco||'',
-        whatsapp:r.whatsapp||'', instagram:r.instagram||'', facebook:r.facebook||'', site:r.site||'',
+        whatsapp:r.whatsapp||'', instagram:r.instagram||'', facebook:r.facebook||'', site:r.site||'', venda:r.link_venda||'',
         x:r.map_x||0, y:r.map_y||0,
         lat: r.latitude!=null?Number(r.latitude):null,
         lng: r.longitude!=null?Number(r.longitude):null

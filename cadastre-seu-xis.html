@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastre seu Xis · Cidade do Xis · Santa Maria</title>
+<meta name="description" content="Cadastre seu trailer, lanchonete ou restaurante na vitrine oficial da Cidade do Xis de Santa Maria. Gratuito.">
+<meta property="og:title" content="Cadastre seu Xis · Cidade do Xis">
+<meta property="og:description" content="Coloque seu Xis na vitrine e no mapa oficial de Santa Maria. Cadastro gratuito.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57; --vermelho:#d63344;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#f8f3fc,#f3e9f8 60%,#fdeef7);min-height:100vh;color:var(--texto);padding:18px 14px 40px}
+  .form-wrap{max-width:640px;margin:0 auto}
+  .topo{background:linear-gradient(135deg,var(--roxo),var(--rosa));border-radius:18px 18px 0 0;padding:26px 26px 22px;color:#fff}
+  .topo .marca{font-size:13px;letter-spacing:2px;text-transform:uppercase;opacity:.9;font-weight:700}
+  .topo h1{font-size:26px;margin-top:6px;line-height:1.2}
+  .topo p{margin-top:10px;font-size:14.5px;opacity:.95;line-height:1.5}
+  .cartao{background:#fff;border:1px solid var(--borda);border-top:none;border-radius:0 0 18px 18px;padding:26px;box-shadow:0 12px 34px #66238218}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .full{grid-column:1/-1}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .field input,.field select{width:100%;padding:11px 13px;border:1.5px solid var(--borda);border-radius:10px;font-size:15px;background:#fdfbff;color:var(--texto)}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--roxo)}
+  .drop{display:block;border:2px dashed var(--rosa);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:#fff7fb;margin-top:2px}
+  .drop strong{display:block;color:var(--rosa);font-size:15px}
+  .drop span{display:block;font-size:12.5px;color:var(--texto-suave);margin-top:4px}
+  .drop img{max-width:100%;max-height:190px;border-radius:10px;margin-bottom:10px}
+  .hide{display:none!important}
+  .msg{margin:16px 0 0;font-size:14px;font-weight:600;min-height:20px}
+  .msg.erro{color:var(--vermelho)} .msg.info{color:var(--roxo)}
+  .btn{width:100%;margin-top:16px;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;font-size:16.5px;font-weight:800;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .nota{font-size:12.5px;color:var(--texto-suave);margin-top:14px;text-align:center;line-height:1.5}
+  .ok{text-align:center;padding:30px 10px}
+  .ok .check{width:64px;height:64px;border-radius:50%;background:var(--verde);color:#fff;font-size:34px;line-height:64px;margin:0 auto 16px}
+  .ok h3{font-size:22px;color:var(--roxo-esc)}
+  .ok p{margin-top:10px;font-size:15px;color:var(--texto);line-height:1.55}
+  .ok .btn2{display:inline-block;margin-top:20px;padding:12px 22px;border:2px solid var(--roxo);border-radius:11px;color:var(--roxo);font-weight:800;font-size:15px;background:#fff;cursor:pointer;text-decoration:none}
+  .rodape{text-align:center;margin-top:18px;font-size:12.5px;color:var(--texto-suave)}
+  .rodape a{color:var(--roxo);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="form-wrap">
+  <div class="topo">
+    <div class="marca">Cidade do Xis · Santa Maria · RS</div>
+    <h1>Cadastre seu Xis 🍔</h1>
+    <p>Coloque seu trailer, lanchonete ou restaurante na vitrine e no mapa oficial da Cidade do Xis. O cadastro é <b>gratuito</b> e passa por uma rápida aprovação da equipe antes de ser publicado.</p>
+  </div>
+  <div class="cartao">
+    <div id="cadForm">
+      <div class="grid">
+        <div class="field"><label>Nome do Xis *</label><input id="cdNome" placeholder="Ex.: Xis do Gaúcho"></div>
+        <div class="field"><label>Categoria *</label>
+          <select id="cdCat"><option value="Trailer">Trailer</option><option value="Lanchonete">Lanchonete</option><option value="Restaurante">Restaurante</option></select></div>
+        <div class="field"><label>Telefone do Xis *</label><input id="cdTel" placeholder="(55) 99999-0000" inputmode="tel"></div>
+        <div class="field"><label>Bairro *</label><input id="cdBairro" placeholder="Ex.: Camobi"></div>
+        <div class="field full"><label>Endereço do Xis *</label><input id="cdEnd" placeholder="Rua, número — Santa Maria/RS"></div>
+        <div class="field"><label>Nome do Responsável *</label><input id="cdResp" placeholder="Nome completo"></div>
+        <div class="field"><label>CPF do Responsável *</label><input id="cdCpf" placeholder="000.000.000-00" inputmode="numeric"></div>
+        <div class="field"><label>CNPJ do Xis</label><input id="cdCnpj" placeholder="00.000.000/0000-00 (opcional)" inputmode="numeric"></div>
+        <div class="field"><label>WhatsApp</label><input id="cdWhats" placeholder="(55) 99999-0000" inputmode="tel"></div>
+        <div class="field"><label>Instagram</label><input id="cdInsta" placeholder="@seuxis ou link"></div>
+        <div class="field"><label>Facebook</label><input id="cdFace" placeholder="usuário ou link da página"></div>
+        <div class="field"><label>Site</label><input id="cdSite" placeholder="www.seuxis.com.br"></div>
+        <div class="field"><label>Link de vendas <span style="font-weight:400">— seu principal canal</span></label><input id="cdVenda" placeholder="Ex.: iFood, cardápio digital, delivery próprio"></div>
+        <div class="field full">
+          <label>Foto do estabelecimento *</label>
+          <label class="drop" for="cdFoto">
+            <input id="cdFoto" type="file" accept="image/*" hidden onchange="previewFoto(this)">
+            <img id="cdFotoPrev" class="hide" alt="">
+            <span id="cdDropTxt"><strong>Clique para escolher uma foto</strong><span>Esta imagem aparece na vitrine. JPG ou PNG, até 5 MB.</span></span>
+          </label>
+        </div>
+      </div>
+      <div class="msg" id="cadMsg"></div>
+      <button class="btn" id="cdBtn" onclick="cadastrarXis()">Enviar cadastro</button>
+      <p class="nota">Seus dados pessoais (responsável e CPF) ficam protegidos e visíveis apenas para a equipe de curadoria.<br>Iniciativa da SMDEI · Prefeitura Municipal de Santa Maria.</p>
+    </div>
+    <div id="cadOk" class="ok hide">
+      <div class="check">✓</div>
+      <h3>Cadastro enviado!</h3>
+      <p id="cadOkTxt">Recebemos o cadastro do seu Xis. Assim que a equipe aprovar, ele aparece na vitrine e no mapa da cidade.</p>
+      <a class="btn2" href="https://cidadedoxis.com" target="_blank" rel="noopener">Conhecer a Cidade do Xis</a>
+      <br><a class="btn2" style="border:none;text-decoration:underline;font-size:14px" href="javascript:void(0)" onclick="resetCadastro()">Cadastrar outro Xis</a>
+    </div>
+  </div>
+  <div class="rodape">Já está na vitrine? Veja em <a href="https://cidadedoxis.com" target="_blank" rel="noopener">cidadedoxis.com</a></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://hlstcndhxzhdzbecfrhp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr';
+  const GOOGLE_MAPS_KEY = 'AIzaSyCCiI3RpPsrF4fx50QAmOtX5rVmj5rx7YM';
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  function soDigitos(s){ return (s||'').replace(/\D/g,''); }
+  function linkInstagram(v){ v=(v||'').trim(); if(!v) return null; if(/^https?:\/\//i.test(v)) return v;
+    return 'https://instagram.com/'+v.replace(/^@/,'').replace(/^.*instagram\.com\//i,''); }
+  function linkFacebook(v){ v=(v||'').trim(); if(!v) return null; if(/^https?:\/\//i.test(v)) return v;
+    return 'https://facebook.com/'+v.replace(/^@/,'').replace(/^.*facebook\.com\//i,''); }
+  function linkSite(v){ v=(v||'').trim(); if(!v) return null; return /^https?:\/\//i.test(v)?v:'https://'+v; }
+  function linkWhatsapp(v){ v=(v||'').trim(); if(!v) return null;
+    if(/^https?:\/\//i.test(v)) return v; let d=soDigitos(v); if(!d) return null;
+    if(d.length<=11) d='55'+d; return 'https://wa.me/'+d; }
+
+  function cadMsg(txt, tipo){ const m=document.getElementById('cadMsg'); m.className='msg '+(tipo||'info'); m.textContent=txt||''; }
+  function previewFoto(inp){
+    const f = inp.files && inp.files[0]; if(!f) return;
+    if(f.size > 5*1024*1024){ cadMsg('A foto deve ter até 5 MB.','erro'); inp.value=''; return; }
+    const img=document.getElementById('cdFotoPrev'), txt=document.getElementById('cdDropTxt');
+    img.src = URL.createObjectURL(f); img.classList.remove('hide');
+    txt.querySelector('strong').textContent = 'Trocar foto';
+    txt.querySelectorAll('span')[0].textContent = f.name;
+    cadMsg('','info');
+  }
+
+  async function geocodeXis(endereco){
+    if(!endereco) return null;
+    const alvo = endereco + ', Santa Maria, RS, Brasil';
+    if(GOOGLE_MAPS_KEY){
+      try{
+        const url = 'https://maps.googleapis.com/maps/api/geocode/json?address='+encodeURIComponent(alvo)+'&key='+GOOGLE_MAPS_KEY;
+        const r = await fetch(url); const j = await r.json();
+        if(j.status==='OK' && j.results && j.results[0]){
+          const loc = j.results[0].geometry.location;
+          return { lat:loc.lat, lng:loc.lng };
+        }
+      }catch(e){}
+    }
+    try{
+      const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q='+encodeURIComponent(alvo);
+      const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
+      const j = await r.json();
+      if(Array.isArray(j) && j[0]) return { lat:parseFloat(j[0].lat), lng:parseFloat(j[0].lon) };
+    }catch(e){}
+    return null;
+  }
+
+  async function cadastrarXis(){
+    const g=id=>document.getElementById(id);
+    const nome=g('cdNome').value.trim(), cat=g('cdCat').value,
+          tel=g('cdTel').value.trim(), bairro=g('cdBairro').value.trim(), end=g('cdEnd').value.trim(),
+          resp=g('cdResp').value.trim(), cpf=g('cdCpf').value.trim(), cnpj=g('cdCnpj').value.trim();
+    const whatsapp=linkWhatsapp(g('cdWhats').value), instagram=linkInstagram(g('cdInsta').value),
+          facebook=linkFacebook(g('cdFace').value), site=linkSite(g('cdSite').value),
+          link_venda=linkSite(g('cdVenda').value);
+    const foto = g('cdFoto').files && g('cdFoto').files[0];
+    if(!nome || !tel || !bairro || !end || !resp || !cpf){ cadMsg('Preencha todos os campos obrigatórios (*).','erro'); return; }
+    if(!foto){ cadMsg('Adicione uma foto do estabelecimento.','erro'); return; }
+    if(soDigitos(cpf).length !== 11){ cadMsg('CPF deve ter 11 dígitos.','erro'); return; }
+    if(cnpj && soDigitos(cnpj).length !== 14){ cadMsg('CNPJ deve ter 14 dígitos.','erro'); return; }
+    const btn=g('cdBtn'); btn.disabled=true;
+    cadMsg('Enviando a foto e o cadastro…','info');
+    if(!SB){ cadMsg('Sem conexão com o servidor no momento. Tente novamente mais tarde.','erro'); btn.disabled=false; return; }
+
+    const geo = await geocodeXis(end);
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('xis-'+Date.now()+Math.random().toString(16).slice(2));
+    let fotoUrl = null;
+    try{
+      const ext = (foto.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+      const path = 'cadastros/'+id+'.'+ext;
+      const { error:eUp } = await SB.storage.from('estabelecimentos').upload(path, foto, { contentType: foto.type||'image/jpeg', upsert:true });
+      if(eUp) throw eUp;
+      fotoUrl = SB.storage.from('estabelecimentos').getPublicUrl(path).data.publicUrl;
+    }catch(err){
+      cadMsg('Não foi possível enviar a foto ('+(err.message||'erro')+'). Tente novamente.','erro');
+      btn.disabled=false; return;
+    }
+    try{
+      const { error:e1 } = await SB.from('estabelecimentos').insert({
+        id, nome, categoria:cat, bairro, telefone:tel, endereco:end,
+        cor:'#662382', status:'pendente', foto: fotoUrl,
+        whatsapp, instagram, facebook, site, link_venda,
+        latitude: geo?geo.lat:null, longitude: geo?geo.lng:null
+      });
+      if(e1) throw e1;
+      await SB.from('estabelecimento_responsavel').insert({
+        estabelecimento_id:id, responsavel:resp, cpf, cnpj: cnpj||null
+      });
+    }catch(err){
+      cadMsg('Não foi possível enviar agora ('+(err.message||'erro')+'). Tente novamente.','erro');
+      btn.disabled=false; return;
+    }
+    btn.disabled=false;
+    g('cadForm').classList.add('hide');
+    g('cadOk').classList.remove('hide');
+    g('cadOkTxt').textContent = geo
+      ? 'Recebemos o cadastro de "'+nome+'". Localizamos o endereço no mapa. Assim que a equipe aprovar, ele aparece na vitrine e no mapa da cidade.'
+      : 'Recebemos o cadastro de "'+nome+'". A equipe vai confirmar o endereço no mapa e aprovar o cadastro para publicação na vitrine.';
+  }
+  function resetCadastro(){
+    ['cdNome','cdTel','cdBairro','cdEnd','cdResp','cdCpf','cdCnpj','cdWhats','cdInsta','cdFace','cdSite','cdVenda','cdFoto']
+      .forEach(x=>{const el=document.getElementById(x); if(el) el.value='';});
+    const fp=document.getElementById('cdFotoPrev'); if(fp){ fp.src=''; fp.classList.add('hide'); }
+    const dt=document.getElementById('cdDropTxt'); if(dt){ dt.querySelector('strong').textContent='Clique para escolher uma foto'; dt.querySelectorAll('span')[0].textContent='Esta imagem aparece na vitrine. JPG ou PNG, até 5 MB.'; }
+    cadMsg('','info');
+    document.getElementById('cadOk').classList.add('hide');
+    document.getElementById('cadForm').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+</script>
+</body>
+</html>
