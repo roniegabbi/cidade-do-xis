@@ -651,6 +651,9 @@
       </div>
       <div class="field"><label>Endereço</label><input id="edEndereco" placeholder="Rua, número, bairro"></div>
       <div class="field"><label>Contato telefônico</label><input id="edTelefone" placeholder="(55) 99999-0000"></div>
+      <div class="field"><label>Descrição <span class="sub">(texto "Sobre" na página do estabelecimento)</span></label><textarea id="edDesc" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid var(--borda,#e4dced);border-radius:10px;font-size:14.5px;font-family:inherit" placeholder="Conte em poucas linhas o que faz esse Xis ser especial"></textarea></div>
+      <div class="field"><label>Especialidade</label><input id="edEsp" placeholder="Ex.: Xis Coração lendário"></div>
+      <div class="field"><label>Horário de funcionamento</label><input id="edHora" placeholder="Ex.: Ter–Dom, 18h–23h30"></div>
       <div class="field"><label>Site</label><input id="edSite" placeholder="https://..."></div>
       <div class="field"><label>Link de vendas <span class="sub">(iFood, cardápio digital, delivery)</span></label><input id="edVenda" placeholder="https://..."></div>
       <div class="field"><label>Instagram <span class="sub">(@usuário ou link do perfil)</span></label><input id="edInstagram" placeholder="@meu_xis"></div>
@@ -845,6 +848,9 @@
     document.getElementById('edNome').value=e.nome||'';
     document.getElementById('edEndereco').value=e.endereco||'';
     document.getElementById('edTelefone').value=e.telefone||'';
+    document.getElementById('edDesc').value=e.descricao||'';
+    document.getElementById('edEsp').value=e.especialidade||e.esp||'';
+    document.getElementById('edHora').value=e.horario||'';
     document.getElementById('edSite').value=e.site||'';
     document.getElementById('edVenda').value=e.link_venda||'';
     document.getElementById('edInstagram').value=e.instagram||'';
@@ -883,6 +889,9 @@
       nome:novoNome,
       endereco:document.getElementById('edEndereco').value.trim()||null,
       telefone:document.getElementById('edTelefone').value.trim()||null,
+      descricao:document.getElementById('edDesc').value.trim()||null,
+      especialidade:document.getElementById('edEsp').value.trim()||null,
+      horario:document.getElementById('edHora').value.trim()||null,
       site:linkSite(document.getElementById('edSite').value)||null,
       link_venda:linkSite(document.getElementById('edVenda').value)||null,
       instagram:linkInsta(document.getElementById('edInstagram').value)||null
@@ -920,7 +929,7 @@
     if(!SB) return; // offline: mantém os dados de exemplo
     try{
       const {data,error} = await SB.from('estabelecimentos')
-        .select('id,nome,categoria,bairro,especialidade,emoji,cor,foto,telefone,endereco,site,link_venda,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
+        .select('id,nome,categoria,bairro,especialidade,descricao,horario,emoji,cor,foto,telefone,endereco,site,link_venda,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
         .in('status',['pendente','publicado'])
         .order('criado_em',{ascending:false});
       if(error || !Array.isArray(data)) return;
@@ -929,6 +938,7 @@
         const resp = Array.isArray(rr) ? (rr[0]||{}) : (rr||{});
         return { id:r.id, dbId:r.id, nome:r.nome, cat:r.categoria||'', categoria:r.categoria||'',
           bairro:r.bairro||'', esp:r.especialidade||'', especialidade:r.especialidade||'',
+          descricao:r.descricao||'', horario:r.horario||'',
           emoji:r.emoji||'', cor:r.cor||'#662382', foto:r.foto||'',
           contato:r.telefone||'', telefone:r.telefone||'',
           endereco:r.endereco||'', site:r.site||'', link_venda:r.link_venda||'', instagram:r.instagram||'',
