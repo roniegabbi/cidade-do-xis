@@ -272,6 +272,11 @@
         <button class="btn btn-primary btn-sm" id="nBtn" onclick="novoEstab()">📍 Cadastrar e localizar</button>
       </div>
 
+      <div class="card" style="margin-bottom:14px;padding:14px 16px">
+        <input id="buscaPend" placeholder="🔎 Buscar por nome, bairro, endereço, responsável, CNPJ…" oninput="renderCuradoria()"
+          style="width:100%;padding:11px 14px;border:1.5px solid var(--borda,#e4dced);border-radius:10px;font-size:14.5px">
+        <div id="buscaPendInfo" class="sub" style="margin-top:6px"></div>
+      </div>
       <div id="listaPend"></div>
     </section>
 
@@ -284,6 +289,11 @@
         <p style="font-size:13.5px;color:var(--texto-suave);margin:6px 0 12px">Busca as coordenadas de todos os estabelecimentos sem localização (pelo endereço) e as salva no banco. Só depois disso eles aparecem no mapa do site. Pode levar alguns minutos — deixe esta aba aberta.</p>
         <button class="btn btn-primary" id="btnGeoTodos" onclick="geocodificarTodos()">📍 Localizar todos no mapa</button>
         <span id="geoProg" style="margin-left:12px;font-size:13.5px;font-weight:700;color:var(--texto-suave)"></span>
+      </div>
+      <div class="card" style="margin-bottom:14px;padding:14px 16px">
+        <input id="buscaPub" placeholder="🔎 Buscar por nome, bairro, endereço, responsável, CNPJ…" oninput="renderCuradoria()"
+          style="width:100%;padding:11px 14px;border:1.5px solid var(--borda,#e4dced);border-radius:10px;font-size:14.5px">
+        <div id="buscaPubInfo" class="sub" style="margin-top:6px"></div>
       </div>
       <div id="listaPub"></div>
     </section>
@@ -649,6 +659,25 @@
         <img id="edPrev" class="hide" style="max-width:200px;max-height:140px;margin-top:10px;border-radius:10px">
         <input type="file" id="edFoto" accept="image/png,image/jpeg,image/webp" class="hide" onchange="edPrev(this.files)">
       </div>
+      <div class="field" id="edEnqWrap">
+        <label>Enquadramento na vitrine <span class="sub">(o quadro abaixo mostra exatamente como a foto aparece no card)</span></label>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <button type="button" class="btn btn-sm" id="edModoCobrir" onclick="edSetModo('cobrir')">Preencher o card</button>
+          <button type="button" class="btn btn-sm" id="edModoInteira" onclick="edSetModo('inteira')">Mostrar inteira (logos)</button>
+        </div>
+        <div id="edEnqPrev" style="width:100%;max-width:320px;height:160px;border-radius:12px;border:1px solid var(--borda,#e4dced)"></div>
+        <div id="edEnqSliders" style="max-width:320px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:12px;width:66px">Horizontal</span>
+            <input type="range" id="edPosX" min="0" max="100" value="50" style="flex:1" oninput="edEnqPreview()">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:12px;width:66px">Vertical</span>
+            <input type="range" id="edPosY" min="0" max="100" value="50" style="flex:1" oninput="edEnqPreview()">
+          </div>
+          <div class="sub" style="margin-top:6px">Arraste até o melhor recorte aparecer no quadro.</div>
+        </div>
+      </div>
       <div class="field"><label>Endereço</label><input id="edEndereco" placeholder="Rua, número, bairro"></div>
       <div class="field"><label>Contato telefônico</label><input id="edTelefone" placeholder="(55) 99999-0000"></div>
       <div class="field"><label>Descrição <span class="sub">(texto "Sobre" na página do estabelecimento)</span></label><textarea id="edDesc" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid var(--borda,#e4dced);border-radius:10px;font-size:14.5px;font-family:inherit" placeholder="Conte em poucas linhas o que faz esse Xis ser especial"></textarea></div>
@@ -793,11 +822,27 @@
         <div class="mt">${esc(sub)}</div></div>
       <div class="acts">${acts}</div></div>`;
   }
+  // Busca sem acentos/maiúsculas: acha "sao jose" mesmo escrito "São José"
+  function normBusca(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  function filtraEstabs(lista, q){
+    q = normBusca(q).trim();
+    if(!q) return lista;
+    return lista.filter(e=> normBusca([e.nome,e.bairro,e.endereco,e.responsavel,e.cnpj,e.cat,e.telefone,e.esp].join(' ')).includes(q));
+  }
   function renderCuradoria(){
-    document.getElementById('listaPend').innerHTML = pendentes.length
-      ? pendentes.map(e=>rowEstab(e,'pend')).join('')
-      : '<div class="card" style="text-align:center;color:var(--texto-suave)">Nenhum cadastro pendente. 🎉</div>';
-    document.getElementById('listaPub').innerHTML = publicados.map(e=>rowEstab(e,'pub')).join('');
+    const qP = (document.getElementById('buscaPend')||{}).value||'';
+    const qU = (document.getElementById('buscaPub')||{}).value||'';
+    const fP = filtraEstabs(pendentes, qP);
+    const fU = filtraEstabs(publicados, qU);
+    document.getElementById('listaPend').innerHTML = fP.length
+      ? fP.map(e=>rowEstab(e,'pend')).join('')
+      : `<div class="card" style="text-align:center;color:var(--texto-suave)">${qP.trim()?'Nenhum resultado para essa busca.':'Nenhum cadastro pendente. 🎉'}</div>`;
+    document.getElementById('listaPub').innerHTML = fU.length
+      ? fU.map(e=>rowEstab(e,'pub')).join('')
+      : `<div class="card" style="text-align:center;color:var(--texto-suave)">${qU.trim()?'Nenhum resultado para essa busca.':'Nenhum estabelecimento publicado.'}</div>`;
+    const iP=document.getElementById('buscaPendInfo'), iU=document.getElementById('buscaPubInfo');
+    if(iP) iP.textContent = qP.trim() ? `${fP.length} de ${pendentes.length} pendentes` : `${pendentes.length} pendentes`;
+    if(iU) iU.textContent = qU.trim() ? `${fU.length} de ${publicados.length} publicados` : `${publicados.length} publicados`;
     document.getElementById('bdgPend').textContent = pendentes.length;
     document.getElementById('bdgPub').textContent = publicados.length;
   }
@@ -838,7 +883,29 @@
     if(f.size>5*1024*1024){toast('⚠️ Máximo 5MB');return;}
     editFotoFile=f;
     const p=document.getElementById('edPrev');
-    p.src=URL.createObjectURL(f); p.classList.remove('hide');
+    edFotoUrl=URL.createObjectURL(f);
+    p.src=edFotoUrl; p.classList.remove('hide');
+    edEnqPreview();
+  }
+
+  // ===== ENQUADRAMENTO DA FOTO (como aparece no card da vitrine) =====
+  let edFotoUrl=''; let edModo='cobrir';
+  function edSetModo(m){
+    edModo=m;
+    const bC=document.getElementById('edModoCobrir'), bI=document.getElementById('edModoInteira');
+    bC.className='btn btn-sm '+(m==='cobrir'?'btn-primary':'btn-ghost');
+    bI.className='btn btn-sm '+(m==='inteira'?'btn-primary':'btn-ghost');
+    document.getElementById('edEnqSliders').style.display = (m==='cobrir'?'block':'none');
+    edEnqPreview();
+  }
+  function edEnqPreview(){
+    const prev=document.getElementById('edEnqPrev');
+    if(!prev) return;
+    if(!edFotoUrl){ prev.style.background='#f3ecf8'; return; }
+    const x=document.getElementById('edPosX').value, y=document.getElementById('edPosY').value;
+    prev.style.background = edModo==='inteira'
+      ? `#f3ecf8 url('${edFotoUrl}') center/contain no-repeat`
+      : `url('${edFotoUrl}') ${x}% ${y}%/cover no-repeat`;
   }
   function editarEstab(id){
     const e=pendentes.find(x=>String(x.id)===String(id))||publicados.find(x=>String(x.id)===String(id));
@@ -862,6 +929,10 @@
     const p=document.getElementById('edPrev');
     if(e.foto){ p.src=e.foto; p.classList.remove('hide'); } else { p.src=''; p.classList.add('hide'); }
     document.getElementById('edFoto').value='';
+    edFotoUrl=e.foto||'';
+    document.getElementById('edPosX').value=(e.foto_pos_x!=null?e.foto_pos_x:50);
+    document.getElementById('edPosY').value=(e.foto_pos_y!=null?e.foto_pos_y:50);
+    edSetModo(e.foto_modo==='inteira'?'inteira':'cobrir');
     document.getElementById('editOvl').classList.add('on');
     // Razão social e CNPJ (tabela protegida) — somente leitura, nunca alterados pela edição.
     const rz=document.getElementById('edRazao');
@@ -892,6 +963,9 @@
       descricao:document.getElementById('edDesc').value.trim()||null,
       especialidade:document.getElementById('edEsp').value.trim()||null,
       horario:document.getElementById('edHora').value.trim()||null,
+      foto_modo:edModo,
+      foto_pos_x:parseInt(document.getElementById('edPosX').value,10)||50,
+      foto_pos_y:parseInt(document.getElementById('edPosY').value,10)||50,
       site:linkSite(document.getElementById('edSite').value)||null,
       link_venda:linkSite(document.getElementById('edVenda').value)||null,
       instagram:linkInsta(document.getElementById('edInstagram').value)||null
@@ -929,7 +1003,7 @@
     if(!SB) return; // offline: mantém os dados de exemplo
     try{
       const {data,error} = await SB.from('estabelecimentos')
-        .select('id,nome,categoria,bairro,especialidade,descricao,horario,emoji,cor,foto,telefone,endereco,site,link_venda,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
+        .select('id,nome,categoria,bairro,especialidade,descricao,horario,emoji,cor,foto,foto_modo,foto_pos_x,foto_pos_y,telefone,endereco,site,link_venda,instagram,facebook,whatsapp,latitude,longitude,status,criado_em,estabelecimento_responsavel(responsavel,cpf,cnpj)')
         .in('status',['pendente','publicado'])
         .order('criado_em',{ascending:false});
       if(error || !Array.isArray(data)) return;
@@ -939,6 +1013,7 @@
         return { id:r.id, dbId:r.id, nome:r.nome, cat:r.categoria||'', categoria:r.categoria||'',
           bairro:r.bairro||'', esp:r.especialidade||'', especialidade:r.especialidade||'',
           descricao:r.descricao||'', horario:r.horario||'',
+          foto_modo:r.foto_modo||'cobrir', foto_pos_x:(r.foto_pos_x!=null?r.foto_pos_x:50), foto_pos_y:(r.foto_pos_y!=null?r.foto_pos_y:50),
           emoji:r.emoji||'', cor:r.cor||'#662382', foto:r.foto||'',
           contato:r.telefone||'', telefone:r.telefone||'',
           endereco:r.endereco||'', site:r.site||'', link_venda:r.link_venda||'', instagram:r.instagram||'',

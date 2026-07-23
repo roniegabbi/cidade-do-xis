@@ -1597,8 +1597,16 @@
     return links.length ? `<div class="redes">${links.join('')}</div>` : '';
   }
   const FOTO_PADRAO = 'xis-padrao.jpg'; // imagem padrão para estabelecimentos sem foto própria
+  // Enquadramento escolhido no admin: 'cobrir' (recorte com ponto focal) ou 'inteira' (logo completa)
+  function capaStyle(e){
+    const foto = e.foto || FOTO_PADRAO;
+    if(e.foto && e.fmodo==='inteira')
+      return `background:#f3ecf8 url('${encodeURI(foto)}') center/contain no-repeat`;
+    const fx = (e.fx!=null?e.fx:50), fy = (e.fy!=null?e.fy:50);
+    return `background:url('${encodeURI(foto)}') ${fx}% ${fy}%/cover no-repeat`;
+  }
   function cardHTML(e){
-    const capaBg = `background:url('${encodeURI(e.foto||FOTO_PADRAO)}') center/cover no-repeat`;
+    const capaBg = capaStyle(e);
     const media = notaPublica(e);
     const badge = media>0 ? `<span class="star">${media.toFixed(1)}</span>` : '';
     return `<div class="estab" onclick="verEstab('${esc(e.id)}')">
@@ -1746,7 +1754,7 @@
     if(!SB) return;
     try{
       // Paginação: a API do Supabase devolve no máximo 1000 linhas por chamada.
-      const COLS = 'id,nome,categoria,bairro,especialidade,descricao,nota,emoji,cor,foto,horario,telefone,endereco,whatsapp,instagram,facebook,site,link_venda,map_x,map_y,latitude,longitude,estabelecimento_itens(nome,ordem)';
+      const COLS = 'id,nome,categoria,bairro,especialidade,descricao,nota,emoji,cor,foto,foto_modo,foto_pos_x,foto_pos_y,horario,telefone,endereco,whatsapp,instagram,facebook,site,link_venda,map_x,map_y,latitude,longitude,estabelecimento_itens(nome,ordem)';
       const PASSO = 1000;
       let data = [], de = 0;
       while(true){
@@ -1769,6 +1777,7 @@
         id:r.id, nome:r.nome, cat:r.categoria||'', bairro:r.bairro||'',
         esp:r.especialidade||'', nota: r.nota!=null?Number(r.nota):0, media:0, votos:0,
         emoji:r.emoji||'🍔', cor:r.cor||'#662382', foto:r.foto||'', desc:r.descricao||'',
+        fmodo:r.foto_modo||'cobrir', fx:(r.foto_pos_x!=null?r.foto_pos_x:50), fy:(r.foto_pos_y!=null?r.foto_pos_y:50),
         itens:(r.estabelecimento_itens||[]).slice().sort((a,b)=>(a.ordem||0)-(b.ordem||0)).map(i=>i.nome),
         hora:r.horario||'', tel:r.telefone||'', end:r.endereco||'',
         whatsapp:r.whatsapp||'', instagram:r.instagram||'', facebook:r.facebook||'', site:r.site||'', venda:r.link_venda||'',
@@ -1985,7 +1994,7 @@
     const mine = getMyVote(e.id);
     document.getElementById('v-detalhe').innerHTML = `
       <button class="btn btn-outline btn-sm" style="margin-bottom:16px" onclick="go('vitrine')">← Voltar à vitrine</button>
-      <div class="det-capa" style="background:url('${encodeURI(e.foto||FOTO_PADRAO)}') center/cover no-repeat"></div>
+      <div class="det-capa" style="${capaStyle(e)}"></div>
       <div class="det-head">
         <div><div class="nm">${esc(e.nome)}</div><div class="esp">${esc(e.cat)} · ${esc(e.bairro)}</div></div>
         <div class="det-star">★ ${media>0?media.toFixed(1):'—'}</div>
