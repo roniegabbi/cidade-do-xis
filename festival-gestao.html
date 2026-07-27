@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão do Festival do Xis · Cidade do Xis</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57; --vermelho:#d63344; --azul:#2563ab;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--fundo);color:var(--texto);min-height:100vh}
+  .hide{display:none!important}
+  header{background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:19px}
+  header .ev{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13.5px}
+  header select{padding:8px 10px;border-radius:9px;border:none;font-size:13.5px}
+  header button{padding:8px 14px;border-radius:9px;border:1.5px solid #ffffff66;background:transparent;color:#fff;cursor:pointer;font-weight:700}
+  .layout{display:flex;min-height:calc(100vh - 62px)}
+  .side{width:230px;background:#fff;border-right:1px solid var(--borda);padding:14px 10px;flex-shrink:0}
+  .side a{display:block;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--roxo-esc);cursor:pointer;margin-bottom:2px}
+  .side a:hover{background:var(--fundo)}
+  .side a.on{background:var(--roxo);color:#fff}
+  .side .bdg{background:var(--rosa);color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px;margin-left:4px}
+  .main{flex:1;padding:20px;max-width:1080px}
+  .h{font-size:21px;font-weight:800;color:var(--roxo-esc);margin-bottom:4px}
+  .sub{font-size:13.5px;color:var(--texto-suave);margin-bottom:16px}
+  .card{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:18px;margin-bottom:14px}
+  .card h3{font-size:15.5px;color:var(--roxo);margin-bottom:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}.layout{flex-direction:column}.side{width:100%;display:flex;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--borda)}.side a{flex:1 1 auto;text-align:center}}
+  .field{margin-bottom:10px}
+  .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px}
+  .field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid var(--borda);border-radius:9px;font-size:14px;background:#fdfbff;font-family:inherit}
+  .btn{padding:9px 16px;border:none;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer}
+  .btn-p{background:var(--roxo);color:#fff}
+  .btn-g{background:#fff;color:var(--roxo);border:1.5px solid var(--borda)}
+  .btn-v{background:var(--verde);color:#fff}
+  .btn-r{background:var(--vermelho);color:#fff}
+  .btn-sm{padding:6px 11px;font-size:12.5px}
+  .lista{margin-top:6px}
+  .row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:12px 14px;margin-bottom:8px;flex-wrap:wrap}
+  .row .nm{font-weight:800;font-size:14.5px}
+  .row .mt{font-size:12.5px;color:var(--texto-suave)}
+  .row .acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .pill{font-size:11px;font-weight:800;border-radius:99px;padding:3px 10px;text-transform:uppercase;letter-spacing:.3px}
+  .pill.ok{background:#e2f6ea;color:var(--verde)}
+  .pill.warn{background:#fdf1d8;color:#9a6b00}
+  .pill.bad{background:#fde4e7;color:var(--vermelho)}
+  .pill.info{background:#e5eefb;color:var(--azul)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:14px 16px}
+  .kpi .n{font-size:22px;font-weight:800;color:var(--roxo)}
+  .kpi .l{font-size:12px;color:var(--texto-suave);margin-top:2px}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .filtros input,.filtros select{padding:9px 11px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff}
+  .filtros input{flex:1;min-width:180px}
+  table.fin{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff}
+  table.fin th{text-align:left;padding:8px 10px;color:var(--texto-suave);font-size:12px;text-transform:uppercase;border-bottom:1.5px solid var(--borda)}
+  table.fin td{padding:8px 10px;border-bottom:1px solid var(--fundo)}
+  .esp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .esp{border:1.5px solid var(--borda);border-radius:12px;padding:10px 12px;background:#fff;cursor:pointer}
+  .esp.ocupado{border-color:var(--rosa);background:#fdf3f9}
+  .esp .cod{font-weight:800;font-size:15px;color:var(--roxo-esc)}
+  .esp .d{font-size:11.5px;color:var(--texto-suave);margin-top:2px}
+  .busca-res{border:1.5px solid var(--borda);border-radius:10px;background:#fff;max-height:230px;overflow:auto}
+  .busca-res div{padding:9px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--fundo)}
+  .busca-res div:hover{background:var(--fundo)}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--roxo-esc);color:#fff;
+    padding:12px 22px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}
+  #toast.on{opacity:1}
+  .login-wrap{max-width:380px;margin:60px auto;background:#fff;border:1px solid var(--borda);border-radius:16px;padding:28px}
+  .login-wrap h2{color:var(--roxo-esc);margin-bottom:6px}
+  .login-wrap p{font-size:13.5px;color:var(--texto-suave);margin-bottom:16px}
+  @media print{
+    header,.side,.filtros,.no-print{display:none!important}
+    .main{max-width:none;padding:0}
+    body{background:#fff}
+    .card{border:none;padding:0}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎪 Gestão do Festival do Xis</h1>
+  <div class="ev" id="evWrap" style="display:none">
+    <span>Evento:</span>
+    <select id="selEvento" onchange="trocarEvento()"></select>
+    <button onclick="location.href='admin-cidade-do-xis.html'">↩ Admin</button>
+    <button onclick="sair()">Sair</button>
+  </div>
+</header>
+
+<div class="login-wrap" id="loginBox">
+  <h2>Acesso restrito</h2>
+  <p>Entre com seu usuário da equipe (admin, editor ou financeiro).</p>
+  <div class="field"><label>E-mail</label><input id="lEmail" type="email" autocomplete="username"></div>
+  <div class="field"><label>Senha</label><input id="lSenha" type="password" autocomplete="current-password"></div>
+  <button class="btn btn-p" style="width:100%" onclick="entrar()">Entrar</button>
+  <div id="lMsg" style="margin-top:10px;font-size:13.5px;color:var(--vermelho);min-height:18px"></div>
+</div>
+
+<div class="layout hide" id="app">
+  <nav class="side">
+    <a class="on" data-p="geral" onclick="tab('geral')">📊 Visão geral</a>
+    <a data-p="espacos" onclick="tab('espacos')">🗺️ Espaços</a>
+    <a data-p="xis" onclick="tab('xis')">🍔 Operações de Xis</a>
+    <a data-p="exp" data-dim="criativo" onclick="abrirExp('criativo')">🎨 Mercado Criativo</a>
+    <a data-p="exp" data-dim="ferromodelismo" onclick="abrirExp('ferromodelismo')">🚂 Ferromodelismo</a>
+    <a data-p="exp" data-dim="outros" onclick="abrirExp('outros')">🍺 Outros Expositores</a>
+    <a data-p="atracoes" onclick="tab('atracoes')">🎤 Atrações Culturais</a>
+    <a data-p="patroc" onclick="tab('patroc')">🤝 Patrocinadores</a>
+    <a data-p="fornec" onclick="tab('fornec')">📦 Fornecedores</a>
+    <a data-p="fin" onclick="tab('fin')">💰 Financeiro <span class="bdg hide" id="bdgVenc">0</span></a>
+    <a data-p="prest" onclick="tab('prest')">📑 Prestação de Contas</a>
+  </nav>
+
+  <main class="main">
+
+    <section class="pane" id="p-geral">
+      <div class="h">Visão geral</div>
+      <div class="sub" id="geralSub"></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="card"><h3>⚠️ Vencimentos</h3><div id="alertas"></div></div>
+      <div class="card"><h3>Ocupação por dimensão</h3><div id="ocupacaoDim"></div></div>
+    </section>
+
+    <section class="pane hide" id="p-espacos">
+      <div class="h">Espaços</div>
+      <div class="sub">Lotes e pontos do evento. Clique num espaço para editar.</div>
+      <div class="card">
+        <h3 id="espFormTit">Novo espaço</h3>
+        <div class="grid3">
+          <div class="field"><label>Identificação *</label><input id="eCod" placeholder="Ex.: X-01, MC-12"></div>
+          <div class="field"><label>Dimensão</label>
+            <select id="eDim"><option value="xis">Operações de Xis</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros Expositores</option><option value="cultural">Cultural</option></select></div>
+          <div class="field"><label>Metragem (m²)</label><input id="eMet" type="number" step="0.1"></div>
+          <div class="field"><label>Valor/taxa (R$)</label><input id="eVal" type="number" step="0.01"></div>
+          <div class="field"><label>Energia</label><input id="eEne" placeholder="Ex.: 220V / bifásica"></div>
+          <div class="field"><label>Observações</label><input id="eObs"></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarEspaco()">Salvar espaço</button>
+        <button class="btn btn-g hide" id="eCancel" onclick="limparEspaco()">Cancelar edição</button>
+      </div>
+      <div class="filtros">
+        <input id="fEspBusca" placeholder="🔎 Buscar espaço…" oninput="renderEspacos()">
+        <select id="fEspDim" onchange="renderEspacos()"><option value="">Todas as dimensões</option><option value="xis">Xis</option><option value="criativo">Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros</option><option value="cultural">Cultural</option></select>
+        <select id="fEspStatus" onchange="renderEspacos()"><option value="">Todos</option><option value="livre">Livres</option><option value="ocupado">Ocupados</option></select>
+      </div>
+      <div class="esp-grid" id="listaEspacos"></div>
+    </section>
+
+    <section class="pane hide" id="p-xis">
+      <div class="h">Operações de Xis</div>
+      <div class="sub">Busque no cadastro do Cidade do Xis e vincule ao festival — sem recadastrar.</div>
+      <div class="card">
+        <h3>Vincular operação</h3>
+        <div class="field"><label>Buscar no cadastro (nome ou bairro)</label>
+          <input id="xBusca" placeholder="Digite ao menos 3 letras…" oninput="buscarXis()"></div>
+        <div class="busca-res hide" id="xRes"></div>
+      </div>
+      <div class="filtros">
+        <input id="fXisBusca" placeholder="🔎 Filtrar vinculadas…" oninput="renderXis()">
+        <select id="fXisStatus" onchange="renderXis()"><option value="">Todos</option><option value="interessado">Interessado</option><option value="confirmado">Confirmado</option><option value="cancelado">Cancelado</option></select>
+      </div>
+      <div class="lista" id="listaXis"></div>
+    </section>
+
+    <section class="pane hide" id="p-exp">
+      <div class="h" id="expTit">Expositores</div>
+      <div class="sub">Cadastro interno feito pela organização.</div>
+      <div class="card">
+        <h3 id="expFormTit">Novo expositor</h3>
+        <div class="grid3">
+          <div class="field"><label>Nome *</label><input id="pNome"></div>
+          <div class="field"><label>CNPJ/CPF</label><input id="pDoc"></div>
+          <div class="field"><label>Responsável</label><input id="pResp"></div>
+          <div class="field"><label>Telefone</label><input id="pTel"></div>
+          <div class="field"><label>E-mail</label><input id="pEmail"></div>
+          <div class="field"><label>Observações</label><input id="pObs"></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarExpositor()">Salvar expositor</button>
+        <button class="btn btn-g hide" id="pCancel" onclick="limparExpositor()">Cancelar edição</button>
+      </div>
+      <div class="filtros">
+        <input id="fExpBusca" placeholder="🔎 Filtrar…" oninput="renderExp()">
+        <select id="fExpStatus" onchange="renderExp()"><option value="">Todos</option><option value="interessado">Interessado</option><option value="confirmado">Confirmado</option><option value="cancelado">Cancelado</option></select>
+      </div>
+      <div class="lista" id="listaExp"></div>
+    </section>
+
+    <section class="pane hide" id="p-atracoes">
+      <div class="h">Atrações culturais</div>
+      <div class="sub">Shows e apresentações. O cachê pode virar conta a pagar com um clique.</div>
+      <div class="card">
+        <h3 id="atrFormTit">Nova atração</h3>
+        <div class="grid3">
+          <div class="field"><label>Nome *</label><input id="aNome"></div>
+          <div class="field"><label>Tipo</label><input id="aTipo" placeholder="Show, dança, teatro…"></div>
+          <div class="field"><label>Dia</label><input id="aDia" type="date"></div>
+          <div class="field"><label>Horário</label><input id="aHora" placeholder="20h"></div>
+          <div class="field"><label>Palco/Espaço</label><input id="aPalco" placeholder="Palco principal"></div>
+          <div class="field"><label>Cachê (R$)</label><input id="aCache" type="number" step="0.01"></div>
+          <div class="field"><label>Status</label>
+            <select id="aStatus"><option value="prevista">Prevista</option><option value="confirmada">Confirmada</option><option value="realizada">Realizada</option><option value="cancelada">Cancelada</option></select></div>
+          <div class="field"><label>Observações</label><input id="aObs"></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarAtracao()">Salvar atração</button>
+        <button class="btn btn-g hide" id="aCancel" onclick="limparAtracao()">Cancelar edição</button>
+      </div>
+      <div class="filtros"><input id="fAtrBusca" placeholder="🔎 Filtrar…" oninput="renderAtracoes()"></div>
+      <div class="lista" id="listaAtracoes"></div>
+    </section>
+
+    <section class="pane hide" id="p-patroc">
+      <div class="h">Patrocinadores</div>
+      <div class="sub">Captação com status: previsto → empenhado → recebido.</div>
+      <div class="card">
+        <h3 id="patFormTit">Novo patrocinador</h3>
+        <div class="grid3">
+          <div class="field"><label>Nome *</label><input id="sNome"></div>
+          <div class="field"><label>CNPJ/CPF</label><input id="sDoc"></div>
+          <div class="field"><label>Contato</label><input id="sContato"></div>
+          <div class="field"><label>Telefone</label><input id="sTel"></div>
+          <div class="field"><label>Cota/Plano</label><input id="sCota" placeholder="Ouro, Prata…"></div>
+          <div class="field"><label>Valor (R$)</label><input id="sValor" type="number" step="0.01"></div>
+          <div class="field"><label>Status</label>
+            <select id="sStatus"><option value="previsto">Previsto</option><option value="empenhado">Empenhado</option><option value="recebido">Recebido</option><option value="cancelado">Cancelado</option></select></div>
+          <div class="field"><label>Contrapartidas</label><input id="sContra"></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarPatrocinador()">Salvar patrocinador</button>
+        <button class="btn btn-g hide" id="sCancel" onclick="limparPatrocinador()">Cancelar edição</button>
+      </div>
+      <div class="filtros">
+        <input id="fPatBusca" placeholder="🔎 Filtrar…" oninput="renderPatrocinadores()">
+        <select id="fPatStatus" onchange="renderPatrocinadores()"><option value="">Todos</option><option value="previsto">Previsto</option><option value="empenhado">Empenhado</option><option value="recebido">Recebido</option><option value="cancelado">Cancelado</option></select>
+      </div>
+      <div class="lista" id="listaPatroc"></div>
+    </section>
+
+    <section class="pane hide" id="p-fornec">
+      <div class="h">Fornecedores</div>
+      <div class="sub">Base para o contas a pagar.</div>
+      <div class="card">
+        <h3 id="fornFormTit">Novo fornecedor</h3>
+        <div class="grid3">
+          <div class="field"><label>Razão social *</label><input id="fRazao"></div>
+          <div class="field"><label>CNPJ/CPF</label><input id="fDoc"></div>
+          <div class="field"><label>Categoria</label><input id="fCatg" placeholder="Som, estrutura, segurança…"></div>
+          <div class="field"><label>Contato</label><input id="fContato"></div>
+          <div class="field"><label>Telefone</label><input id="fTel2"></div>
+          <div class="field"><label>E-mail</label><input id="fEmail2"></div>
+          <div class="field"><label>Dados bancários</label><input id="fBanco" placeholder="Banco / agência / conta"></div>
+          <div class="field"><label>PIX</label><input id="fPix"></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarFornecedor()">Salvar fornecedor</button>
+        <button class="btn btn-g hide" id="fCancel" onclick="limparFornecedor()">Cancelar edição</button>
+      </div>
+      <div class="filtros"><input id="fFornBusca" placeholder="🔎 Filtrar…" oninput="renderFornecedores()"></div>
+      <div class="lista" id="listaFornec"></div>
+    </section>
+
+    <section class="pane hide" id="p-fin">
+      <div class="h">Financeiro</div>
+      <div class="sub">Contas a receber e a pagar do evento. "Atrasado" = previsto com vencimento passado.</div>
+      <div class="card" id="finFormCard">
+        <h3>Novo lançamento</h3>
+        <div class="grid3">
+          <div class="field"><label>Tipo</label>
+            <select id="nTipo"><option value="receber">A receber</option><option value="pagar">A pagar</option></select></div>
+          <div class="field"><label>Descrição *</label><input id="nDesc"></div>
+          <div class="field"><label>Valor (R$) *</label><input id="nValor" type="number" step="0.01"></div>
+          <div class="field"><label>Vencimento</label><input id="nVenc" type="date"></div>
+          <div class="field"><label>Vincular a</label>
+            <select id="nFonteTipo" onchange="finFonteOpts()"><option value="">— nada —</option><option value="fornecedor">Fornecedor</option><option value="patrocinador">Patrocinador</option><option value="participacao">Participação/Expositor</option><option value="atracao">Atração</option></select></div>
+          <div class="field"><label>Origem</label><select id="nFonteId"><option value="">—</option></select></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarLancamento()">Adicionar lançamento</button>
+      </div>
+      <div class="filtros">
+        <input id="fFinBusca" placeholder="🔎 Filtrar…" oninput="renderFin()">
+        <select id="fFinTipo" onchange="renderFin()"><option value="">Receber + Pagar</option><option value="receber">A receber</option><option value="pagar">A pagar</option></select>
+        <select id="fFinStatus" onchange="renderFin()"><option value="">Todos</option><option value="previsto">Previstos</option><option value="atrasado">Atrasados</option><option value="realizado">Realizados</option></select>
+      </div>
+      <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabFin"></table></div></div>
+      <div class="card"><h3>Fluxo de caixa por mês</h3><div style="overflow-x:auto"><table class="fin" id="tabFluxo"></table></div></div>
+    </section>
+
+    <section class="pane hide" id="p-prest">
+      <div class="h">Prestação de contas</div>
+      <div class="sub">Recebimentos e pagamentos realizados no período — pronto para anexar à prestação (SELD / Decreto 159/2006).</div>
+      <div class="filtros no-print">
+        <span style="align-self:center;font-size:13.5px">De</span><input id="prDe" type="date" onchange="renderPrestacao()">
+        <span style="align-self:center;font-size:13.5px">até</span><input id="prAte" type="date" onchange="renderPrestacao()">
+        <button class="btn btn-g" onclick="window.print()">🖨️ Imprimir / PDF</button>
+      </div>
+      <div class="card"><h3>Recebimentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestRec"></table></div></div>
+      <div class="card"><h3>Pagamentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestPag"></table></div></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://hlstcndhxzhdzbecfrhp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr';
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  const DIMS = {xis:'Operações de Xis', criativo:'Mercado Criativo', ferromodelismo:'Ferromodelismo', outros:'Outros Expositores', cultural:'Cultural'};
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const fmtRS = v => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const fmtD = iso => iso ? new Date(iso+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  const hoje = () => new Date().toISOString().slice(0,10);
+  function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2400);}
+  const g = id => document.getElementById(id);
+
+  let USER=null, EVENTOS=[], EV=null;
+  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[];
+  let EXP_DIM='criativo';
+  let editEsp=null, editPart=null, editAtr=null, editPat=null, editForn=null;
+
+  // ===== AUTH =====
+  async function entrar(){
+    if(!SB){ g('lMsg').textContent='Sem conexão com o servidor.'; return; }
+    const {data,error} = await SB.auth.signInWithPassword({email:g('lEmail').value.trim(), password:g('lSenha').value});
+    if(error){ g('lMsg').textContent='Falha no login: '+error.message; return; }
+    USER = data.user; iniciarApp();
+  }
+  async function sair(){ if(SB) await SB.auth.signOut(); location.reload(); }
+  async function iniciarApp(){
+    g('loginBox').classList.add('hide');
+    g('app').classList.remove('hide');
+    g('evWrap').style.display='flex';
+    await loadEventos();
+    await loadAll();
+  }
+
+  // ===== EVENTOS =====
+  async function loadEventos(){
+    const {data,error} = await SB.from('festival_eventos').select('*').order('data_inicio',{ascending:false});
+    if(error){ toast('❌ Sem acesso: seu usuário tem papel de equipe do festival? ('+error.message+')'); return; }
+    EVENTOS = data||[];
+    EV = EVENTOS.find(e=>e.ativo) || EVENTOS[0] || null;
+    g('selEvento').innerHTML = EVENTOS.map(e=>`<option value="${e.id}"${EV&&e.id===EV.id?' selected':''}>${esc(e.nome)}</option>`).join('');
+  }
+  function trocarEvento(){ EV = EVENTOS.find(e=>e.id===g('selEvento').value)||EV; loadAll(); }
+
+  async function loadAll(){
+    if(!EV) return;
+    const [esp, par, atr, pat, forn, fin] = await Promise.all([
+      SB.from('festival_espacos').select('*').eq('evento_id',EV.id).order('codigo'),
+      SB.from('festival_participacoes').select('*, estabelecimentos(nome,bairro,categoria), festival_espacos(codigo,valor)').eq('evento_id',EV.id).order('criado_em'),
+      SB.from('festival_atracoes').select('*').eq('evento_id',EV.id).order('dia').order('horario'),
+      SB.from('festival_patrocinadores').select('*').eq('evento_id',EV.id).order('nome'),
+      SB.from('festival_fornecedores').select('*').order('razao_social'),
+      SB.from('festival_financeiro').select('*').eq('evento_id',EV.id).order('vencimento')
+    ]);
+    ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
+    PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[];
+    renderTudo();
+  }
+  function renderTudo(){
+    renderGeral(); renderEspacos(); renderXis(); renderExp();
+    renderAtracoes(); renderPatrocinadores(); renderFornecedores();
+    renderFin(); renderFluxo(); renderPrestacao(); finFonteOpts();
+    preencherSelEspacos();
+  }
+
+  // ===== NAV =====
+  function tab(p){
+    document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('hide', x.id!=='p-'+p));
+    document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on', a.dataset.p===p && (p!=='exp' || a.dataset.dim===EXP_DIM)));
+    window.scrollTo({top:0});
+  }
+  function abrirExp(dim){
+    EXP_DIM = dim; limparExpositor();
+    g('expTit').textContent = DIMS[dim];
+    tab('exp'); renderExp();
+  }
+
+  // ===== HELPERS DE ESPAÇO =====
+  const ocupanteDoEspaco = espId => PARTS.find(p=>p.espaco_id===espId && p.status!=='cancelado');
+  function nomePart(p){ return p.estabelecimentos ? p.estabelecimentos.nome : (p.nome||'—'); }
+  function preencherSelEspacos(){
+    document.querySelectorAll('select[data-espsel]').forEach(sel=>{
+      const dim = sel.dataset.espsel, cur = sel.dataset.cur||'';
+      const livres = ESPACOS.filter(e=>(!dim || e.dimensao===dim) && (!ocupanteDoEspaco(e.id) || e.id===cur));
+      sel.innerHTML = '<option value="">— sem espaço —</option>'+
+        livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)} · ${fmtRS(e.valor)}</option>`).join('');
+    });
+  }
+
+  // ===== VISÃO GERAL =====
+  function statusFin(l){ return l.realizado ? 'realizado' : (l.vencimento && l.vencimento < hoje() ? 'atrasado' : 'previsto'); }
+  function renderGeral(){
+    if(!EV) return;
+    g('geralSub').textContent = `${EV.nome} · ${fmtD(EV.data_inicio)} a ${fmtD(EV.data_fim)} · ${EV.local||''}`;
+    const ocup = ESPACOS.filter(e=>ocupanteDoEspaco(e.id)).length;
+    const conf = PARTS.filter(p=>p.status==='confirmado').length;
+    const rec = FIN.filter(l=>l.tipo==='receber'), pag = FIN.filter(l=>l.tipo==='pagar');
+    const soma = a => a.reduce((s,l)=>s+Number(l.valor||0),0);
+    const kpis = [
+      {n:`${ocup}/${ESPACOS.length}`, l:'Espaços ocupados'},
+      {n:conf, l:'Participações confirmadas'},
+      {n:PATROC.filter(p=>p.status!=='cancelado').length, l:'Patrocinadores'},
+      {n:fmtRS(soma(rec.filter(l=>l.realizado))), l:'Recebido'},
+      {n:fmtRS(soma(rec.filter(l=>!l.realizado))), l:'A receber'},
+      {n:fmtRS(soma(pag.filter(l=>l.realizado))), l:'Pago'},
+      {n:fmtRS(soma(pag.filter(l=>!l.realizado))), l:'A pagar'},
+      {n:fmtRS(soma(rec)-soma(pag)), l:'Resultado projetado'}
+    ];
+    g('kpis').innerHTML = kpis.map(k=>`<div class="kpi"><div class="n">${k.n}</div><div class="l">${k.l}</div></div>`).join('');
+    const em7 = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+    const vencidos = FIN.filter(l=>statusFin(l)==='atrasado');
+    const proximos = FIN.filter(l=>!l.realizado && l.vencimento && l.vencimento>=hoje() && l.vencimento<=em7);
+    g('bdgVenc').textContent = vencidos.length;
+    g('bdgVenc').classList.toggle('hide', !vencidos.length);
+    g('alertas').innerHTML = (!vencidos.length && !proximos.length)
+      ? '<div class="mt" style="color:var(--texto-suave);font-size:13.5px">Nenhum vencimento pendente. ✓</div>'
+      : vencidos.map(l=>`<div class="row"><span class="pill bad">Vencido</span><span>${esc(l.descricao)}</span><span class="mt">${l.tipo==='receber'?'receber':'pagar'} · venceu ${fmtD(l.vencimento)}</span><b style="margin-left:auto">${fmtRS(l.valor)}</b></div>`).join('')
+      + proximos.map(l=>`<div class="row"><span class="pill warn">Vence ${fmtD(l.vencimento)}</span><span>${esc(l.descricao)}</span><b style="margin-left:auto">${fmtRS(l.valor)}</b></div>`).join('');
+    g('ocupacaoDim').innerHTML = Object.keys(DIMS).map(d=>{
+      const tot = ESPACOS.filter(e=>e.dimensao===d).length;
+      if(!tot) return '';
+      const oc = ESPACOS.filter(e=>e.dimensao===d && ocupanteDoEspaco(e.id)).length;
+      return `<div class="row"><span class="nm">${DIMS[d]}</span><span class="mt">${oc} de ${tot} espaços ocupados</span>
+        <div style="margin-left:auto;width:160px;height:10px;background:var(--fundo);border-radius:9px;overflow:hidden"><div style="width:${tot?Math.round(oc/tot*100):0}%;height:100%;background:var(--rosa)"></div></div></div>`;
+    }).join('') || '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Cadastre espaços para ver a ocupação.</div>';
+  }
+
+  // ===== ESPAÇOS =====
+  async function salvarEspaco(){
+    const cod = g('eCod').value.trim();
+    if(!cod){ toast('Informe a identificação do espaço'); return; }
+    const reg = { evento_id:EV.id, codigo:cod, dimensao:g('eDim').value,
+      metragem:parseFloat(g('eMet').value)||null, valor:parseFloat(g('eVal').value)||0,
+      energia:g('eEne').value.trim()||null, obs:g('eObs').value.trim()||null };
+    const r = editEsp
+      ? await SB.from('festival_espacos').update(reg).eq('id',editEsp)
+      : await SB.from('festival_espacos').insert(reg);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast(editEsp?'Espaço atualizado ✓':'Espaço criado ✓'); limparEspaco(); loadAll();
+  }
+  function limparEspaco(){ editEsp=null; ['eCod','eMet','eVal','eEne','eObs'].forEach(i=>g(i).value='');
+    g('eDim').value='xis'; g('espFormTit').textContent='Novo espaço'; g('eCancel').classList.add('hide'); }
+  function editarEspaco(id){
+    const e = ESPACOS.find(x=>x.id===id); if(!e) return;
+    editEsp=id; g('eCod').value=e.codigo; g('eDim').value=e.dimensao;
+    g('eMet').value=e.metragem||''; g('eVal').value=e.valor||''; g('eEne').value=e.energia||''; g('eObs').value=e.obs||'';
+    g('espFormTit').textContent='Editar espaço '+e.codigo; g('eCancel').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  async function excluirEspaco(id){
+    if(!confirm('Excluir este espaço?')) return;
+    const r = await SB.from('festival_espacos').delete().eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Espaço excluído'); loadAll();
+  }
+  function renderEspacos(){
+    const q=norm(g('fEspBusca').value), dim=g('fEspDim').value, st=g('fEspStatus').value;
+    const lista = ESPACOS.filter(e=>{
+      const oc = !!ocupanteDoEspaco(e.id);
+      return (!q || norm(e.codigo+' '+(e.obs||'')).includes(q))
+        && (!dim || e.dimensao===dim)
+        && (!st || (st==='ocupado')===oc);
+    });
+    g('listaEspacos').innerHTML = lista.length ? lista.map(e=>{
+      const oc = ocupanteDoEspaco(e.id);
+      return `<div class="esp ${oc?'ocupado':''}" onclick="editarEspaco('${e.id}')">
+        <div class="cod">${esc(e.codigo)}</div>
+        <div class="d">${DIMS[e.dimensao]||e.dimensao}${e.metragem?' · '+e.metragem+'m²':''}</div>
+        <div class="d">${fmtRS(e.valor)}${e.energia?' · ⚡'+esc(e.energia):''}</div>
+        <div class="d" style="margin-top:4px">${oc?'🔴 '+esc(nomePart(oc)):'🟢 Livre'}</div>
+        <div class="d no-print" style="margin-top:6px"><a style="color:var(--vermelho);font-weight:700" onclick="event.stopPropagation();excluirEspaco('${e.id}')">excluir</a></div>
+      </div>`;
+    }).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum espaço.</div>';
+  }
+
+  // ===== OPERAÇÕES DE XIS =====
+  let xTimer=null;
+  function buscarXis(){
+    clearTimeout(xTimer);
+    const q = g('xBusca').value.trim();
+    if(q.length<3){ g('xRes').classList.add('hide'); return; }
+    xTimer = setTimeout(async ()=>{
+      const {data,error} = await SB.from('estabelecimentos')
+        .select('id,nome,bairro,categoria')
+        .or(`nome.ilike.%${q}%,bairro.ilike.%${q}%`)
+        .order('nome').limit(15);
+      if(error||!data){ g('xRes').classList.add('hide'); return; }
+      const jaIds = new Set(PARTS.filter(p=>p.estabelecimento_id).map(p=>p.estabelecimento_id));
+      g('xRes').innerHTML = data.length ? data.map(e=>
+        `<div onclick="vincularXis('${e.id}')">${esc(e.nome)} <span style="color:var(--texto-suave);font-size:12.5px">· ${esc(e.categoria||'')} · ${esc(e.bairro||'')}</span>${jaIds.has(e.id)?' <span class="pill info">já vinculado</span>':''}</div>`
+      ).join('') : '<div>Nenhum resultado.</div>';
+      g('xRes').classList.remove('hide');
+    }, 350);
+  }
+  async function vincularXis(estId){
+    if(PARTS.some(p=>p.estabelecimento_id===estId)){ toast('Essa operação já está vinculada'); return; }
+    const r = await SB.from('festival_participacoes').insert({ evento_id:EV.id, dimensao:'xis', estabelecimento_id:estId });
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    g('xBusca').value=''; g('xRes').classList.add('hide');
+    toast('Operação vinculada ao festival ✓'); loadAll();
+  }
+  function renderXis(){
+    const q=norm(g('fXisBusca').value), st=g('fXisStatus').value;
+    const lista = PARTS.filter(p=>p.dimensao==='xis')
+      .filter(p=> (!q || norm(nomePart(p)+' '+(p.estabelecimentos?p.estabelecimentos.bairro||'':'')).includes(q)) && (!st || p.status===st));
+    g('listaXis').innerHTML = lista.length ? lista.map(p=>partRow(p,'xis')).join('')
+      : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma operação vinculada ainda.</div>';
+    preencherSelEspacos();
+  }
+
+  // linha compartilhada de participação (xis e expositores)
+  function partRow(p, dim){
+    const stPill = p.status==='confirmado'?'<span class="pill ok">Confirmado</span>'
+      : p.status==='cancelado'?'<span class="pill bad">Cancelado</span>':'<span class="pill warn">Interessado</span>';
+    const espLabel = p.festival_espacos ? `Espaço ${esc(p.festival_espacos.codigo)}` : 'Sem espaço';
+    const det = p.estabelecimentos ? [p.estabelecimentos.categoria,p.estabelecimentos.bairro].filter(Boolean).join(' · ') : [p.documento,p.responsavel,p.telefone].filter(Boolean).join(' · ');
+    return `<div class="row">
+      <div><div class="nm">${esc(nomePart(p))} ${stPill}${p.isento?' <span class="pill info">Isento</span>':''}</div>
+        <div class="mt">${esc(det)} · ${espLabel} · taxa ${fmtRS(p.taxa)}</div></div>
+      <div class="acts">
+        <select data-espsel="${dim==='xis'?'xis':EXP_DIM}" data-cur="${p.espaco_id||''}" onchange="defEspaco('${p.id}',this.value)"></select>
+        ${p.status!=='confirmado'?`<button class="btn btn-v btn-sm" onclick="mudarStatusPart('${p.id}','confirmado')">✓ Confirmar</button>`:''}
+        ${p.status!=='cancelado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','cancelado')">Cancelar</button>`:''}
+        ${dim!=='xis'?`<button class="btn btn-g btn-sm" onclick="editarExpositor('${p.id}')">Editar</button>`:''}
+        <button class="btn btn-g btn-sm" onclick="gerarCobranca('${p.id}')" title="Cria conta a receber com a taxa">💰 Cobrança</button>
+        <button class="btn btn-r btn-sm" onclick="excluirPart('${p.id}')">✕</button>
+      </div></div>`;
+  }
+  async function defEspaco(partId, espId){
+    const esp = ESPACOS.find(e=>e.id===espId);
+    const upd = { espaco_id: espId||null };
+    if(esp) upd.taxa = esp.valor||0;
+    const r = await SB.from('festival_participacoes').update(upd).eq('id',partId);
+    if(r.error){ toast('❌ '+r.error.message); loadAll(); return; }
+    toast(esp?`Espaço ${esp.codigo} alocado (taxa ${fmtRS(esp.valor)})`:'Espaço removido'); loadAll();
+  }
+  async function mudarStatusPart(id, st){
+    const r = await SB.from('festival_participacoes').update({status:st}).eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Status atualizado'); loadAll();
+  }
+  async function excluirPart(id){
+    if(!confirm('Remover esta participação do festival?')) return;
+    const r = await SB.from('festival_participacoes').delete().eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Participação removida'); loadAll();
+  }
+  async function gerarCobranca(id){
+    const p = PARTS.find(x=>x.id===id); if(!p) return;
+    if(p.isento){ toast('Participação isenta de taxa'); return; }
+    if(!(p.taxa>0)){ toast('Defina um espaço/taxa antes de gerar a cobrança'); return; }
+    if(FIN.some(l=>l.participacao_id===id)){ if(!confirm('Já existe lançamento para esta participação. Criar outro?')) return; }
+    const venc = prompt('Vencimento (AAAA-MM-DD):', hoje());
+    if(venc===null) return;
+    const r = await SB.from('festival_financeiro').insert({
+      evento_id:EV.id, tipo:'receber', descricao:'Taxa de espaço — '+nomePart(p),
+      valor:p.taxa, vencimento:venc||null, participacao_id:id, espaco_id:p.espaco_id||null });
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Conta a receber criada ✓'); loadAll();
+  }
+
+  // ===== EXPOSITORES =====
+  async function salvarExpositor(){
+    const nome = g('pNome').value.trim();
+    if(!nome){ toast('Informe o nome'); return; }
+    const reg = { evento_id:EV.id, dimensao:EXP_DIM, nome,
+      documento:g('pDoc').value.trim()||null, responsavel:g('pResp').value.trim()||null,
+      telefone:g('pTel').value.trim()||null, email:g('pEmail').value.trim()||null, obs:g('pObs').value.trim()||null };
+    const r = editPart
+      ? await SB.from('festival_participacoes').update(reg).eq('id',editPart)
+      : await SB.from('festival_participacoes').insert(reg);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast(editPart?'Expositor atualizado ✓':'Expositor cadastrado ✓'); limparExpositor(); loadAll();
+  }
+  function limparExpositor(){ editPart=null; ['pNome','pDoc','pResp','pTel','pEmail','pObs'].forEach(i=>{ if(g(i)) g(i).value=''; });
+    if(g('expFormTit')) g('expFormTit').textContent='Novo expositor';
+    if(g('pCancel')) g('pCancel').classList.add('hide'); }
+  function editarExpositor(id){
+    const p = PARTS.find(x=>x.id===id); if(!p) return;
+    EXP_DIM = p.dimensao; g('expTit').textContent = DIMS[p.dimensao]; tab('exp');
+    editPart=id; g('pNome').value=p.nome||''; g('pDoc').value=p.documento||'';
+    g('pResp').value=p.responsavel||''; g('pTel').value=p.telefone||''; g('pEmail').value=p.email||''; g('pObs').value=p.obs||'';
+    g('expFormTit').textContent='Editar expositor'; g('pCancel').classList.remove('hide');
+    renderExp(); window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function renderExp(){
+    if(!g('listaExp')) return;
+    const q=norm(g('fExpBusca').value), st=g('fExpStatus').value;
+    const lista = PARTS.filter(p=>p.dimensao===EXP_DIM)
+      .filter(p=> (!q || norm((p.nome||'')+' '+(p.documento||'')+' '+(p.responsavel||'')).includes(q)) && (!st || p.status===st));
+    g('listaExp').innerHTML = lista.length ? lista.map(p=>partRow(p,'exp')).join('')
+      : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum expositor nesta dimensão.</div>';
+    preencherSelEspacos();
+  }
+
+  // ===== ATRAÇÕES =====
+  async function salvarAtracao(){
+    const nome = g('aNome').value.trim();
+    if(!nome){ toast('Informe o nome da atração'); return; }
+    const reg = { evento_id:EV.id, nome, tipo:g('aTipo').value.trim()||null, dia:g('aDia').value||null,
+      horario:g('aHora').value.trim()||null, palco:g('aPalco').value.trim()||null,
+      cache:parseFloat(g('aCache').value)||0, status:g('aStatus').value, obs:g('aObs').value.trim()||null };
+    const r = editAtr
+      ? await SB.from('festival_atracoes').update(reg).eq('id',editAtr)
+      : await SB.from('festival_atracoes').insert(reg);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast(editAtr?'Atração atualizada ✓':'Atração cadastrada ✓'); limparAtracao(); loadAll();
+  }
+  function limparAtracao(){ editAtr=null; ['aNome','aTipo','aDia','aHora','aPalco','aCache','aObs'].forEach(i=>g(i).value='');
+    g('aStatus').value='prevista'; g('atrFormTit').textContent='Nova atração'; g('aCancel').classList.add('hide'); }
+  function editarAtracao(id){
+    const a = ATRACOES.find(x=>x.id===id); if(!a) return;
+    editAtr=id; g('aNome').value=a.nome; g('aTipo').value=a.tipo||''; g('aDia').value=a.dia||'';
+    g('aHora').value=a.horario||''; g('aPalco').value=a.palco||''; g('aCache').value=a.cache||'';
+    g('aStatus').value=a.status; g('aObs').value=a.obs||'';
+    g('atrFormTit').textContent='Editar atração'; g('aCancel').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  async function excluirAtracao(id){
+    if(!confirm('Excluir esta atração?')) return;
+    const r = await SB.from('festival_atracoes').delete().eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Atração excluída'); loadAll();
+  }
+  async function gerarCache(id){
+    const a = ATRACOES.find(x=>x.id===id); if(!a) return;
+    if(!(a.cache>0)){ toast('Cadastre o valor do cachê primeiro'); return; }
+    if(FIN.some(l=>l.atracao_id===id)){ if(!confirm('Já existe lançamento para esta atração. Criar outro?')) return; }
+    const venc = prompt('Vencimento do pagamento (AAAA-MM-DD):', a.dia||hoje());
+    if(venc===null) return;
+    const r = await SB.from('festival_financeiro').insert({
+      evento_id:EV.id, tipo:'pagar', descricao:'Cachê — '+a.nome, valor:a.cache, vencimento:venc||null, atracao_id:id });
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Conta a pagar criada ✓'); loadAll();
+  }
+  function renderAtracoes(){
+    const q=norm(g('fAtrBusca').value);
+    const lista = ATRACOES.filter(a=>!q || norm(a.nome+' '+(a.tipo||'')+' '+(a.palco||'')).includes(q));
+    const stPill = s => s==='confirmada'?'<span class="pill ok">Confirmada</span>':s==='realizada'?'<span class="pill info">Realizada</span>':s==='cancelada'?'<span class="pill bad">Cancelada</span>':'<span class="pill warn">Prevista</span>';
+    g('listaAtracoes').innerHTML = lista.length ? lista.map(a=>`<div class="row">
+      <div><div class="nm">${esc(a.nome)} ${stPill(a.status)}</div>
+        <div class="mt">${[a.tipo,fmtD(a.dia),a.horario,a.palco].filter(Boolean).map(esc).join(' · ')} · cachê ${fmtRS(a.cache)}</div></div>
+      <div class="acts">
+        <button class="btn btn-g btn-sm" onclick="editarAtracao('${a.id}')">Editar</button>
+        <button class="btn btn-g btn-sm" onclick="gerarCache('${a.id}')">💰 Cachê</button>
+        <button class="btn btn-r btn-sm" onclick="excluirAtracao('${a.id}')">✕</button>
+      </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma atração.</div>';
+  }
+
+  // ===== PATROCINADORES =====
+  async function salvarPatrocinador(){
+    const nome = g('sNome').value.trim();
+    if(!nome){ toast('Informe o nome'); return; }
+    const reg = { evento_id:EV.id, nome, documento:g('sDoc').value.trim()||null, contato:g('sContato').value.trim()||null,
+      telefone:g('sTel').value.trim()||null, cota:g('sCota').value.trim()||null,
+      valor:parseFloat(g('sValor').value)||0, contrapartidas:g('sContra').value.trim()||null, status:g('sStatus').value };
+    const r = editPat
+      ? await SB.from('festival_patrocinadores').update(reg).eq('id',editPat)
+      : await SB.from('festival_patrocinadores').insert(reg);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast(editPat?'Patrocinador atualizado ✓':'Patrocinador cadastrado ✓'); limparPatrocinador(); loadAll();
+  }
+  function limparPatrocinador(){ editPat=null; ['sNome','sDoc','sContato','sTel','sCota','sValor','sContra'].forEach(i=>g(i).value='');
+    g('sStatus').value='previsto'; g('patFormTit').textContent='Novo patrocinador'; g('sCancel').classList.add('hide'); }
+  function editarPatrocinador(id){
+    const p = PATROC.find(x=>x.id===id); if(!p) return;
+    editPat=id; g('sNome').value=p.nome; g('sDoc').value=p.documento||''; g('sContato').value=p.contato||'';
+    g('sTel').value=p.telefone||''; g('sCota').value=p.cota||''; g('sValor').value=p.valor||'';
+    g('sContra').value=p.contrapartidas||''; g('sStatus').value=p.status;
+    g('patFormTit').textContent='Editar patrocinador'; g('sCancel').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  async function excluirPatrocinador(id){
+    if(!confirm('Excluir este patrocinador?')) return;
+    const r = await SB.from('festival_patrocinadores').delete().eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Patrocinador excluído'); loadAll();
+  }
+  async function gerarCota(id){
+    const p = PATROC.find(x=>x.id===id); if(!p) return;
+    if(!(p.valor>0)){ toast('Cadastre o valor da cota primeiro'); return; }
+    if(FIN.some(l=>l.patrocinador_id===id)){ if(!confirm('Já existe lançamento para este patrocinador. Criar outro?')) return; }
+    const venc = prompt('Vencimento (AAAA-MM-DD):', hoje());
+    if(venc===null) return;
+    const r = await SB.from('festival_financeiro').insert({
+      evento_id:EV.id, tipo:'receber', descricao:'Cota de patrocínio — '+p.nome, valor:p.valor, vencimento:venc||null, patrocinador_id:id });
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Conta a receber criada ✓'); loadAll();
+  }
+  function renderPatrocinadores(){
+    const q=norm(g('fPatBusca').value), st=g('fPatStatus').value;
+    const lista = PATROC.filter(p=> (!q || norm(p.nome+' '+(p.cota||'')+' '+(p.documento||'')).includes(q)) && (!st || p.status===st));
+    const stPill = s => s==='recebido'?'<span class="pill ok">Recebido</span>':s==='empenhado'?'<span class="pill info">Empenhado</span>':s==='cancelado'?'<span class="pill bad">Cancelado</span>':'<span class="pill warn">Previsto</span>';
+    g('listaPatroc').innerHTML = lista.length ? lista.map(p=>`<div class="row">
+      <div><div class="nm">${esc(p.nome)} ${stPill(p.status)}</div>
+        <div class="mt">${[p.cota,p.contato,p.telefone].filter(Boolean).map(esc).join(' · ')} · ${fmtRS(p.valor)}${p.contrapartidas?' · '+esc(p.contrapartidas):''}</div></div>
+      <div class="acts">
+        <button class="btn btn-g btn-sm" onclick="editarPatrocinador('${p.id}')">Editar</button>
+        <button class="btn btn-g btn-sm" onclick="gerarCota('${p.id}')">💰 Cota</button>
+        <button class="btn btn-r btn-sm" onclick="excluirPatrocinador('${p.id}')">✕</button>
+      </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum patrocinador.</div>';
+  }
+
+  // ===== FORNECEDORES =====
+  async function salvarFornecedor(){
+    const razao = g('fRazao').value.trim();
+    if(!razao){ toast('Informe a razão social'); return; }
+    const reg = { razao_social:razao, cnpj_cpf:g('fDoc').value.trim()||null, categoria:g('fCatg').value.trim()||null,
+      contato:g('fContato').value.trim()||null, telefone:g('fTel2').value.trim()||null, email:g('fEmail2').value.trim()||null,
+      banco_dados:g('fBanco').value.trim()||null, pix:g('fPix').value.trim()||null };
+    const r = editForn
+      ? await SB.from('festival_fornecedores').update(reg).eq('id',editForn)
+      : await SB.from('festival_fornecedores').insert(reg);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast(editForn?'Fornecedor atualizado ✓':'Fornecedor cadastrado ✓'); limparFornecedor(); loadAll();
+  }
+  function limparFornecedor(){ editForn=null; ['fRazao','fDoc','fCatg','fContato','fTel2','fEmail2','fBanco','fPix'].forEach(i=>g(i).value='');
+    g('fornFormTit').textContent='Novo fornecedor'; g('fCancel').classList.add('hide'); }
+  function editarFornecedor(id){
+    const f = FORNEC.find(x=>x.id===id); if(!f) return;
+    editForn=id; g('fRazao').value=f.razao_social; g('fDoc').value=f.cnpj_cpf||''; g('fCatg').value=f.categoria||'';
+    g('fContato').value=f.contato||''; g('fTel2').value=f.telefone||''; g('fEmail2').value=f.email||'';
+    g('fBanco').value=f.banco_dados||''; g('fPix').value=f.pix||'';
+    g('fornFormTit').textContent='Editar fornecedor'; g('fCancel').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  async function excluirFornecedor(id){
+    if(!confirm('Excluir este fornecedor?')) return;
+    const r = await SB.from('festival_fornecedores').delete().eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Fornecedor excluído'); loadAll();
+  }
+  function renderFornecedores(){
+    const q=norm(g('fFornBusca').value);
+    const lista = FORNEC.filter(f=>!q || norm(f.razao_social+' '+(f.cnpj_cpf||'')+' '+(f.categoria||'')).includes(q));
+    g('listaFornec').innerHTML = lista.length ? lista.map(f=>`<div class="row">
+      <div><div class="nm">${esc(f.razao_social)}</div>
+        <div class="mt">${[f.cnpj_cpf,f.categoria,f.contato,f.telefone].filter(Boolean).map(esc).join(' · ')}</div></div>
+      <div class="acts">
+        <button class="btn btn-g btn-sm" onclick="editarFornecedor('${f.id}')">Editar</button>
+        <button class="btn btn-r btn-sm" onclick="excluirFornecedor('${f.id}')">✕</button>
+      </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum fornecedor.</div>';
+  }
+
+  // ===== FINANCEIRO =====
+  function finFonteOpts(){
+    const t = g('nFonteTipo').value, sel = g('nFonteId');
+    const opts = t==='fornecedor' ? FORNEC.map(f=>[f.id,f.razao_social])
+      : t==='patrocinador' ? PATROC.map(p=>[p.id,p.nome])
+      : t==='participacao' ? PARTS.map(p=>[p.id,nomePart(p)+' ('+(DIMS[p.dimensao]||p.dimensao)+')'])
+      : t==='atracao' ? ATRACOES.map(a=>[a.id,a.nome]) : [];
+    sel.innerHTML = '<option value="">—</option>'+opts.map(o=>`<option value="${o[0]}">${esc(o[1])}</option>`).join('');
+  }
+  async function salvarLancamento(){
+    const desc = g('nDesc').value.trim(), val = parseFloat(g('nValor').value);
+    if(!desc || !(val>0)){ toast('Informe descrição e valor'); return; }
+    const t = g('nFonteTipo').value, fid = g('nFonteId').value||null;
+    const reg = { evento_id:EV.id, tipo:g('nTipo').value, descricao:desc, valor:val, vencimento:g('nVenc').value||null,
+      fornecedor_id: t==='fornecedor'?fid:null, patrocinador_id: t==='patrocinador'?fid:null,
+      participacao_id: t==='participacao'?fid:null, atracao_id: t==='atracao'?fid:null };
+    const r = await SB.from('festival_financeiro').insert(reg);
+    if(r.error){ toast('❌ '+r.error.message+(r.error.message.includes('policy')?' — seu papel permite lançar no financeiro?':'')); return; }
+    ['nDesc','nValor','nVenc'].forEach(i=>g(i).value=''); g('nFonteTipo').value=''; finFonteOpts();
+    toast('Lançamento criado ✓'); loadAll();
+  }
+  async function marcarRealizado(id, des){
+    const r = await SB.from('festival_financeiro').update(
+      des ? {realizado:false, data_realizacao:null} : {realizado:true, data_realizacao:hoje()}).eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast(des?'Voltou para previsto':'Baixa registrada ✓'); loadAll();
+  }
+  async function excluirLancamento(id){
+    if(!confirm('Excluir este lançamento?')) return;
+    const r = await SB.from('festival_financeiro').delete().eq('id',id);
+    if(r.error){ toast('❌ '+r.error.message); return; }
+    toast('Lançamento excluído'); loadAll();
+  }
+  function fonteLabel(l){
+    if(l.fornecedor_id){ const f=FORNEC.find(x=>x.id===l.fornecedor_id); return f?'Forn.: '+f.razao_social:''; }
+    if(l.patrocinador_id){ const p=PATROC.find(x=>x.id===l.patrocinador_id); return p?'Patroc.: '+p.nome:''; }
+    if(l.participacao_id){ const p=PARTS.find(x=>x.id===l.participacao_id); return p?'Part.: '+nomePart(p):''; }
+    if(l.atracao_id){ const a=ATRACOES.find(x=>x.id===l.atracao_id); return a?'Atração: '+a.nome:''; }
+    return '';
+  }
+  function renderFin(){
+    const q=norm(g('fFinBusca').value), tp=g('fFinTipo').value, st=g('fFinStatus').value;
+    const lista = FIN.filter(l=> (!q || norm(l.descricao+' '+fonteLabel(l)).includes(q)) && (!tp || l.tipo===tp) && (!st || statusFin(l)===st));
+    const pill = l => { const s=statusFin(l);
+      return s==='realizado' ? `<span class="pill ok">${l.tipo==='receber'?'Recebido':'Pago'} ${fmtD(l.data_realizacao)}</span>`
+        : s==='atrasado' ? '<span class="pill bad">Atrasado</span>' : '<span class="pill warn">Previsto</span>'; };
+    g('tabFin').innerHTML = `<tr><th>Tipo</th><th>Descrição</th><th>Vínculo</th><th>Vencimento</th><th>Valor</th><th>Status</th><th class="no-print"></th></tr>`
+      + (lista.length ? lista.map(l=>`<tr>
+        <td>${l.tipo==='receber'?'⬇️ Receber':'⬆️ Pagar'}</td>
+        <td>${esc(l.descricao)}</td>
+        <td style="color:var(--texto-suave)">${esc(fonteLabel(l))}</td>
+        <td>${fmtD(l.vencimento)}</td>
+        <td><b>${fmtRS(l.valor)}</b></td>
+        <td>${pill(l)}</td>
+        <td class="no-print" style="white-space:nowrap">
+          <button class="btn btn-${l.realizado?'g':'v'} btn-sm" onclick="marcarRealizado('${l.id}',${l.realizado})">${l.realizado?'↩ Desfazer':(l.tipo==='receber'?'✓ Recebido':'✓ Pago')}</button>
+          <button class="btn btn-r btn-sm" onclick="excluirLancamento('${l.id}')">✕</button>
+        </td></tr>`).join('')
+      : '<tr><td colspan="7" style="color:var(--texto-suave)">Nenhum lançamento.</td></tr>');
+  }
+  function renderFluxo(){
+    const meses = {};
+    FIN.forEach(l=>{
+      const ref = (l.realizado ? l.data_realizacao : l.vencimento) || hoje();
+      const m = ref.slice(0,7);
+      meses[m] = meses[m] || {rec:0,pag:0};
+      if(l.tipo==='receber') meses[m].rec += Number(l.valor||0); else meses[m].pag += Number(l.valor||0);
+    });
+    const keys = Object.keys(meses).sort();
+    let acum = 0;
+    g('tabFluxo').innerHTML = `<tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Saldo do mês</th><th>Acumulado</th></tr>`
+      + (keys.length ? keys.map(m=>{
+          const s = meses[m].rec - meses[m].pag; acum += s;
+          const [a,mm] = m.split('-');
+          return `<tr><td>${mm}/${a}</td><td>${fmtRS(meses[m].rec)}</td><td>${fmtRS(meses[m].pag)}</td>
+            <td style="color:${s>=0?'var(--verde)':'var(--vermelho)'}"><b>${fmtRS(s)}</b></td><td><b>${fmtRS(acum)}</b></td></tr>`;
+        }).join('')
+      : '<tr><td colspan="5" style="color:var(--texto-suave)">Sem lançamentos ainda.</td></tr>');
+  }
+
+  // ===== PRESTAÇÃO DE CONTAS =====
+  function renderPrestacao(){
+    const de = g('prDe').value, ate = g('prAte').value;
+    const noPer = l => l.realizado && l.data_realizacao && (!de || l.data_realizacao>=de) && (!ate || l.data_realizacao<=ate);
+    const rec = FIN.filter(l=>l.tipo==='receber' && noPer(l));
+    const pag = FIN.filter(l=>l.tipo==='pagar' && noPer(l));
+    const linhas = a => a.map(l=>`<tr><td>${fmtD(l.data_realizacao)}</td><td>${esc(l.descricao)}</td><td>${esc(fonteLabel(l))}</td><td><b>${fmtRS(l.valor)}</b></td></tr>`).join('');
+    const tot = a => a.reduce((s,l)=>s+Number(l.valor||0),0);
+    g('tabPrestRec').innerHTML = `<tr><th>Data</th><th>Descrição</th><th>Fonte</th><th>Valor</th></tr>`
+      + (rec.length ? linhas(rec)+`<tr><td colspan="3"><b>Total recebido</b></td><td><b>${fmtRS(tot(rec))}</b></td></tr>` : '<tr><td colspan="4" style="color:var(--texto-suave)">Nenhum recebimento no período.</td></tr>');
+    g('tabPrestPag').innerHTML = `<tr><th>Data</th><th>Descrição</th><th>Favorecido</th><th>Valor</th></tr>`
+      + (pag.length ? linhas(pag)+`<tr><td colspan="3"><b>Total pago</b></td><td><b>${fmtRS(tot(pag))}</b></td></tr>` : '<tr><td colspan="4" style="color:var(--texto-suave)">Nenhum pagamento no período.</td></tr>');
+  }
+
+  // ===== INIT =====
+  (async function(){
+    if(!SB) return;
+    try{
+      const {data} = await SB.auth.getSession();
+      if(data && data.session){ USER = data.session.user; iniciarApp(); }
+    }catch(e){}
+  })();
+</script>
+</body>
+</html>
