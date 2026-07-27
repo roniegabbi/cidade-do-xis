@@ -6,13 +6,14 @@
 <title>Gestão do Festival do Xis · Cidade do Xis</title>
 <meta name="robots" content="noindex">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root{
     --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
     --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
     --verde:#1d9e57; --vermelho:#d63344; --azul:#2563ab;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--fundo);color:var(--texto);min-height:100vh}
   .hide{display:none!important}
   header{background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -113,7 +114,9 @@
     .main{max-width:none;padding:0}
     body{background:#fff}
     .card{border:none;padding:0}
+    .mapa-sec{page-break-inside:avoid}
   }
+  body.exportando .mapa-sec{page-break-inside:avoid}
 </style>
 </head>
 <body>
@@ -168,15 +171,15 @@
     <section class="pane hide" id="p-mapa">
       <div class="h">Mapa de espaços</div>
       <div class="sub" id="mapaSub">Visão por área do evento. Clique num lote para abrir a edição.</div>
-      <div class="mapa-leg no-print">
+      <div class="mapa-leg">
         <span><i class="dot livre"></i> Livre</span>
         <span><i class="dot reservado"></i> Reservado (interessado)</span>
         <span><i class="dot ocupado"></i> Ocupado (confirmado)</span>
         <span><span class="tx trailer">Trailer</span> roxo</span>
         <span><span class="tx fixa">Estação fixa</span> verde</span>
         <span><span class="tx cerv">Cervejaria</span> círculo âmbar</span>
-        <span style="color:var(--texto-suave)">Demais categorias: cada uma com sua cor</span>
-        <button class="btn btn-g btn-sm" style="margin-left:auto" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn btn-p btn-sm no-print" style="margin-left:auto" id="btnMapaPdf" onclick="baixarMapaPDF()">Baixar PDF</button>
+        <button class="btn btn-g btn-sm no-print" onclick="window.print()">Imprimir</button>
       </div>
       <div id="mapaWrap"></div>
     </section>
@@ -1158,6 +1161,28 @@
       + (rec.length ? linhas(rec)+`<tr><td colspan="3"><b>Total recebido</b></td><td><b>${fmtRS(tot(rec))}</b></td></tr>` : '<tr><td colspan="4" style="color:var(--texto-suave)">Nenhum recebimento no período.</td></tr>');
     g('tabPrestPag').innerHTML = `<tr><th>Data</th><th>Descrição</th><th>Favorecido</th><th>Valor</th></tr>`
       + (pag.length ? linhas(pag)+`<tr><td colspan="3"><b>Total pago</b></td><td><b>${fmtRS(tot(pag))}</b></td></tr>` : '<tr><td colspan="4" style="color:var(--texto-suave)">Nenhum pagamento no período.</td></tr>');
+  }
+
+  // ===== EXPORTAR MAPA EM PDF =====
+  async function baixarMapaPDF(){
+    if(typeof html2pdf === 'undefined'){ toast('Gerador de PDF ainda carregando — tente de novo'); return; }
+    const btn = g('btnMapaPdf');
+    btn.disabled = true; btn.textContent = 'Gerando…';
+    document.body.classList.add('exportando');
+    try{
+      await html2pdf().set({
+        margin: [10,10,10,10],
+        filename: 'Mapa-de-Espacos-Festival-do-Xis-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, backgroundColor:'#ffffff',
+          onclone: doc => doc.querySelectorAll('.no-print').forEach(x=>x.remove()) },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'] }
+      }).from(g('p-mapa')).save();
+      toast('PDF do mapa baixado ✓');
+    }catch(e){ toast('Falha ao gerar — use o botão Imprimir'); }
+    document.body.classList.remove('exportando');
+    btn.disabled = false; btn.textContent = 'Baixar PDF';
   }
 
   // ===== INIT =====

@@ -48,6 +48,14 @@
   .leg-cores{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;font-weight:700;margin:8px 0}
   .leg-cores i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px}
   .obs{background:var(--fundo);border-left:4px solid var(--rosa);padding:10px 14px;font-size:12px;color:var(--texto);margin:10px 0}
+  .q-esp{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:6px 0 10px}
+  .q-esp span{display:flex;align-items:center;justify-content:center;height:30px;border-radius:7px;
+    font-weight:800;font-size:12px;border:1.5px solid}
+  .q-esp .qt{background:#f1e7fb;border-color:#5C2890;color:#4b1a60}
+  .q-esp .qf{background:#e2f6ea;border-color:#1d9e57;color:#0c6b3d}
+  .q-esp .qc{background:#fdf1d8;border-color:#f5a800;color:#7d5600;border-radius:99px}
+  .q-esp .qm{background:#fbeaf0;border-color:#d4537e;color:#72243e}
+  .q-esp .qk{background:#f2e9e2;border-color:#8a5a3b;color:#52351f}
   ul{margin:0 0 10px 18px}
   li{margin-bottom:4px}
   @media print{
@@ -197,6 +205,29 @@
   <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Mapa do Evento</span></div>
 </section>
 
+<!-- QUADRO DE ESPAÇOS -->
+<section class="pagina">
+  <h2>4.1 Quadro de Espaços</h2>
+  <p>Distribuição dos 70 espaços comercializáveis do Festival, com numeração corrida e identificação visual por categoria — a mesma adotada no módulo de gestão da plataforma Cidade do Xis.</p>
+  <div class="leg-cores" style="margin-bottom:14px">
+    <span><i style="background:#5C2890"></i> Trailers</span>
+    <span><i style="background:#1d9e57"></i> Estações fixas</span>
+    <span><i style="background:#f5a800;border-radius:99px"></i> Cervejarias artesanais</span>
+    <span><i style="background:#d4537e"></i> Mercado Criativo</span>
+    <span><i style="background:#8a5a3b"></i> Café &amp; Tortas</span>
+  </div>
+  <h3>Operações de Xis — Trailers (01–05) e Estações fixas (06–30)</h3>
+  <div class="q-esp" id="qXis"></div>
+  <h3>Cervejarias artesanais (31–38)</h3>
+  <div class="q-esp" id="qCerv"></div>
+  <h3>Mercado Criativo (39–59)</h3>
+  <div class="q-esp" id="qCria"></div>
+  <h3>Café &amp; Tortas (60–70)</h3>
+  <div class="q-esp" id="qCafe"></div>
+  <p style="font-size:11.5px;color:var(--texto-suave);margin-top:12px">A ocupação em tempo real (livre · reservado · ocupado), valores e responsáveis são mantidos no módulo Gestão do Festival, que também exporta este mapa atualizado em PDF.</p>
+  <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Quadro de Espaços</span></div>
+</section>
+
 <!-- AMBIENTES -->
 <section class="pagina">
   <h2>5. Ambientes do Festival</h2>
@@ -273,6 +304,19 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+  // Monta o quadro de espaços (numeração corrida 01–70 por categoria)
+  (function(){
+    const faixa = (ini, fim, cls) => {
+      let h='';
+      for(let n=ini; n<=fim; n++) h += `<span class="${cls}">${String(n).padStart(2,'0')}</span>`;
+      return h;
+    };
+    document.getElementById('qXis').innerHTML  = faixa(1,5,'qt') + faixa(6,30,'qf');
+    document.getElementById('qCerv').innerHTML = faixa(31,38,'qc');
+    document.getElementById('qCria').innerHTML = faixa(39,59,'qm');
+    document.getElementById('qCafe').innerHTML = faixa(60,70,'qk');
+  })();
+
   // Gera o PDF A4 e baixa o arquivo direto (sem passar pela impressão)
   async function baixarPDF(){
     const btn = document.getElementById('btnBaixar');
