@@ -56,15 +56,20 @@
     .toolbar{display:none}
     .pagina{margin:0;box-shadow:none;page-break-after:always;width:210mm;min-height:297mm}
   }
+  /* durante a geração do PDF: páginas encostadas, sem sombra */
+  body.exportando{background:#fff}
+  body.exportando .pagina{margin:0;box-shadow:none}
 </style>
 </head>
 <body>
 
 <div class="toolbar">
   <b>Livro do Festival do Xis · 2026</b>
-  <span style="font-size:12.5px;opacity:.85">Exportar: Imprimir → Salvar como PDF → A4 · ative "Imprimir planos de fundo" para a capa sair completa</span>
-  <button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  <span style="font-size:12.5px;opacity:.85" id="tbMsg">Baixe o PDF pronto, ou use Imprimir para papel</span>
+  <button id="btnBaixar" onclick="baixarPDF()">⬇️ Baixar PDF</button>
+  <button style="background:transparent;border:1.5px solid #ffffff66" onclick="window.print()">🖨️ Imprimir</button>
 </div>
+<div id="livro">
 
 <!-- CAPA -->
 <section class="pagina capa">
@@ -252,5 +257,34 @@
   <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Plano Orçamentário</span></div>
 </section>
 
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  // Gera o PDF A4 e baixa o arquivo direto (sem passar pela impressão)
+  async function baixarPDF(){
+    const btn = document.getElementById('btnBaixar');
+    const msg = document.getElementById('tbMsg');
+    btn.disabled = true; btn.textContent = 'Gerando PDF…';
+    msg.textContent = 'Montando as páginas — pode levar alguns segundos';
+    document.body.classList.add('exportando');
+    try{
+      await html2pdf().set({
+        margin: 0,
+        filename: 'Livro-Festival-do-Xis-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'], after: '.pagina' }
+      }).from(document.getElementById('livro')).save();
+      msg.textContent = 'PDF baixado ✓ — confira na pasta Downloads';
+    }catch(e){
+      msg.textContent = 'Não foi possível gerar aqui — abrindo a impressão (escolha "Salvar como PDF")';
+      setTimeout(()=>window.print(), 800);
+    }
+    document.body.classList.remove('exportando');
+    btn.disabled = false; btn.textContent = '⬇️ Baixar PDF';
+  }
+</script>
 </body>
 </html>
