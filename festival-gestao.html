@@ -180,11 +180,19 @@
       <div class="h">Espaços</div>
       <div class="sub">Lotes e pontos do evento. Clique num espaço para editar.</div>
       <div class="card">
+        <h3>Categorias de espaço</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <input id="catNome" placeholder="Ex.: Sala GARE 6, Praça de Alimentação" style="flex:1;min-width:220px;padding:9px 11px;border:1.5px solid var(--borda);border-radius:9px;font-size:14px">
+          <button class="btn btn-p" onclick="salvarArea()">Adicionar categoria</button>
+        </div>
+        <div id="listaAreas" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div class="card">
         <h3 id="espFormTit">Novo espaço</h3>
         <div class="grid3">
           <div class="field"><label>Identificação *</label><input id="eCod" placeholder="Ex.: X-01, MC-12"></div>
-          <div class="field"><label>Dimensão</label>
-            <select id="eDim" onchange="eTipoToggle()"><option value="xis">Operações de Xis</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros Expositores</option><option value="cultural">Cultural</option></select></div>
+          <div class="field"><label>Categoria *</label>
+            <select id="eArea" onchange="eTipoToggle()"></select></div>
           <div class="field" id="eTipoWrap"><label>Tipo (Xis)</label>
             <select id="eTipoXis"><option value="">— definir depois —</option><option value="trailer">Trailer</option><option value="estacao_fixa">Estação fixa</option></select></div>
           <div class="field"><label>Metragem (m²)</label><input id="eMet" type="number" step="0.1"></div>
@@ -197,7 +205,7 @@
       </div>
       <div class="filtros">
         <input id="fEspBusca" placeholder="Buscar espaço…" oninput="renderEspacos()">
-        <select id="fEspDim" onchange="renderEspacos()"><option value="">Todas as dimensões</option><option value="xis">Xis</option><option value="criativo">Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros</option><option value="cultural">Cultural</option></select>
+        <select id="fEspArea" onchange="renderEspacos()"><option value="">Todas as categorias</option></select>
         <select id="fEspStatus" onchange="renderEspacos()"><option value="">Todos</option><option value="livre">Livres</option><option value="ocupado">Ocupados</option></select>
       </div>
       <div class="esp-grid" id="listaEspacos"></div>
@@ -392,7 +400,9 @@
   const g = id => document.getElementById(id);
 
   let USER=null, EVENTOS=[], EV=null;
-  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[], ORC=[];
+  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[], ORC=[], AREAS=[];
+  const areaNome = id => { const a = AREAS.find(x=>x.id===id); return a ? a.nome : 'Sem categoria'; };
+  const areaEhXis = id => /xis/i.test(areaNome(id));
   let EXP_DIM='criativo';
   let editEsp=null, editPart=null, editAtr=null, editPat=null, editForn=null;
 
@@ -433,12 +443,13 @@
       SB.from('festival_financeiro').select('*').eq('evento_id',EV.id).order('vencimento')
     ]);
     const orc = await SB.from('festival_orcamento').select('*').eq('evento_id',EV.id).order('tipo').order('categoria');
+    const ars = await SB.from('festival_areas').select('*').eq('evento_id',EV.id).order('ordem').order('nome');
     ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
-    PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[];
+    PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[]; AREAS = ars.data||[];
     renderTudo();
   }
   function renderTudo(){
-    renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
+    renderAreas(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
     renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); finFonteOpts();
     preencherSelEspacos();
@@ -461,12 +472,12 @@
   function nomePart(p){ return p.estabelecimentos ? p.estabelecimentos.nome : (p.nome||'—'); }
   function preencherSelEspacos(){
     document.querySelectorAll('select[data-espsel]').forEach(sel=>{
-      const dim = sel.dataset.espsel, cur = sel.dataset.cur||'', tx = sel.dataset.tx||'';
-      const livres = ESPACOS.filter(e=>(!dim || e.dimensao===dim)
-        && (!tx || !e.tipo_xis || e.tipo_xis===tx)
+      const cur = sel.dataset.cur||'', tx = sel.dataset.tx||'';
+      const livres = ESPACOS.filter(e=>
+        (!tx || !e.tipo_xis || e.tipo_xis===tx)
         && (!ocupanteDoEspaco(e.id) || e.id===cur));
       sel.innerHTML = '<option value="">— sem espaço —</option>'+
-        livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)}${e.tipo_xis?' ('+txLabel(e.tipo_xis)+')':''} · ${fmtRS(e.valor)}</option>`).join('');
+        livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)} · ${esc(areaNome(e.area_id))}${e.tipo_xis?' ('+txLabel(e.tipo_xis)+')':''} · ${fmtRS(e.valor)}</option>`).join('');
     });
   }
   async function defTipoXis(partId, t){
@@ -504,13 +515,13 @@
       ? '<div class="mt" style="color:var(--texto-suave);font-size:13.5px">Nenhum vencimento pendente.</div>'
       : vencidos.map(l=>`<div class="row"><span class="pill bad">Vencido</span><span>${esc(l.descricao)}</span><span class="mt">${l.tipo==='receber'?'receber':'pagar'} · venceu ${fmtD(l.vencimento)}</span><b style="margin-left:auto">${fmtRS(l.valor)}</b></div>`).join('')
       + proximos.map(l=>`<div class="row"><span class="pill warn">Vence ${fmtD(l.vencimento)}</span><span>${esc(l.descricao)}</span><b style="margin-left:auto">${fmtRS(l.valor)}</b></div>`).join('');
-    g('ocupacaoDim').innerHTML = Object.keys(DIMS).map(d=>{
-      const tot = ESPACOS.filter(e=>e.dimensao===d).length;
+    g('ocupacaoDim').innerHTML = AREAS.map(a=>{
+      const tot = ESPACOS.filter(e=>e.area_id===a.id).length;
       if(!tot) return '';
-      const oc = ESPACOS.filter(e=>e.dimensao===d && ocupanteDoEspaco(e.id)).length;
-      return `<div class="row"><span class="nm">${DIMS[d]}</span><span class="mt">${oc} de ${tot} espaços ocupados</span>
+      const oc = ESPACOS.filter(e=>e.area_id===a.id && ocupanteDoEspaco(e.id)).length;
+      return `<div class="row"><span class="nm">${esc(a.nome)}</span><span class="mt">${oc} de ${tot} espaços ocupados</span>
         <div style="margin-left:auto;width:160px;height:10px;background:var(--fundo);border-radius:9px;overflow:hidden"><div style="width:${tot?Math.round(oc/tot*100):0}%;height:100%;background:var(--rosa)"></div></div></div>`;
-    }).join('') || '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Cadastre espaços para ver a ocupação.</div>';
+    }).join('') || '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Cadastre categorias e espaços para ver a ocupação.</div>';
   }
 
   // ===== MAPA DE ESPAÇOS =====
@@ -534,10 +545,8 @@
     const tiles = lts => `<div class="mapa-grid">${lts.map(e=>{
       const st = stDoEspaco(e), p = ocupanteDoEspaco(e.id);
       // Xis: card colorido pelo tipo (roxo trailer / verde estação fixa); status vira bolinha
-      const cls = e.dimensao==='xis'
-        ? (e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : st)
-        : st;
-      const linhaStatus = e.dimensao==='xis'
+      const cls = e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : st;
+      const linhaStatus = e.tipo_xis
         ? `<span class="stdot ${st}"></span>${st==='livre' ? 'Livre' : esc(nomePart(p))}`
         : (st==='livre' ? 'Livre' : esc(nomePart(p)));
       return `<div class="tile ${cls}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
@@ -550,28 +559,68 @@
       const l=lts.filter(e=>stDoEspaco(e)==='livre').length, r=lts.filter(e=>stDoEspaco(e)==='reservado').length, o=lts.filter(e=>stDoEspaco(e)==='ocupado').length;
       return `${lts.length} espaços · ${l} livres · ${r} reservados · ${o} ocupados`;
     };
-    wrap.innerHTML = Object.keys(DIMS).map(d=>{
-      const lts = ESPACOS.filter(e=>e.dimensao===d).sort((a,b)=>a.codigo.localeCompare(b.codigo,'pt-BR',{numeric:true}));
+    const grupos = AREAS.map(a=>[a.id, a.nome]).concat(ESPACOS.some(e=>!e.area_id) ? [[null,'Sem categoria']] : []);
+    wrap.innerHTML = grupos.map(([aid, rot])=>{
+      const lts = ESPACOS.filter(e=>(e.area_id||null)===aid).sort((a,b)=>a.codigo.localeCompare(b.codigo,'pt-BR',{numeric:true}));
       if(!lts.length) return '';
-      if(d==='xis'){
-        const grupos = [['trailer','Trailers'],['estacao_fixa','Estações fixas'],[null,'Sem tipo definido']];
-        const blocos = grupos.map(([t,rot])=>{
-          const sub = lts.filter(e=>(e.tipo_xis||null)===t);
-          if(!sub.length) return '';
-          return `<div style="margin-top:12px"><div style="font-weight:800;font-size:13.5px;margin-bottom:6px">${t?txBadge(t):txBadge(null)} <span style="color:var(--texto-suave);font-weight:600;font-size:12px">${conta(sub)}</span></div>${tiles(sub)}</div>`;
+      const temXis = lts.some(e=>e.tipo_xis);
+      if(temXis){
+        const sub = [['trailer'],['estacao_fixa'],[null]].map(([t])=>{
+          const s = lts.filter(e=>(e.tipo_xis||null)===t);
+          if(!s.length) return '';
+          return `<div style="margin-top:12px"><div style="font-weight:800;font-size:13.5px;margin-bottom:6px">${txBadge(t)} <span style="color:var(--texto-suave);font-weight:600;font-size:12px">${conta(s)}</span></div>${tiles(s)}</div>`;
         }).join('');
-        return `<div class="mapa-sec"><h3>${DIMS[d]}</h3><div class="cnt">${conta(lts)}</div>${blocos}</div>`;
+        return `<div class="mapa-sec"><h3>${esc(rot)}</h3><div class="cnt">${conta(lts)}</div>${sub}</div>`;
       }
-      return `<div class="mapa-sec"><h3>${DIMS[d]}</h3><div class="cnt">${conta(lts)}</div>${tiles(lts)}</div>`;
-    }).join('');
+      return `<div class="mapa-sec"><h3>${esc(rot)}</h3><div class="cnt">${conta(lts)}</div>${tiles(lts)}</div>`;
+    }).join('') || '<div class="card" style="color:var(--texto-suave)">Nenhum espaço nas categorias ainda.</div>';
+  }
+
+  // ===== CATEGORIAS DE ESPAÇO (áreas) =====
+  async function salvarArea(){
+    const nome = g('catNome').value.trim();
+    if(!nome){ toast('Informe o nome da categoria'); return; }
+    const r = await SB.from('festival_areas').insert({ evento_id:EV.id, nome, ordem:AREAS.length+1 });
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    g('catNome').value='';
+    toast('Categoria criada'); loadAll();
+  }
+  async function excluirArea(id){
+    if(ESPACOS.some(e=>e.area_id===id)){ toast('Esta categoria tem espaços — mova ou exclua os espaços antes'); return; }
+    if(!confirm('Excluir a categoria "'+areaNome(id)+'"?')) return;
+    const r = await SB.from('festival_areas').delete().eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Categoria excluída'); loadAll();
+  }
+  function renderAreas(){
+    if(!g('listaAreas')) return;
+    g('listaAreas').innerHTML = AREAS.length ? AREAS.map(a=>{
+      const n = ESPACOS.filter(e=>e.area_id===a.id).length;
+      return `<span style="display:inline-flex;align-items:center;gap:8px;background:var(--fundo);border:1.5px solid var(--borda);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700">
+        ${esc(a.nome)} <span style="color:var(--texto-suave);font-weight:600">${n}</span>
+        <a style="color:var(--vermelho);cursor:pointer;font-weight:800" onclick="excluirArea('${a.id}')" title="Excluir categoria">×</a></span>`;
+    }).join('') : '<span style="font-size:13px;color:var(--texto-suave)">Nenhuma categoria — crie a primeira acima.</span>';
+    const opts = AREAS.map(a=>`<option value="${a.id}">${esc(a.nome)}</option>`).join('');
+    const cur = g('eArea').value;
+    g('eArea').innerHTML = opts || '<option value="">— crie uma categoria primeiro —</option>';
+    if(cur && AREAS.some(a=>a.id===cur)) g('eArea').value = cur;
+    const curF = g('fEspArea').value;
+    g('fEspArea').innerHTML = '<option value="">Todas as categorias</option>'+opts;
+    if(curF && AREAS.some(a=>a.id===curF)) g('fEspArea').value = curF;
+    eTipoToggle();
   }
 
   // ===== ESPAÇOS =====
   async function salvarEspaco(){
     const cod = g('eCod').value.trim();
     if(!cod){ toast('Informe a identificação do espaço'); return; }
-    const reg = { evento_id:EV.id, codigo:cod, dimensao:g('eDim').value,
-      tipo_xis: g('eDim').value==='xis' ? (g('eTipoXis').value||null) : null,
+    const areaId = g('eArea').value;
+    if(!areaId){ toast('Crie/escolha uma categoria primeiro'); return; }
+    // dimensao legado (compatibilidade): inferida do nome da categoria
+    const an = norm(areaNome(areaId));
+    const dim = an.includes('xis')?'xis' : an.includes('criativo')?'criativo' : an.includes('ferro')?'ferromodelismo' : (an.includes('cultural')||an.includes('palco'))?'cultural' : 'outros';
+    const reg = { evento_id:EV.id, codigo:cod, area_id:areaId, dimensao:dim,
+      tipo_xis: areaEhXis(areaId) ? (g('eTipoXis').value||null) : null,
       metragem:parseFloat(g('eMet').value)||null, valor:parseFloat(g('eVal').value)||0,
       energia:g('eEne').value.trim()||null, obs:g('eObs').value.trim()||null };
     const r = editEsp
@@ -580,13 +629,15 @@
     if(r.error){ toast('Erro: '+r.error.message); return; }
     toast(editEsp?'Espaço atualizado':'Espaço criado'); limparEspaco(); loadAll();
   }
-  function eTipoToggle(){ g('eTipoWrap').style.display = g('eDim').value==='xis' ? 'block' : 'none'; }
+  function eTipoToggle(){ if(g('eTipoWrap')) g('eTipoWrap').style.display = areaEhXis(g('eArea').value) ? 'block' : 'none'; }
   function limparEspaco(){ editEsp=null; ['eCod','eMet','eVal','eEne','eObs'].forEach(i=>g(i).value='');
-    g('eDim').value='xis'; g('eTipoXis').value=''; eTipoToggle();
+    if(AREAS.length) g('eArea').value=AREAS[0].id;
+    g('eTipoXis').value=''; eTipoToggle();
     g('espFormTit').textContent='Novo espaço'; g('eCancel').classList.add('hide'); }
   function editarEspaco(id){
     const e = ESPACOS.find(x=>x.id===id); if(!e) return;
-    editEsp=id; g('eCod').value=e.codigo; g('eDim').value=e.dimensao;
+    editEsp=id; g('eCod').value=e.codigo;
+    if(e.area_id) g('eArea').value=e.area_id;
     g('eTipoXis').value=e.tipo_xis||''; eTipoToggle();
     g('eMet').value=e.metragem||''; g('eVal').value=e.valor||''; g('eEne').value=e.energia||''; g('eObs').value=e.obs||'';
     g('espFormTit').textContent='Editar espaço '+e.codigo; g('eCancel').classList.remove('hide');
@@ -599,18 +650,18 @@
     toast('Espaço excluído'); loadAll();
   }
   function renderEspacos(){
-    const q=norm(g('fEspBusca').value), dim=g('fEspDim').value, st=g('fEspStatus').value;
+    const q=norm(g('fEspBusca').value), area=g('fEspArea').value, st=g('fEspStatus').value;
     const lista = ESPACOS.filter(e=>{
       const oc = !!ocupanteDoEspaco(e.id);
-      return (!q || norm(e.codigo+' '+(e.obs||'')).includes(q))
-        && (!dim || e.dimensao===dim)
+      return (!q || norm(e.codigo+' '+(e.obs||'')+' '+areaNome(e.area_id)).includes(q))
+        && (!area || e.area_id===area)
         && (!st || (st==='ocupado')===oc);
     });
     g('listaEspacos').innerHTML = lista.length ? lista.map(e=>{
       const oc = ocupanteDoEspaco(e.id);
       return `<div class="esp ${oc?'ocupado':''}" onclick="editarEspaco('${e.id}')">
         <div class="cod">${esc(e.codigo)}</div>
-        <div class="d">${DIMS[e.dimensao]||e.dimensao}${e.dimensao==='xis'?' · '+txLabel(e.tipo_xis):''}${e.metragem?' · '+e.metragem+'m²':''}</div>
+        <div class="d">${esc(areaNome(e.area_id))}${e.tipo_xis?' · '+txLabel(e.tipo_xis):''}${e.metragem?' · '+e.metragem+'m²':''}</div>
         <div class="d">${fmtRS(e.valor)}${e.energia?' · '+esc(e.energia):''}</div>
         <div class="d" style="margin-top:4px">${oc?'Ocupado · '+esc(nomePart(oc)):'Livre'}</div>
         <div class="d no-print" style="margin-top:6px"><a style="color:var(--vermelho);font-weight:700" onclick="event.stopPropagation();excluirEspaco('${e.id}')">excluir</a></div>
