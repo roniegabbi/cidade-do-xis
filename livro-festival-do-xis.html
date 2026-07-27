@@ -11,7 +11,7 @@
     --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
     --verde:#1d9e57;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#d8cfe2;color:var(--texto);font-size:13.5px;line-height:1.6}
   .pagina{width:210mm;min-height:297mm;margin:14px auto;background:#fff;padding:20mm 18mm;box-shadow:0 10px 30px rgba(75,26,96,.25);position:relative;overflow:hidden}
   .toolbar{position:sticky;top:0;z-index:10;background:var(--roxo-esc);color:#fff;padding:12px 20px;display:flex;gap:14px;align-items:center}
@@ -54,11 +54,13 @@
     @page{size:A4;margin:0}
     body{background:#fff}
     .toolbar{display:none}
-    .pagina{margin:0;box-shadow:none;page-break-after:always;width:210mm;min-height:297mm}
+    .pagina{margin:0;box-shadow:none;page-break-after:always;page-break-inside:avoid;
+      width:210mm;height:297mm;min-height:297mm;overflow:hidden}
+    .pagina:last-child{page-break-after:auto}
   }
-  /* durante a geração do PDF: páginas encostadas, sem sombra */
+  /* durante a geração do PDF: páginas encostadas, sem sombra, altura exata A4 */
   body.exportando{background:#fff}
-  body.exportando .pagina{margin:0;box-shadow:none}
+  body.exportando .pagina{margin:0;box-shadow:none;height:297mm;overflow:hidden}
 </style>
 </head>
 <body>
@@ -237,9 +239,19 @@
   <div class="obs">
     <b>Gestão e transparência:</b> as metas orçamentárias, os valores por espaço, a captação por origem (privada e pública, com status previsto → empenhado → recebido), o contas a receber/pagar e o fluxo de caixa são geridos em tempo real no módulo <b>Gestão do Festival</b> da plataforma Cidade do Xis. Havendo recurso público, o módulo emite a relação de pagamentos e recebimentos por período para a prestação de contas (SELD · Decreto 159/2006).
   </div>
+  <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Plano Orçamentário</span></div>
+</section>
+
+<!-- ENCERRAMENTO E ASSINATURAS -->
+<section class="pagina">
+  <h2>7. Encerramento</h2>
+  <p>Este documento consolida o planejamento do 4º Festival Nacional do Xis e integra a plataforma Cidade do Xis, onde a gestão do evento — espaços, participantes, patrocinadores, orçamento e prestação de contas — é realizada e mantida atualizada pela equipe.</p>
+  <div style="text-align:center;margin:34px 0 10px">
+    <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" style="height:80px">
+  </div>
   <h3 style="margin-top:26px">Assinam este documento</h3>
   <p style="font-size:12px;color:var(--texto-suave);margin-top:4px">Realização: Prefeitura Municipal de Santa Maria e Sindhturr · Execução: Secretarias municipais abaixo</p>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px 20px;margin-top:30px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:34px 20px;margin-top:38px">
     <div style="text-align:center;border-top:1.5px solid var(--texto);padding-top:8px;font-size:12.5px">
       <b>Prefeitura Municipal<br>de Santa Maria</b><br><span style="color:var(--texto-suave);font-size:11px">Realização</span></div>
     <div style="text-align:center;border-top:1.5px solid var(--texto);padding-top:8px;font-size:12.5px">
@@ -253,8 +265,8 @@
     <div style="text-align:center;border-top:1.5px solid var(--texto);padding-top:8px;font-size:12.5px">
       <b>Secretaria de Comunicação</b></div>
   </div>
-  <p style="text-align:center;font-size:12px;color:var(--texto-suave);margin-top:22px">Prefeitura Municipal de Santa Maria · RS — Santa Maria, novembro de 2026</p>
-  <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Plano Orçamentário</span></div>
+  <p style="text-align:center;font-size:12px;color:var(--texto-suave);margin-top:26px">Santa Maria · RS, novembro de 2026</p>
+  <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Encerramento e Assinaturas</span></div>
 </section>
 
 </div>
