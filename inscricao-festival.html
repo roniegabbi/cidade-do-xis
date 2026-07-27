@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscrição · Festival do Xis 2026</title>
+<meta name="description" content="Inscreva sua operação no 4º Festival Nacional do Xis — 13 a 15 de novembro de 2026, Largo da Gare, Santa Maria/RS.">
+<meta property="og:title" content="Inscrição · Festival do Xis 2026">
+<meta property="og:description" content="Participe do 4º Festival Nacional do Xis. Inscreva sua operação.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57; --vermelho:#d63344;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#f8f3fc,#f3e9f8 60%,#fdeef7);min-height:100vh;color:var(--texto);padding:18px 14px 40px}
+  .form-wrap{max-width:640px;margin:0 auto}
+  .topo{background:linear-gradient(135deg,var(--roxo),var(--rosa));border-radius:18px 18px 0 0;padding:26px 26px 22px;color:#fff}
+  .topo .marca{font-size:13px;letter-spacing:2px;text-transform:uppercase;opacity:.9;font-weight:700}
+  .topo h1{font-size:25px;margin-top:6px;line-height:1.25}
+  .topo p{margin-top:10px;font-size:14.5px;opacity:.95;line-height:1.5}
+  .cat-badge{display:inline-block;background:#f5a800;color:#4b1a60;font-weight:800;border-radius:99px;padding:6px 16px;margin-top:12px;font-size:13.5px}
+  .cartao{background:#fff;border:1px solid var(--borda);border-top:none;border-radius:0 0 18px 18px;padding:26px;box-shadow:0 12px 34px #66238218}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .full{grid-column:1/-1}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--borda);border-radius:10px;font-size:15px;background:#fdfbff;color:var(--texto);font-family:inherit}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--roxo)}
+  .hide{display:none!important}
+  .msg{margin:16px 0 0;font-size:14px;font-weight:600;min-height:20px}
+  .msg.erro{color:var(--vermelho)} .msg.info{color:var(--roxo)}
+  .btn{width:100%;margin-top:16px;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;font-size:16.5px;font-weight:800;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .nota{font-size:12.5px;color:var(--texto-suave);margin-top:14px;text-align:center;line-height:1.5}
+  .ok{text-align:center;padding:30px 10px}
+  .ok .check{width:64px;height:64px;border-radius:50%;background:var(--verde);color:#fff;font-size:34px;line-height:64px;margin:0 auto 16px}
+  .ok h3{font-size:22px;color:var(--roxo-esc)}
+  .ok p{margin-top:10px;font-size:15px;line-height:1.55}
+  .rodape{text-align:center;margin-top:18px;font-size:12.5px;color:var(--texto-suave)}
+  .rodape a{color:var(--roxo);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="form-wrap">
+  <div class="topo">
+    <div class="marca">4º Festival Nacional do Xis · 13 a 15 de novembro · Largo da Gare</div>
+    <h1>Inscrição de participante 🎪</h1>
+    <p>Quer participar do maior evento gastronômico de Santa Maria? Preencha a inscrição — a organização entra em contato para confirmar a participação, o espaço e a taxa.</p>
+    <span class="cat-badge" id="catBadge">Categoria</span>
+  </div>
+  <div class="cartao">
+    <div id="cadForm">
+      <div class="grid">
+        <div class="field full" id="catWrap">
+          <label>Categoria *</label>
+          <select id="fCat">
+            <option value="xis">Operação de Xis (trailer ou estação fixa)</option>
+            <option value="cervejaria">Cervejaria artesanal</option>
+            <option value="criativo">Mercado Criativo (artesanato/economia criativa)</option>
+            <option value="ferromodelismo">Ferromodelismo</option>
+            <option value="outros">Outros expositores (bebidas e diversos)</option>
+            <option value="patrocinador">Quero patrocinar o Festival</option>
+          </select>
+        </div>
+        <div class="field full"><label>Nome da operação / marca *</label><input id="fNome" placeholder="Ex.: Xis do Gaúcho, Cerveja Estação, Ateliê da Ana"></div>
+        <div class="field"><label>CNPJ ou CPF</label><input id="fDoc" placeholder="00.000.000/0000-00"></div>
+        <div class="field"><label>Responsável *</label><input id="fResp" placeholder="Nome completo"></div>
+        <div class="field"><label>WhatsApp/Telefone *</label><input id="fTel" placeholder="(55) 99999-0000" inputmode="tel"></div>
+        <div class="field"><label>E-mail</label><input id="fEmail" placeholder="voce@email.com"></div>
+        <div class="field full"><label>O que você vende / descrição</label><textarea id="fObs" rows="3" placeholder="Conte o que sua operação oferece, estrutura, necessidades de energia etc."></textarea></div>
+      </div>
+      <div class="msg" id="cadMsg"></div>
+      <button class="btn" id="fBtn" onclick="enviar()">Enviar inscrição</button>
+      <p class="nota">A inscrição não garante a vaga — a organização confirma por contato direto.<br>Realização: Prefeitura de Santa Maria e Sindhturr.</p>
+    </div>
+    <div id="cadOk" class="ok hide">
+      <div class="check">✓</div>
+      <h3>Inscrição recebida!</h3>
+      <p>Sua inscrição entrou na lista da organização do Festival. Entraremos em contato pelo WhatsApp/e-mail informado para confirmar participação, espaço e taxa.</p>
+      <p style="margin-top:14px"><a href="https://cidadedoxis.com" style="color:var(--roxo);font-weight:800">Conheça a Cidade do Xis →</a></p>
+    </div>
+  </div>
+  <div class="rodape">Festival do Xis · <a href="https://cidadedoxis.com" target="_blank" rel="noopener">cidadedoxis.com</a></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://hlstcndhxzhdzbecfrhp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr';
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  const CATS = {
+    xis:'Operações de Xis', cervejaria:'Cervejarias artesanais', criativo:'Mercado Criativo',
+    ferromodelismo:'Ferromodelismo', outros:'Outros expositores', patrocinador:'Patrocínio'
+  };
+  const g = id => document.getElementById(id);
+  function cadMsg(t, tipo){ const m=g('cadMsg'); m.className='msg '+(tipo||'info'); m.textContent=t||''; }
+
+  // Categoria pré-definida pelo link (?c=criativo). Sem parâmetro, o campo fica visível.
+  const pre = new URLSearchParams(location.search).get('c') || '';
+  if(CATS[pre]){ g('fCat').value = pre; g('catWrap').classList.add('hide'); }
+  g('catBadge').textContent = CATS[pre] || 'Todas as categorias';
+  if(!CATS[pre]) g('fCat').onchange = ()=> g('catBadge').textContent = CATS[g('fCat').value];
+
+  async function enviar(){
+    const nome=g('fNome').value.trim(), resp=g('fResp').value.trim(), tel=g('fTel').value.trim();
+    if(!nome || !resp || !tel){ cadMsg('Preencha os campos obrigatórios (*).','erro'); return; }
+    if(!SB){ cadMsg('Sem conexão com o servidor. Tente novamente.','erro'); return; }
+    const btn=g('fBtn'); btn.disabled=true; cadMsg('Enviando…','info');
+    try{
+      const {error} = await SB.rpc('inscrever_festival', {
+        p_categoria: g('fCat').value,
+        p_dados: { nome, responsavel:resp, telefone:tel,
+          documento:g('fDoc').value.trim(), email:g('fEmail').value.trim(), obs:g('fObs').value.trim() }
+      });
+      if(error) throw error;
+      g('cadForm').classList.add('hide');
+      g('cadOk').classList.remove('hide');
+    }catch(e){ cadMsg('Não foi possível enviar ('+(e.message||'erro')+'). Tente novamente.','erro'); }
+    btn.disabled=false;
+  }
+</script>
+</body>
+</html>
