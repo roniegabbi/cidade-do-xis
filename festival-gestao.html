@@ -71,6 +71,24 @@
   .busca-res{border:1.5px solid var(--borda);border-radius:10px;background:#fff;max-height:230px;overflow:auto}
   .busca-res div{padding:9px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--fundo)}
   .busca-res div:hover{background:var(--fundo)}
+  /* Mapa de espaços */
+  .mapa-leg{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:14px;font-size:13.5px;font-weight:600}
+  .mapa-leg .dot{display:inline-block;width:14px;height:14px;border-radius:5px;margin-right:6px;vertical-align:-2px}
+  .dot.livre{background:#2fbf71}
+  .dot.reservado{background:#f5a800}
+  .dot.ocupado{background:#e5486b}
+  .mapa-sec{background:#fff;border:1px solid var(--borda);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+  .mapa-sec h3{font-size:16px;color:var(--roxo-esc);margin-bottom:2px}
+  .mapa-sec .cnt{font-size:12.5px;color:var(--texto-suave);margin-bottom:12px}
+  .mapa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+  .tile{border-radius:10px;padding:9px 10px;cursor:pointer;border:2px solid transparent;transition:transform .1s}
+  .tile:hover{transform:scale(1.04)}
+  .tile .tc{font-weight:800;font-size:14.5px}
+  .tile .tn{font-size:10.5px;line-height:1.3;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .tile .tv{font-size:10.5px;opacity:.8;margin-top:2px}
+  .tile.livre{background:#e2f6ea;border-color:#2fbf71;color:#0c6b3d}
+  .tile.reservado{background:#fdf1d8;border-color:#f5a800;color:#7d5600}
+  .tile.ocupado{background:#fde4e7;border-color:#e5486b;color:#8f1f38}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--roxo-esc);color:#fff;
     padding:12px 22px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}
   #toast.on{opacity:1}
@@ -109,6 +127,7 @@
 <div class="layout hide" id="app">
   <nav class="side">
     <a class="on" data-p="geral" onclick="tab('geral')">Visão geral</a>
+    <a data-p="mapa" onclick="tab('mapa')">Mapa de espaços</a>
     <a data-p="espacos" onclick="tab('espacos')">Espaços</a>
     <a data-p="xis" onclick="tab('xis')">Operações de Xis</a>
     <a data-p="exp" data-dim="criativo" onclick="abrirExp('criativo')">Mercado Criativo</a>
@@ -117,6 +136,7 @@
     <a data-p="atracoes" onclick="tab('atracoes')">Atrações Culturais</a>
     <a data-p="patroc" onclick="tab('patroc')">Patrocinadores</a>
     <a data-p="fornec" onclick="tab('fornec')">Fornecedores</a>
+    <a data-p="orc" onclick="tab('orc')">Orçamento</a>
     <a data-p="fin" onclick="tab('fin')">Financeiro <span class="bdg hide" id="bdgVenc">0</span></a>
     <a data-p="prest" onclick="tab('prest')">Prestação de Contas</a>
   </nav>
@@ -129,6 +149,18 @@
       <div class="kpis" id="kpis"></div>
       <div class="card"><h3>Vencimentos</h3><div id="alertas"></div></div>
       <div class="card"><h3>Ocupação por dimensão</h3><div id="ocupacaoDim"></div></div>
+    </section>
+
+    <section class="pane hide" id="p-mapa">
+      <div class="h">Mapa de espaços</div>
+      <div class="sub" id="mapaSub">Visão por área do evento. Clique num lote para abrir a edição.</div>
+      <div class="mapa-leg no-print">
+        <span><i class="dot livre"></i> Livre</span>
+        <span><i class="dot reservado"></i> Reservado (interessado)</span>
+        <span><i class="dot ocupado"></i> Ocupado (confirmado)</span>
+        <button class="btn btn-g btn-sm" style="margin-left:auto" onclick="window.print()">Imprimir / PDF</button>
+      </div>
+      <div id="mapaWrap"></div>
     </section>
 
     <section class="pane hide" id="p-espacos">
@@ -228,6 +260,8 @@
           <div class="field"><label>CNPJ/CPF</label><input id="sDoc"></div>
           <div class="field"><label>Contato</label><input id="sContato"></div>
           <div class="field"><label>Telefone</label><input id="sTel"></div>
+          <div class="field"><label>Origem</label>
+            <select id="sOrigem"><option value="privado">Privado</option><option value="publico">Público (emenda, convênio…)</option></select></div>
           <div class="field"><label>Cota/Plano</label><input id="sCota" placeholder="Ouro, Prata…"></div>
           <div class="field"><label>Valor (R$)</label><input id="sValor" type="number" step="0.01"></div>
           <div class="field"><label>Status</label>
@@ -264,6 +298,24 @@
       </div>
       <div class="filtros"><input id="fFornBusca" placeholder="Filtrar…" oninput="renderFornecedores()"></div>
       <div class="lista" id="listaFornec"></div>
+    </section>
+
+    <section class="pane hide" id="p-orc">
+      <div class="h">Planejamento orçamentário</div>
+      <div class="sub">Metas de receita e despesa comparadas com o contratado e o realizado.</div>
+      <div class="card no-print">
+        <h3>Nova meta</h3>
+        <div class="grid3">
+          <div class="field"><label>Tipo</label>
+            <select id="mTipo"><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div>
+          <div class="field"><label>Categoria *</label><input id="mCat" placeholder="Ex.: Patrocínio privado, Estrutura, Venda de espaços"></div>
+          <div class="field"><label>Valor previsto (R$) *</label><input id="mVal" type="number" step="0.01"></div>
+        </div>
+        <button class="btn btn-p" onclick="salvarMeta()">Salvar meta</button>
+      </div>
+      <div class="card"><h3>Venda de espaços</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcEsp"></table></div></div>
+      <div class="card"><h3>Captação de patrocínios</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcPat"></table></div></div>
+      <div class="card"><h3>Metas × contratado × realizado</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcMetas"></table></div></div>
     </section>
 
     <section class="pane hide" id="p-fin">
@@ -325,7 +377,7 @@
   const g = id => document.getElementById(id);
 
   let USER=null, EVENTOS=[], EV=null;
-  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[];
+  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[], ORC=[];
   let EXP_DIM='criativo';
   let editEsp=null, editPart=null, editAtr=null, editPat=null, editForn=null;
 
@@ -365,14 +417,15 @@
       SB.from('festival_fornecedores').select('*').order('razao_social'),
       SB.from('festival_financeiro').select('*').eq('evento_id',EV.id).order('vencimento')
     ]);
+    const orc = await SB.from('festival_orcamento').select('*').eq('evento_id',EV.id).order('tipo').order('categoria');
     ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
-    PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[];
+    PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[];
     renderTudo();
   }
   function renderTudo(){
-    renderGeral(); renderEspacos(); renderXis(); renderExp();
+    renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
-    renderFin(); renderFluxo(); renderPrestacao(); finFonteOpts();
+    renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); finFonteOpts();
     preencherSelEspacos();
   }
 
@@ -436,6 +489,43 @@
       return `<div class="row"><span class="nm">${DIMS[d]}</span><span class="mt">${oc} de ${tot} espaços ocupados</span>
         <div style="margin-left:auto;width:160px;height:10px;background:var(--fundo);border-radius:9px;overflow:hidden"><div style="width:${tot?Math.round(oc/tot*100):0}%;height:100%;background:var(--rosa)"></div></div></div>`;
     }).join('') || '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Cadastre espaços para ver a ocupação.</div>';
+  }
+
+  // ===== MAPA DE ESPAÇOS =====
+  function renderMapa(){
+    const wrap = g('mapaWrap');
+    if(!wrap) return;
+    if(!ESPACOS.length){
+      wrap.innerHTML = '<div class="card" style="color:var(--texto-suave)">Nenhum espaço cadastrado ainda. Crie os lotes na aba Espaços.</div>';
+      return;
+    }
+    const stDoEspaco = e => {
+      const p = ocupanteDoEspaco(e.id);
+      return !p ? 'livre' : (p.status==='confirmado' ? 'ocupado' : 'reservado');
+    };
+    const totL = ESPACOS.filter(e=>stDoEspaco(e)==='livre').length;
+    const totR = ESPACOS.filter(e=>stDoEspaco(e)==='reservado').length;
+    const totO = ESPACOS.filter(e=>stDoEspaco(e)==='ocupado').length;
+    g('mapaSub').textContent = `${ESPACOS.length} espaços · ${totL} livres · ${totR} reservados · ${totO} ocupados`;
+    wrap.innerHTML = Object.keys(DIMS).map(d=>{
+      const lts = ESPACOS.filter(e=>e.dimensao===d).sort((a,b)=>a.codigo.localeCompare(b.codigo,'pt-BR',{numeric:true}));
+      if(!lts.length) return '';
+      const l = lts.filter(e=>stDoEspaco(e)==='livre').length;
+      const r = lts.filter(e=>stDoEspaco(e)==='reservado').length;
+      const o = lts.filter(e=>stDoEspaco(e)==='ocupado').length;
+      return `<div class="mapa-sec">
+        <h3>${DIMS[d]}</h3>
+        <div class="cnt">${lts.length} espaços · ${l} livres · ${r} reservados · ${o} ocupados</div>
+        <div class="mapa-grid">${lts.map(e=>{
+          const st = stDoEspaco(e), p = ocupanteDoEspaco(e.id);
+          return `<div class="tile ${st}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
+            <div class="tc">${esc(e.codigo)}</div>
+            <div class="tn">${st==='livre' ? 'Livre' : esc(nomePart(p))}</div>
+            <div class="tv">${fmtRS(e.valor)}${e.metragem?' · '+e.metragem+'m²':''}</div>
+          </div>`;
+        }).join('')}</div>
+      </div>`;
+    }).join('');
   }
 
   // ===== ESPAÇOS =====
@@ -665,7 +755,7 @@
     const nome = g('sNome').value.trim();
     if(!nome){ toast('Informe o nome'); return; }
     const reg = { evento_id:EV.id, nome, documento:g('sDoc').value.trim()||null, contato:g('sContato').value.trim()||null,
-      telefone:g('sTel').value.trim()||null, cota:g('sCota').value.trim()||null,
+      telefone:g('sTel').value.trim()||null, cota:g('sCota').value.trim()||null, origem:g('sOrigem').value,
       valor:parseFloat(g('sValor').value)||0, contrapartidas:g('sContra').value.trim()||null, status:g('sStatus').value };
     const r = editPat
       ? await SB.from('festival_patrocinadores').update(reg).eq('id',editPat)
@@ -678,6 +768,7 @@
   function editarPatrocinador(id){
     const p = PATROC.find(x=>x.id===id); if(!p) return;
     editPat=id; g('sNome').value=p.nome; g('sDoc').value=p.documento||''; g('sContato').value=p.contato||'';
+    g('sOrigem').value=p.origem||'privado';
     g('sTel').value=p.telefone||''; g('sCota').value=p.cota||''; g('sValor').value=p.valor||'';
     g('sContra').value=p.contrapartidas||''; g('sStatus').value=p.status;
     g('patFormTit').textContent='Editar patrocinador'; g('sCancel').classList.remove('hide');
@@ -705,7 +796,7 @@
     const lista = PATROC.filter(p=> (!q || norm(p.nome+' '+(p.cota||'')+' '+(p.documento||'')).includes(q)) && (!st || p.status===st));
     const stPill = s => s==='recebido'?'<span class="pill ok">Recebido</span>':s==='empenhado'?'<span class="pill info">Empenhado</span>':s==='cancelado'?'<span class="pill bad">Cancelado</span>':'<span class="pill warn">Previsto</span>';
     g('listaPatroc').innerHTML = lista.length ? lista.map(p=>`<div class="row">
-      <div><div class="nm">${esc(p.nome)} ${stPill(p.status)}</div>
+      <div><div class="nm">${esc(p.nome)} ${stPill(p.status)} <span class="pill info">${p.origem==='publico'?'Público':'Privado'}</span></div>
         <div class="mt">${[p.cota,p.contato,p.telefone].filter(Boolean).map(esc).join(' · ')} · ${fmtRS(p.valor)}${p.contrapartidas?' · '+esc(p.contrapartidas):''}</div></div>
       <div class="acts">
         <button class="btn btn-g btn-sm" onclick="editarPatrocinador('${p.id}')">Editar</button>
@@ -753,6 +844,74 @@
         <button class="btn btn-g btn-sm" onclick="editarFornecedor('${f.id}')">Editar</button>
         <button class="btn btn-r btn-sm" onclick="excluirFornecedor('${f.id}')">Excluir</button>
       </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum fornecedor.</div>';
+  }
+
+  // ===== ORÇAMENTO =====
+  async function salvarMeta(){
+    const cat = g('mCat').value.trim(), val = parseFloat(g('mVal').value);
+    if(!cat || !(val>=0)){ toast('Informe categoria e valor'); return; }
+    const r = await SB.from('festival_orcamento').upsert(
+      { evento_id:EV.id, tipo:g('mTipo').value, categoria:cat, valor_previsto:val },
+      { onConflict:'evento_id,tipo,categoria' });
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    g('mCat').value=''; g('mVal').value='';
+    toast('Meta salva'); loadAll();
+  }
+  async function excluirMeta(id){
+    if(!confirm('Excluir esta meta?')) return;
+    const r = await SB.from('festival_orcamento').delete().eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Meta excluída'); loadAll();
+  }
+  function renderOrcamento(){
+    if(!g('tabOrcEsp')) return;
+    const soma = a => a.reduce((s,x)=>s+Number(x.valor||x.taxa||0),0);
+    // Venda de espaços
+    const stE = e => { const p=ocupanteDoEspaco(e.id); return !p?'livre':(p.status==='confirmado'?'ocupado':'reservado'); };
+    const potencial = soma(ESPACOS);
+    const vendido = soma(ESPACOS.filter(e=>stE(e)==='ocupado'));
+    const reservado = soma(ESPACOS.filter(e=>stE(e)==='reservado'));
+    const recEspaco = FIN.filter(l=>l.tipo==='receber'&&l.realizado&&l.participacao_id).reduce((s,l)=>s+Number(l.valor||0),0);
+    g('tabOrcEsp').innerHTML = `<tr><th></th><th>Espaços</th><th>Valor</th></tr>
+      <tr><td>Potencial total (todos os espaços)</td><td>${ESPACOS.length}</td><td><b>${fmtRS(potencial)}</b></td></tr>
+      <tr><td>Vendido (ocupado confirmado)</td><td>${ESPACOS.filter(e=>stE(e)==='ocupado').length}</td><td><b>${fmtRS(vendido)}</b></td></tr>
+      <tr><td>Reservado (interessado)</td><td>${ESPACOS.filter(e=>stE(e)==='reservado').length}</td><td>${fmtRS(reservado)}</td></tr>
+      <tr><td>Disponível (livre)</td><td>${ESPACOS.filter(e=>stE(e)==='livre').length}</td><td>${fmtRS(potencial-vendido-reservado)}</td></tr>
+      <tr><td>Taxas já recebidas</td><td></td><td style="color:var(--verde)"><b>${fmtRS(recEspaco)}</b></td></tr>`;
+    // Captação de patrocínio por origem e status
+    const pats = PATROC.filter(p=>p.status!=='cancelado');
+    const linhaOrig = (rot, lista) => {
+      const por = s => soma(lista.filter(p=>p.status===s));
+      return `<tr><td><b>${rot}</b></td><td>${fmtRS(por('previsto'))}</td><td>${fmtRS(por('empenhado'))}</td>
+        <td style="color:var(--verde)"><b>${fmtRS(por('recebido'))}</b></td><td><b>${fmtRS(soma(lista))}</b></td></tr>`;
+    };
+    g('tabOrcPat').innerHTML = `<tr><th>Origem</th><th>Previsto</th><th>Empenhado</th><th>Recebido</th><th>Total</th></tr>`
+      + linhaOrig('Privado', pats.filter(p=>(p.origem||'privado')==='privado'))
+      + linhaOrig('Público', pats.filter(p=>p.origem==='publico'))
+      + linhaOrig('Total', pats);
+    // Metas × contratado × realizado
+    const rec = FIN.filter(l=>l.tipo==='receber'), pag = FIN.filter(l=>l.tipo==='pagar');
+    const auto = {
+      'receita|Venda de espaços': {contr: vendido+reservado, real: recEspaco},
+      'receita|Patrocínio privado': {contr: soma(pats.filter(p=>(p.origem||'privado')==='privado'&&p.status!=='previsto')), real: soma(pats.filter(p=>(p.origem||'privado')==='privado'&&p.status==='recebido'))},
+      'receita|Patrocínio público': {contr: soma(pats.filter(p=>p.origem==='publico'&&p.status!=='previsto')), real: soma(pats.filter(p=>p.origem==='publico'&&p.status==='recebido'))}
+    };
+    const linhas = ORC.map(m=>{
+      const a = auto[m.tipo+'|'+m.categoria] || null;
+      const contr = a ? a.contr : (m.tipo==='despesa' ? pag.reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0) : 0);
+      const real = a ? a.real : (m.tipo==='despesa'
+        ? pag.filter(l=>l.realizado).reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0)
+        : rec.filter(l=>l.realizado).reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0));
+      const pct = m.valor_previsto>0 ? Math.round(real/m.valor_previsto*100) : 0;
+      return `<tr><td>${m.tipo==='receita'?'Receita':'Despesa'}</td><td>${esc(m.categoria)}</td>
+        <td><b>${fmtRS(m.valor_previsto)}</b></td><td>${fmtRS(contr)}</td>
+        <td style="color:var(--verde)"><b>${fmtRS(real)}</b></td><td>${pct}%</td>
+        <td class="no-print"><button class="btn btn-r btn-sm" onclick="excluirMeta('${m.id}')">Excluir</button></td></tr>`;
+    }).join('');
+    const totMeta = t => soma(ORC.filter(m=>m.tipo===t).map(m=>({valor:m.valor_previsto})));
+    g('tabOrcMetas').innerHTML = `<tr><th>Tipo</th><th>Categoria</th><th>Meta prevista</th><th>Contratado</th><th>Realizado</th><th>%</th><th class="no-print"></th></tr>`
+      + (ORC.length ? linhas + `<tr><td colspan="2"><b>Resultado previsto (receitas − despesas)</b></td><td colspan="5"><b>${fmtRS(totMeta('receita')-totMeta('despesa'))}</b></td></tr>`
+        : '<tr><td colspan="7" style="color:var(--texto-suave)">Nenhuma meta cadastrada. Dica: crie metas como "Venda de espaços", "Patrocínio privado" e "Patrocínio público" — essas três se comparam sozinhas com os cadastros.</td></tr>');
   }
 
   // ===== FINANCEIRO =====
