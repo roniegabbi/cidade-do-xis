@@ -92,10 +92,12 @@
   .tx{display:inline-block;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 7px;text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
   .tx.trailer{background:#5C2890;color:#fff}
   .tx.fixa{background:#1d9e57;color:#fff}
+  .tx.cerv{background:#ba7517;color:#fff}
   .tx.indef{background:#d9d2e2;color:#5a4a6b}
   /* Xis: cor do card indica o tipo; o status vira bolinha */
   .tile.tx-trailer{background:#f1e7fb;border-color:#5C2890;color:#4b1a60}
   .tile.tx-fixa{background:#e2f6ea;border-color:#1d9e57;color:#0c6b3d}
+  .tile.tx-cerv{background:#fdf1d8;border-color:#f5a800;color:#7d5600;border-radius:999px;text-align:center}
   .stdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
   .stdot.livre{background:#2fbf71}
   .stdot.reservado{background:#f5a800}
@@ -171,6 +173,7 @@
         <span><i class="dot ocupado"></i> Ocupado (confirmado)</span>
         <span><span class="tx trailer">Trailer</span> card roxo</span>
         <span><span class="tx fixa">Estação fixa</span> card verde</span>
+        <span><span class="tx cerv">Cervejaria</span> círculo âmbar</span>
         <button class="btn btn-g btn-sm" style="margin-left:auto" onclick="window.print()">Imprimir / PDF</button>
       </div>
       <div id="mapaWrap"></div>
@@ -194,7 +197,7 @@
           <div class="field"><label>Categoria *</label>
             <select id="eArea" onchange="eTipoToggle()"></select></div>
           <div class="field" id="eTipoWrap"><label>Tipo (Xis)</label>
-            <select id="eTipoXis"><option value="">— definir depois —</option><option value="trailer">Trailer</option><option value="estacao_fixa">Estação fixa</option></select></div>
+            <select id="eTipoXis"><option value="">— definir depois —</option><option value="trailer">Trailer</option><option value="estacao_fixa">Estação fixa</option><option value="cervejaria">Cervejaria</option></select></div>
           <div class="field"><label>Metragem (m²)</label><input id="eMet" type="number" step="0.1"></div>
           <div class="field"><label>Valor/taxa (R$)</label><input id="eVal" type="number" step="0.01"></div>
           <div class="field"><label>Energia</label><input id="eEne" placeholder="Ex.: 220V / bifásica"></div>
@@ -290,6 +293,7 @@
           <div class="field"><label>Status</label>
             <select id="sStatus"><option value="previsto">Previsto</option><option value="empenhado">Empenhado</option><option value="recebido">Recebido</option><option value="cancelado">Cancelado</option></select></div>
           <div class="field"><label>Contrapartidas</label><input id="sContra"></div>
+          <div class="field"><label>Espaço de ativação <span class="sub">(opcional)</span></label><select id="sEsp"></select></div>
         </div>
         <button class="btn btn-p" onclick="salvarPatrocinador()">Salvar patrocinador</button>
         <button class="btn btn-g hide" id="sCancel" onclick="limparPatrocinador()">Cancelar edição</button>
@@ -469,13 +473,26 @@
 
   // ===== HELPERS DE ESPAÇO =====
   const ocupanteDoEspaco = espId => PARTS.find(p=>p.espaco_id===espId && p.status!=='cancelado');
+  const patrocDoEspaco = espId => PATROC.find(p=>p.espaco_id===espId && p.status!=='cancelado');
   function nomePart(p){ return p.estabelecimentos ? p.estabelecimentos.nome : (p.nome||'—'); }
+  // Status do espaço considerando participações e ativações de patrocinadores
+  function espacoStatus(espId){
+    const p = ocupanteDoEspaco(espId);
+    if(p) return p.status==='confirmado' ? 'ocupado' : 'reservado';
+    return patrocDoEspaco(espId) ? 'ocupado' : 'livre';
+  }
+  function ocupLabel(espId){
+    const p = ocupanteDoEspaco(espId);
+    if(p) return nomePart(p);
+    const s = patrocDoEspaco(espId);
+    return s ? s.nome+' (ativação)' : '';
+  }
   function preencherSelEspacos(){
     document.querySelectorAll('select[data-espsel]').forEach(sel=>{
       const cur = sel.dataset.cur||'', tx = sel.dataset.tx||'';
       const livres = ESPACOS.filter(e=>
         (!tx || !e.tipo_xis || e.tipo_xis===tx)
-        && (!ocupanteDoEspaco(e.id) || e.id===cur));
+        && (espacoStatus(e.id)==='livre' || e.id===cur));
       sel.innerHTML = '<option value="">— sem espaço —</option>'+
         livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)} · ${esc(areaNome(e.area_id))}${e.tipo_xis?' ('+txLabel(e.tipo_xis)+')':''} · ${fmtRS(e.valor)}</option>`).join('');
     });
@@ -491,7 +508,7 @@
   function renderGeral(){
     if(!EV) return;
     g('geralSub').textContent = `${EV.nome} · ${fmtD(EV.data_inicio)} a ${fmtD(EV.data_fim)} · ${EV.local||''}`;
-    const ocup = ESPACOS.filter(e=>ocupanteDoEspaco(e.id)).length;
+    const ocup = ESPACOS.filter(e=>espacoStatus(e.id)!=='livre').length;
     const conf = PARTS.filter(p=>p.status==='confirmado').length;
     const rec = FIN.filter(l=>l.tipo==='receber'), pag = FIN.filter(l=>l.tipo==='pagar');
     const soma = a => a.reduce((s,l)=>s+Number(l.valor||0),0);
@@ -518,15 +535,15 @@
     g('ocupacaoDim').innerHTML = AREAS.map(a=>{
       const tot = ESPACOS.filter(e=>e.area_id===a.id).length;
       if(!tot) return '';
-      const oc = ESPACOS.filter(e=>e.area_id===a.id && ocupanteDoEspaco(e.id)).length;
+      const oc = ESPACOS.filter(e=>e.area_id===a.id && espacoStatus(e.id)!=='livre').length;
       return `<div class="row"><span class="nm">${esc(a.nome)}</span><span class="mt">${oc} de ${tot} espaços ocupados</span>
         <div style="margin-left:auto;width:160px;height:10px;background:var(--fundo);border-radius:9px;overflow:hidden"><div style="width:${tot?Math.round(oc/tot*100):0}%;height:100%;background:var(--rosa)"></div></div></div>`;
     }).join('') || '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Cadastre categorias e espaços para ver a ocupação.</div>';
   }
 
   // ===== MAPA DE ESPAÇOS =====
-  function txLabel(t){ return t==='trailer'?'Trailer':t==='estacao_fixa'?'Estação fixa':'Tipo indefinido'; }
-  function txBadge(t){ return `<span class="tx ${t==='trailer'?'trailer':t==='estacao_fixa'?'fixa':'indef'}">${txLabel(t)}</span>`; }
+  function txLabel(t){ return t==='trailer'?'Trailer':t==='estacao_fixa'?'Estação fixa':t==='cervejaria'?'Cervejaria':'Tipo indefinido'; }
+  function txBadge(t){ return `<span class="tx ${t==='trailer'?'trailer':t==='estacao_fixa'?'fixa':t==='cervejaria'?'cerv':'indef'}">${txLabel(t)}</span>`; }
   function renderMapa(){
     const wrap = g('mapaWrap');
     if(!wrap) return;
@@ -534,22 +551,19 @@
       wrap.innerHTML = '<div class="card" style="color:var(--texto-suave)">Nenhum espaço cadastrado ainda. Crie os lotes na aba Espaços.</div>';
       return;
     }
-    const stDoEspaco = e => {
-      const p = ocupanteDoEspaco(e.id);
-      return !p ? 'livre' : (p.status==='confirmado' ? 'ocupado' : 'reservado');
-    };
+    const stDoEspaco = e => espacoStatus(e.id);
     const totL = ESPACOS.filter(e=>stDoEspaco(e)==='livre').length;
     const totR = ESPACOS.filter(e=>stDoEspaco(e)==='reservado').length;
     const totO = ESPACOS.filter(e=>stDoEspaco(e)==='ocupado').length;
     g('mapaSub').textContent = `${ESPACOS.length} espaços · ${totL} livres · ${totR} reservados · ${totO} ocupados`;
     const tiles = lts => `<div class="mapa-grid">${lts.map(e=>{
-      const st = stDoEspaco(e), p = ocupanteDoEspaco(e.id);
-      // Xis: card colorido pelo tipo (roxo trailer / verde estação fixa); status vira bolinha
-      const cls = e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : st;
+      const st = stDoEspaco(e), lbl = ocupLabel(e.id);
+      // Xis: card colorido pelo tipo (roxo trailer / verde fixa / círculo âmbar cervejaria)
+      const cls = e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : e.tipo_xis==='cervejaria' ? 'tx-cerv' : st;
       const linhaStatus = e.tipo_xis
-        ? `<span class="stdot ${st}"></span>${st==='livre' ? 'Livre' : esc(nomePart(p))}`
-        : (st==='livre' ? 'Livre' : esc(nomePart(p)));
-      return `<div class="tile ${cls}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
+        ? `<span class="stdot ${st}"></span>${st==='livre' ? 'Livre' : esc(lbl)}`
+        : (st==='livre' ? 'Livre' : esc(lbl));
+      return `<div class="tile ${cls}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(lbl)}">
         <div class="tc">${esc(e.codigo)}</div>
         <div class="tn">${linhaStatus}</div>
         <div class="tv">${fmtRS(e.valor)}${e.metragem?' · '+e.metragem+'m²':''}</div>
@@ -565,7 +579,7 @@
       if(!lts.length) return '';
       const temXis = lts.some(e=>e.tipo_xis);
       if(temXis){
-        const sub = [['trailer'],['estacao_fixa'],[null]].map(([t])=>{
+        const sub = [['trailer'],['estacao_fixa'],['cervejaria'],[null]].map(([t])=>{
           const s = lts.filter(e=>(e.tipo_xis||null)===t);
           if(!s.length) return '';
           return `<div style="margin-top:12px"><div style="font-weight:800;font-size:13.5px;margin-bottom:6px">${txBadge(t)} <span style="color:var(--texto-suave);font-weight:600;font-size:12px">${conta(s)}</span></div>${tiles(s)}</div>`;
@@ -652,18 +666,18 @@
   function renderEspacos(){
     const q=norm(g('fEspBusca').value), area=g('fEspArea').value, st=g('fEspStatus').value;
     const lista = ESPACOS.filter(e=>{
-      const oc = !!ocupanteDoEspaco(e.id);
+      const oc = espacoStatus(e.id)!=='livre';
       return (!q || norm(e.codigo+' '+(e.obs||'')+' '+areaNome(e.area_id)).includes(q))
         && (!area || e.area_id===area)
         && (!st || (st==='ocupado')===oc);
     });
     g('listaEspacos').innerHTML = lista.length ? lista.map(e=>{
-      const oc = ocupanteDoEspaco(e.id);
+      const oc = ocupLabel(e.id);
       return `<div class="esp ${oc?'ocupado':''}" onclick="editarEspaco('${e.id}')">
         <div class="cod">${esc(e.codigo)}</div>
         <div class="d">${esc(areaNome(e.area_id))}${e.tipo_xis?' · '+txLabel(e.tipo_xis):''}${e.metragem?' · '+e.metragem+'m²':''}</div>
         <div class="d">${fmtRS(e.valor)}${e.energia?' · '+esc(e.energia):''}</div>
-        <div class="d" style="margin-top:4px">${oc?'Ocupado · '+esc(nomePart(oc)):'Livre'}</div>
+        <div class="d" style="margin-top:4px">${oc?'Ocupado · '+esc(oc):'Livre'}</div>
         <div class="d no-print" style="margin-top:6px"><a style="color:var(--vermelho);font-weight:700" onclick="event.stopPropagation();excluirEspaco('${e.id}')">excluir</a></div>
       </div>`;
     }).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum espaço.</div>';
@@ -719,7 +733,8 @@
         ${dim==='xis'?`<select onchange="defTipoXis('${p.id}',this.value)">
           <option value=""${!p.tipo_xis?' selected':''}>Tipo…</option>
           <option value="trailer"${p.tipo_xis==='trailer'?' selected':''}>Trailer</option>
-          <option value="estacao_fixa"${p.tipo_xis==='estacao_fixa'?' selected':''}>Estação fixa</option></select>`:''}
+          <option value="estacao_fixa"${p.tipo_xis==='estacao_fixa'?' selected':''}>Estação fixa</option>
+          <option value="cervejaria"${p.tipo_xis==='cervejaria'?' selected':''}>Cervejaria</option></select>`:''}
         <select data-espsel="${dim==='xis'?'xis':EXP_DIM}" data-tx="${dim==='xis'?(p.tipo_xis||''):''}" data-cur="${p.espaco_id||''}" onchange="defEspaco('${p.id}',this.value)"></select>
         ${p.status!=='confirmado'?`<button class="btn btn-v btn-sm" onclick="mudarStatusPart('${p.id}','confirmado')">Confirmar</button>`:''}
         ${p.status!=='cancelado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','cancelado')">Cancelar</button>`:''}
@@ -855,6 +870,7 @@
     if(!nome){ toast('Informe o nome'); return; }
     const reg = { evento_id:EV.id, nome, documento:g('sDoc').value.trim()||null, contato:g('sContato').value.trim()||null,
       telefone:g('sTel').value.trim()||null, cota:g('sCota').value.trim()||null, origem:g('sOrigem').value,
+      espaco_id:g('sEsp').value||null,
       valor:parseFloat(g('sValor').value)||0, contrapartidas:g('sContra').value.trim()||null, status:g('sStatus').value };
     const r = editPat
       ? await SB.from('festival_patrocinadores').update(reg).eq('id',editPat)
@@ -863,13 +879,19 @@
     toast(editPat?'Patrocinador atualizado':'Patrocinador cadastrado'); limparPatrocinador(); loadAll();
   }
   function limparPatrocinador(){ editPat=null; ['sNome','sDoc','sContato','sTel','sCota','sValor','sContra'].forEach(i=>g(i).value='');
-    g('sStatus').value='previsto'; g('patFormTit').textContent='Novo patrocinador'; g('sCancel').classList.add('hide'); }
+    g('sStatus').value='previsto'; g('sEsp').value=''; g('patFormTit').textContent='Novo patrocinador'; g('sCancel').classList.add('hide'); }
+  function preencherSelEspPatroc(cur){
+    const livres = ESPACOS.filter(e=>espacoStatus(e.id)==='livre' || e.id===cur);
+    g('sEsp').innerHTML = '<option value="">— sem espaço —</option>'+
+      livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)} · ${esc(areaNome(e.area_id))} · ${fmtRS(e.valor)}</option>`).join('');
+  }
   function editarPatrocinador(id){
     const p = PATROC.find(x=>x.id===id); if(!p) return;
     editPat=id; g('sNome').value=p.nome; g('sDoc').value=p.documento||''; g('sContato').value=p.contato||'';
     g('sOrigem').value=p.origem||'privado';
     g('sTel').value=p.telefone||''; g('sCota').value=p.cota||''; g('sValor').value=p.valor||'';
     g('sContra').value=p.contrapartidas||''; g('sStatus').value=p.status;
+    preencherSelEspPatroc(p.espaco_id||'');
     g('patFormTit').textContent='Editar patrocinador'; g('sCancel').classList.remove('hide');
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -891,12 +913,13 @@
     toast('Conta a receber criada'); loadAll();
   }
   function renderPatrocinadores(){
+    if(!editPat) preencherSelEspPatroc(g('sEsp') ? g('sEsp').value : '');
     const q=norm(g('fPatBusca').value), st=g('fPatStatus').value;
     const lista = PATROC.filter(p=> (!q || norm(p.nome+' '+(p.cota||'')+' '+(p.documento||'')).includes(q)) && (!st || p.status===st));
     const stPill = s => s==='recebido'?'<span class="pill ok">Recebido</span>':s==='empenhado'?'<span class="pill info">Empenhado</span>':s==='cancelado'?'<span class="pill bad">Cancelado</span>':'<span class="pill warn">Previsto</span>';
     g('listaPatroc').innerHTML = lista.length ? lista.map(p=>`<div class="row">
       <div><div class="nm">${esc(p.nome)} ${stPill(p.status)} <span class="pill info">${p.origem==='publico'?'Público':'Privado'}</span></div>
-        <div class="mt">${[p.cota,p.contato,p.telefone].filter(Boolean).map(esc).join(' · ')} · ${fmtRS(p.valor)}${p.contrapartidas?' · '+esc(p.contrapartidas):''}</div></div>
+        <div class="mt">${[p.cota,p.contato,p.telefone].filter(Boolean).map(esc).join(' · ')} · ${fmtRS(p.valor)}${p.espaco_id?' · Ativação: '+esc((ESPACOS.find(e=>e.id===p.espaco_id)||{}).codigo||'?'):''}${p.contrapartidas?' · '+esc(p.contrapartidas):''}</div></div>
       <div class="acts">
         <button class="btn btn-g btn-sm" onclick="editarPatrocinador('${p.id}')">Editar</button>
         <button class="btn btn-g btn-sm" onclick="gerarCota('${p.id}')">Cota</button>
@@ -966,7 +989,7 @@
     if(!g('tabOrcEsp')) return;
     const soma = a => a.reduce((s,x)=>s+Number(x.valor||x.taxa||0),0);
     // Venda de espaços
-    const stE = e => { const p=ocupanteDoEspaco(e.id); return !p?'livre':(p.status==='confirmado'?'ocupado':'reservado'); };
+    const stE = e => espacoStatus(e.id);
     const potencial = soma(ESPACOS);
     const vendido = soma(ESPACOS.filter(e=>stE(e)==='ocupado'));
     const reservado = soma(ESPACOS.filter(e=>stE(e)==='reservado'));
