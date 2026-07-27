@@ -233,6 +233,15 @@
         </div>
         <button class="btn btn-p" onclick="salvarEspaco()">Salvar espaço</button>
         <button class="btn btn-g hide" id="eCancel" onclick="limparEspaco()">Cancelar edição</button>
+        <div id="espOcupWrap" class="hide" style="margin-top:14px;border-top:1.5px solid var(--borda);padding-top:12px">
+          <div style="font-weight:800;font-size:14px;color:var(--roxo-esc);margin-bottom:8px">Ocupação deste espaço</div>
+          <div id="espOcupAtual" style="margin-bottom:8px"></div>
+          <div id="espOcupBuscaWrap">
+            <div class="field"><label>Buscar quem vai ocupar <span style="font-weight:400">(participantes do festival e cadastro do Cidade do Xis)</span></label>
+              <input id="espOcupBusca" placeholder="Digite ao menos 3 letras…" oninput="buscarOcupante()"></div>
+            <div class="busca-res hide" id="espOcupRes"></div>
+          </div>
+        </div>
       </div>
       <div class="filtros">
         <input id="fEspBusca" placeholder="Buscar espaço…" oninput="renderEspacos()">
@@ -712,9 +721,102 @@
     toast(editEsp?'Espaço atualizado':'Espaço criado'); limparEspaco(); loadAll();
   }
   function eTipoToggle(){ if(g('eTipoWrap')) g('eTipoWrap').style.display = areaEhXis(g('eArea').value) ? 'block' : 'none'; }
+
+  // ===== OCUPAÇÃO PELO FORMULÁRIO DO ESPAÇO =====
+  function renderEspOcup(){
+    const wrap = g('espOcupWrap');
+    if(!editEsp){ wrap.classList.add('hide'); return; }
+    wrap.classList.remove('hide');
+    const e = ESPACOS.find(x=>x.id===editEsp); if(!e) return;
+    const part = ocupanteDoEspaco(e.id), pat = patrocDoEspaco(e.id);
+    g('espOcupBusca').value=''; g('espOcupRes').classList.add('hide');
+    if(part || pat){
+      const nome = part ? nomePart(part) : pat.nome+' (ativação de patrocínio)';
+      g('espOcupAtual').innerHTML = `<div class="cand" style="cursor:default;border-color:var(--rosa)">
+        <div><div class="cn">${esc(nome)}</div>
+        <div class="cm">${part ? (part.status==='confirmado'?'Confirmado':'Reservado (interessado)') : 'Patrocinador'}</div></div>
+        <button class="btn btn-r btn-sm" style="margin-left:auto" onclick="desalocarEspacoForm()">Desalocar</button></div>`;
+      g('espOcupBuscaWrap').classList.add('hide');
+    } else {
+      g('espOcupAtual').innerHTML = '<div class="cm" style="color:var(--texto-suave);font-size:13px">Espaço livre — busque abaixo para ocupar.</div>';
+      g('espOcupBuscaWrap').classList.remove('hide');
+    }
+  }
+  let ocupTimer=null;
+  function buscarOcupante(){
+    clearTimeout(ocupTimer);
+    const q = g('espOcupBusca').value.trim();
+    if(q.length<3){ g('espOcupRes').classList.add('hide'); return; }
+    ocupTimer = setTimeout(async ()=>{
+      const e = ESPACOS.find(x=>x.id===editEsp); if(!e) return;
+      const nq = norm(q);
+      let html = '';
+      // 1) participantes do festival compatíveis, sem espaço
+      PARTS.filter(p=> p.status!=='cancelado' && !p.espaco_id && p.dimensao===e.dimensao
+          && (!e.tipo_xis || !p.tipo_xis || p.tipo_xis===e.tipo_xis)
+          && norm(nomePart(p)).includes(nq))
+        .slice(0,8).forEach(p=>{
+          html += `<div onclick="vincPartEspaco('${p.id}')"><b>${esc(nomePart(p))}</b> <span style="color:var(--texto-suave);font-size:12px">· já no festival · ${p.status}</span></div>`;
+        });
+      // 2) patrocinadores sem espaço (ativação)
+      PATROC.filter(p=> p.status!=='cancelado' && !p.espaco_id && norm(p.nome).includes(nq))
+        .slice(0,4).forEach(p=>{
+          html += `<div onclick="vincPatEspaco('${p.id}')"><b>${esc(p.nome)}</b> <span style="color:var(--texto-suave);font-size:12px">· patrocinador (ativação)</span></div>`;
+        });
+      // 3) cadastro do Cidade do Xis (só para espaços de Xis) — vincula e aloca num passo
+      if(e.dimensao==='xis'){
+        const {data} = await SB.from('estabelecimentos').select('id,nome,bairro,categoria')
+          .or(`nome.ilike.%${q}%,bairro.ilike.%${q}%`).order('nome').limit(8);
+        const jaIds = new Set(PARTS.filter(p=>p.estabelecimento_id).map(p=>p.estabelecimento_id));
+        (data||[]).filter(x=>!jaIds.has(x.id)).forEach(x=>{
+          html += `<div onclick="vincEstabEspaco('${x.id}')"><b>${esc(x.nome)}</b> <span style="color:var(--texto-suave);font-size:12px">· cadastro Cidade do Xis · ${esc(x.categoria||'')} · ${esc(x.bairro||'')}</span></div>`;
+        });
+      }
+      g('espOcupRes').innerHTML = html || '<div>Nenhum resultado.</div>';
+      g('espOcupRes').classList.remove('hide');
+    }, 350);
+  }
+  async function vincPartEspaco(partId){
+    const e = ESPACOS.find(x=>x.id===editEsp); if(!e) return;
+    const p = PARTS.find(x=>x.id===partId); if(!p) return;
+    const upd = { espaco_id:e.id, taxa: p.isento ? 0 : (e.valor||0) };
+    if(e.tipo_xis && !p.tipo_xis) upd.tipo_xis = e.tipo_xis;
+    const r = await SB.from('festival_participacoes').update(upd).eq('id',partId);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast(nomePart(p)+' vinculado ao espaço '+e.codigo);
+    await loadAll(); editarEspaco(e.id);
+  }
+  async function vincEstabEspaco(estId){
+    const e = ESPACOS.find(x=>x.id===editEsp); if(!e) return;
+    const r = await SB.from('festival_participacoes').insert({
+      evento_id:EV.id, dimensao:'xis', estabelecimento_id:estId,
+      tipo_xis:e.tipo_xis||null, espaco_id:e.id, taxa:e.valor||0 });
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Operação vinculada ao festival e alocada no espaço '+e.codigo);
+    await loadAll(); editarEspaco(e.id);
+  }
+  async function vincPatEspaco(patId){
+    const e = ESPACOS.find(x=>x.id===editEsp); if(!e) return;
+    const r = await SB.from('festival_patrocinadores').update({espaco_id:e.id}).eq('id',patId);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Ativação alocada no espaço '+e.codigo);
+    await loadAll(); editarEspaco(e.id);
+  }
+  async function desalocarEspacoForm(){
+    const e = ESPACOS.find(x=>x.id===editEsp); if(!e) return;
+    const part = ocupanteDoEspaco(e.id), pat = patrocDoEspaco(e.id);
+    const r = part
+      ? await SB.from('festival_participacoes').update({espaco_id:null}).eq('id',part.id)
+      : pat ? await SB.from('festival_patrocinadores').update({espaco_id:null}).eq('id',pat.id) : {error:null};
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Espaço '+e.codigo+' liberado');
+    await loadAll(); editarEspaco(e.id);
+  }
+
   function limparEspaco(){ editEsp=null; ['eCod','eMet','eVal','eEne','eObs'].forEach(i=>g(i).value='');
     if(AREAS.length) g('eArea').value=AREAS[0].id;
     g('eTipoXis').value=''; eTipoToggle();
+    if(g('espOcupWrap')) g('espOcupWrap').classList.add('hide');
     g('espFormTit').textContent='Novo espaço'; g('eCancel').classList.add('hide'); }
   function editarEspaco(id){
     const e = ESPACOS.find(x=>x.id===id); if(!e) return;
@@ -723,6 +825,7 @@
     g('eTipoXis').value=e.tipo_xis||''; eTipoToggle();
     g('eMet').value=e.metragem||''; g('eVal').value=e.valor||''; g('eEne').value=e.energia||''; g('eObs').value=e.obs||'';
     g('espFormTit').textContent='Editar espaço '+e.codigo; g('eCancel').classList.remove('hide');
+    renderEspOcup();
     window.scrollTo({top:0,behavior:'smooth'});
   }
   async function excluirEspaco(id){
