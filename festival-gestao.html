@@ -91,8 +91,15 @@
   .tile.ocupado{background:#fde4e7;border-color:#e5486b;color:#8f1f38}
   .tx{display:inline-block;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 7px;text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
   .tx.trailer{background:#5C2890;color:#fff}
-  .tx.fixa{background:#2563ab;color:#fff}
+  .tx.fixa{background:#1d9e57;color:#fff}
   .tx.indef{background:#d9d2e2;color:#5a4a6b}
+  /* Xis: cor do card indica o tipo; o status vira bolinha */
+  .tile.tx-trailer{background:#f1e7fb;border-color:#5C2890;color:#4b1a60}
+  .tile.tx-fixa{background:#e2f6ea;border-color:#1d9e57;color:#0c6b3d}
+  .stdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+  .stdot.livre{background:#2fbf71}
+  .stdot.reservado{background:#f5a800}
+  .stdot.ocupado{background:#e5486b}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--roxo-esc);color:#fff;
     padding:12px 22px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}
   #toast.on{opacity:1}
@@ -162,8 +169,8 @@
         <span><i class="dot livre"></i> Livre</span>
         <span><i class="dot reservado"></i> Reservado (interessado)</span>
         <span><i class="dot ocupado"></i> Ocupado (confirmado)</span>
-        <span><span class="tx trailer">Trailer</span></span>
-        <span><span class="tx fixa">Estação fixa</span></span>
+        <span><span class="tx trailer">Trailer</span> card roxo</span>
+        <span><span class="tx fixa">Estação fixa</span> card verde</span>
         <button class="btn btn-g btn-sm" style="margin-left:auto" onclick="window.print()">Imprimir / PDF</button>
       </div>
       <div id="mapaWrap"></div>
@@ -526,11 +533,17 @@
     g('mapaSub').textContent = `${ESPACOS.length} espaços · ${totL} livres · ${totR} reservados · ${totO} ocupados`;
     const tiles = lts => `<div class="mapa-grid">${lts.map(e=>{
       const st = stDoEspaco(e), p = ocupanteDoEspaco(e.id);
-      return `<div class="tile ${st}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
+      // Xis: card colorido pelo tipo (roxo trailer / verde estação fixa); status vira bolinha
+      const cls = e.dimensao==='xis'
+        ? (e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : st)
+        : st;
+      const linhaStatus = e.dimensao==='xis'
+        ? `<span class="stdot ${st}"></span>${st==='livre' ? 'Livre' : esc(nomePart(p))}`
+        : (st==='livre' ? 'Livre' : esc(nomePart(p)));
+      return `<div class="tile ${cls}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
         <div class="tc">${esc(e.codigo)}</div>
-        <div class="tn">${st==='livre' ? 'Livre' : esc(nomePart(p))}</div>
+        <div class="tn">${linhaStatus}</div>
         <div class="tv">${fmtRS(e.valor)}${e.metragem?' · '+e.metragem+'m²':''}</div>
-        ${e.dimensao==='xis' ? txBadge(e.tipo_xis) : ''}
       </div>`;
     }).join('')}</div>`;
     const conta = lts => {
