@@ -89,6 +89,10 @@
   .tile.livre{background:#e2f6ea;border-color:#2fbf71;color:#0c6b3d}
   .tile.reservado{background:#fdf1d8;border-color:#f5a800;color:#7d5600}
   .tile.ocupado{background:#fde4e7;border-color:#e5486b;color:#8f1f38}
+  .tx{display:inline-block;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 7px;text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+  .tx.trailer{background:#5C2890;color:#fff}
+  .tx.fixa{background:#2563ab;color:#fff}
+  .tx.indef{background:#d9d2e2;color:#5a4a6b}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--roxo-esc);color:#fff;
     padding:12px 22px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}
   #toast.on{opacity:1}
@@ -158,6 +162,8 @@
         <span><i class="dot livre"></i> Livre</span>
         <span><i class="dot reservado"></i> Reservado (interessado)</span>
         <span><i class="dot ocupado"></i> Ocupado (confirmado)</span>
+        <span><span class="tx trailer">Trailer</span></span>
+        <span><span class="tx fixa">Estação fixa</span></span>
         <button class="btn btn-g btn-sm" style="margin-left:auto" onclick="window.print()">Imprimir / PDF</button>
       </div>
       <div id="mapaWrap"></div>
@@ -171,7 +177,9 @@
         <div class="grid3">
           <div class="field"><label>Identificação *</label><input id="eCod" placeholder="Ex.: X-01, MC-12"></div>
           <div class="field"><label>Dimensão</label>
-            <select id="eDim"><option value="xis">Operações de Xis</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros Expositores</option><option value="cultural">Cultural</option></select></div>
+            <select id="eDim" onchange="eTipoToggle()"><option value="xis">Operações de Xis</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros Expositores</option><option value="cultural">Cultural</option></select></div>
+          <div class="field" id="eTipoWrap"><label>Tipo (Xis)</label>
+            <select id="eTipoXis"><option value="">— definir depois —</option><option value="trailer">Trailer</option><option value="estacao_fixa">Estação fixa</option></select></div>
           <div class="field"><label>Metragem (m²)</label><input id="eMet" type="number" step="0.1"></div>
           <div class="field"><label>Valor/taxa (R$)</label><input id="eVal" type="number" step="0.01"></div>
           <div class="field"><label>Energia</label><input id="eEne" placeholder="Ex.: 220V / bifásica"></div>
@@ -446,11 +454,18 @@
   function nomePart(p){ return p.estabelecimentos ? p.estabelecimentos.nome : (p.nome||'—'); }
   function preencherSelEspacos(){
     document.querySelectorAll('select[data-espsel]').forEach(sel=>{
-      const dim = sel.dataset.espsel, cur = sel.dataset.cur||'';
-      const livres = ESPACOS.filter(e=>(!dim || e.dimensao===dim) && (!ocupanteDoEspaco(e.id) || e.id===cur));
+      const dim = sel.dataset.espsel, cur = sel.dataset.cur||'', tx = sel.dataset.tx||'';
+      const livres = ESPACOS.filter(e=>(!dim || e.dimensao===dim)
+        && (!tx || !e.tipo_xis || e.tipo_xis===tx)
+        && (!ocupanteDoEspaco(e.id) || e.id===cur));
       sel.innerHTML = '<option value="">— sem espaço —</option>'+
-        livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)} · ${fmtRS(e.valor)}</option>`).join('');
+        livres.map(e=>`<option value="${e.id}"${e.id===cur?' selected':''}>${esc(e.codigo)}${e.tipo_xis?' ('+txLabel(e.tipo_xis)+')':''} · ${fmtRS(e.valor)}</option>`).join('');
     });
+  }
+  async function defTipoXis(partId, t){
+    const r = await SB.from('festival_participacoes').update({tipo_xis:t||null}).eq('id',partId);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Tipo atualizado'); loadAll();
   }
 
   // ===== VISÃO GERAL =====
@@ -492,6 +507,8 @@
   }
 
   // ===== MAPA DE ESPAÇOS =====
+  function txLabel(t){ return t==='trailer'?'Trailer':t==='estacao_fixa'?'Estação fixa':'Tipo indefinido'; }
+  function txBadge(t){ return `<span class="tx ${t==='trailer'?'trailer':t==='estacao_fixa'?'fixa':'indef'}">${txLabel(t)}</span>`; }
   function renderMapa(){
     const wrap = g('mapaWrap');
     if(!wrap) return;
@@ -507,24 +524,32 @@
     const totR = ESPACOS.filter(e=>stDoEspaco(e)==='reservado').length;
     const totO = ESPACOS.filter(e=>stDoEspaco(e)==='ocupado').length;
     g('mapaSub').textContent = `${ESPACOS.length} espaços · ${totL} livres · ${totR} reservados · ${totO} ocupados`;
+    const tiles = lts => `<div class="mapa-grid">${lts.map(e=>{
+      const st = stDoEspaco(e), p = ocupanteDoEspaco(e.id);
+      return `<div class="tile ${st}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
+        <div class="tc">${esc(e.codigo)}</div>
+        <div class="tn">${st==='livre' ? 'Livre' : esc(nomePart(p))}</div>
+        <div class="tv">${fmtRS(e.valor)}${e.metragem?' · '+e.metragem+'m²':''}</div>
+        ${e.dimensao==='xis' ? txBadge(e.tipo_xis) : ''}
+      </div>`;
+    }).join('')}</div>`;
+    const conta = lts => {
+      const l=lts.filter(e=>stDoEspaco(e)==='livre').length, r=lts.filter(e=>stDoEspaco(e)==='reservado').length, o=lts.filter(e=>stDoEspaco(e)==='ocupado').length;
+      return `${lts.length} espaços · ${l} livres · ${r} reservados · ${o} ocupados`;
+    };
     wrap.innerHTML = Object.keys(DIMS).map(d=>{
       const lts = ESPACOS.filter(e=>e.dimensao===d).sort((a,b)=>a.codigo.localeCompare(b.codigo,'pt-BR',{numeric:true}));
       if(!lts.length) return '';
-      const l = lts.filter(e=>stDoEspaco(e)==='livre').length;
-      const r = lts.filter(e=>stDoEspaco(e)==='reservado').length;
-      const o = lts.filter(e=>stDoEspaco(e)==='ocupado').length;
-      return `<div class="mapa-sec">
-        <h3>${DIMS[d]}</h3>
-        <div class="cnt">${lts.length} espaços · ${l} livres · ${r} reservados · ${o} ocupados</div>
-        <div class="mapa-grid">${lts.map(e=>{
-          const st = stDoEspaco(e), p = ocupanteDoEspaco(e.id);
-          return `<div class="tile ${st}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(nomePart(p))}">
-            <div class="tc">${esc(e.codigo)}</div>
-            <div class="tn">${st==='livre' ? 'Livre' : esc(nomePart(p))}</div>
-            <div class="tv">${fmtRS(e.valor)}${e.metragem?' · '+e.metragem+'m²':''}</div>
-          </div>`;
-        }).join('')}</div>
-      </div>`;
+      if(d==='xis'){
+        const grupos = [['trailer','Trailers'],['estacao_fixa','Estações fixas'],[null,'Sem tipo definido']];
+        const blocos = grupos.map(([t,rot])=>{
+          const sub = lts.filter(e=>(e.tipo_xis||null)===t);
+          if(!sub.length) return '';
+          return `<div style="margin-top:12px"><div style="font-weight:800;font-size:13.5px;margin-bottom:6px">${t?txBadge(t):txBadge(null)} <span style="color:var(--texto-suave);font-weight:600;font-size:12px">${conta(sub)}</span></div>${tiles(sub)}</div>`;
+        }).join('');
+        return `<div class="mapa-sec"><h3>${DIMS[d]}</h3><div class="cnt">${conta(lts)}</div>${blocos}</div>`;
+      }
+      return `<div class="mapa-sec"><h3>${DIMS[d]}</h3><div class="cnt">${conta(lts)}</div>${tiles(lts)}</div>`;
     }).join('');
   }
 
@@ -533,6 +558,7 @@
     const cod = g('eCod').value.trim();
     if(!cod){ toast('Informe a identificação do espaço'); return; }
     const reg = { evento_id:EV.id, codigo:cod, dimensao:g('eDim').value,
+      tipo_xis: g('eDim').value==='xis' ? (g('eTipoXis').value||null) : null,
       metragem:parseFloat(g('eMet').value)||null, valor:parseFloat(g('eVal').value)||0,
       energia:g('eEne').value.trim()||null, obs:g('eObs').value.trim()||null };
     const r = editEsp
@@ -541,11 +567,14 @@
     if(r.error){ toast('Erro: '+r.error.message); return; }
     toast(editEsp?'Espaço atualizado':'Espaço criado'); limparEspaco(); loadAll();
   }
+  function eTipoToggle(){ g('eTipoWrap').style.display = g('eDim').value==='xis' ? 'block' : 'none'; }
   function limparEspaco(){ editEsp=null; ['eCod','eMet','eVal','eEne','eObs'].forEach(i=>g(i).value='');
-    g('eDim').value='xis'; g('espFormTit').textContent='Novo espaço'; g('eCancel').classList.add('hide'); }
+    g('eDim').value='xis'; g('eTipoXis').value=''; eTipoToggle();
+    g('espFormTit').textContent='Novo espaço'; g('eCancel').classList.add('hide'); }
   function editarEspaco(id){
     const e = ESPACOS.find(x=>x.id===id); if(!e) return;
     editEsp=id; g('eCod').value=e.codigo; g('eDim').value=e.dimensao;
+    g('eTipoXis').value=e.tipo_xis||''; eTipoToggle();
     g('eMet').value=e.metragem||''; g('eVal').value=e.valor||''; g('eEne').value=e.energia||''; g('eObs').value=e.obs||'';
     g('espFormTit').textContent='Editar espaço '+e.codigo; g('eCancel').classList.remove('hide');
     window.scrollTo({top:0,behavior:'smooth'});
@@ -568,7 +597,7 @@
       const oc = ocupanteDoEspaco(e.id);
       return `<div class="esp ${oc?'ocupado':''}" onclick="editarEspaco('${e.id}')">
         <div class="cod">${esc(e.codigo)}</div>
-        <div class="d">${DIMS[e.dimensao]||e.dimensao}${e.metragem?' · '+e.metragem+'m²':''}</div>
+        <div class="d">${DIMS[e.dimensao]||e.dimensao}${e.dimensao==='xis'?' · '+txLabel(e.tipo_xis):''}${e.metragem?' · '+e.metragem+'m²':''}</div>
         <div class="d">${fmtRS(e.valor)}${e.energia?' · '+esc(e.energia):''}</div>
         <div class="d" style="margin-top:4px">${oc?'Ocupado · '+esc(nomePart(oc)):'Livre'}</div>
         <div class="d no-print" style="margin-top:6px"><a style="color:var(--vermelho);font-weight:700" onclick="event.stopPropagation();excluirEspaco('${e.id}')">excluir</a></div>
@@ -590,14 +619,16 @@
       if(error||!data){ g('xRes').classList.add('hide'); return; }
       const jaIds = new Set(PARTS.filter(p=>p.estabelecimento_id).map(p=>p.estabelecimento_id));
       g('xRes').innerHTML = data.length ? data.map(e=>
-        `<div onclick="vincularXis('${e.id}')">${esc(e.nome)} <span style="color:var(--texto-suave);font-size:12.5px">· ${esc(e.categoria||'')} · ${esc(e.bairro||'')}</span>${jaIds.has(e.id)?' <span class="pill info">já vinculado</span>':''}</div>`
+        `<div onclick="vincularXis('${e.id}','${esc(e.categoria||'')}')">${esc(e.nome)} <span style="color:var(--texto-suave);font-size:12.5px">· ${esc(e.categoria||'')} · ${esc(e.bairro||'')}</span>${jaIds.has(e.id)?' <span class="pill info">já vinculado</span>':''}</div>`
       ).join('') : '<div>Nenhum resultado.</div>';
       g('xRes').classList.remove('hide');
     }, 350);
   }
-  async function vincularXis(estId){
+  async function vincularXis(estId, cat){
     if(PARTS.some(p=>p.estabelecimento_id===estId)){ toast('Essa operação já está vinculada'); return; }
-    const r = await SB.from('festival_participacoes').insert({ evento_id:EV.id, dimensao:'xis', estabelecimento_id:estId });
+    // Sugere o tipo pela categoria do cadastro: Trailer → trailer; demais → estação fixa (ajustável depois)
+    const tipo = cat==='Trailer' ? 'trailer' : (cat ? 'estacao_fixa' : null);
+    const r = await SB.from('festival_participacoes').insert({ evento_id:EV.id, dimensao:'xis', estabelecimento_id:estId, tipo_xis:tipo });
     if(r.error){ toast('Erro: '+r.error.message); return; }
     g('xBusca').value=''; g('xRes').classList.add('hide');
     toast('Operação vinculada ao festival'); loadAll();
@@ -618,10 +649,14 @@
     const espLabel = p.festival_espacos ? `Espaço ${esc(p.festival_espacos.codigo)}` : 'Sem espaço';
     const det = p.estabelecimentos ? [p.estabelecimentos.categoria,p.estabelecimentos.bairro].filter(Boolean).join(' · ') : [p.documento,p.responsavel,p.telefone].filter(Boolean).join(' · ');
     return `<div class="row">
-      <div><div class="nm">${esc(nomePart(p))} ${stPill}${p.isento?' <span class="pill info">Isento</span>':''}</div>
+      <div><div class="nm">${esc(nomePart(p))} ${stPill}${dim==='xis'?' '+txBadge(p.tipo_xis):''}${p.isento?' <span class="pill info">Isento</span>':''}</div>
         <div class="mt">${esc(det)} · ${espLabel} · taxa ${fmtRS(p.taxa)}</div></div>
       <div class="acts">
-        <select data-espsel="${dim==='xis'?'xis':EXP_DIM}" data-cur="${p.espaco_id||''}" onchange="defEspaco('${p.id}',this.value)"></select>
+        ${dim==='xis'?`<select onchange="defTipoXis('${p.id}',this.value)">
+          <option value=""${!p.tipo_xis?' selected':''}>Tipo…</option>
+          <option value="trailer"${p.tipo_xis==='trailer'?' selected':''}>Trailer</option>
+          <option value="estacao_fixa"${p.tipo_xis==='estacao_fixa'?' selected':''}>Estação fixa</option></select>`:''}
+        <select data-espsel="${dim==='xis'?'xis':EXP_DIM}" data-tx="${dim==='xis'?(p.tipo_xis||''):''}" data-cur="${p.espaco_id||''}" onchange="defEspaco('${p.id}',this.value)"></select>
         ${p.status!=='confirmado'?`<button class="btn btn-v btn-sm" onclick="mudarStatusPart('${p.id}','confirmado')">Confirmar</button>`:''}
         ${p.status!=='cancelado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','cancelado')">Cancelar</button>`:''}
         ${dim!=='xis'?`<button class="btn btn-g btn-sm" onclick="editarExpositor('${p.id}')">Editar</button>`:''}
