@@ -171,9 +171,10 @@
         <span><i class="dot livre"></i> Livre</span>
         <span><i class="dot reservado"></i> Reservado (interessado)</span>
         <span><i class="dot ocupado"></i> Ocupado (confirmado)</span>
-        <span><span class="tx trailer">Trailer</span> card roxo</span>
-        <span><span class="tx fixa">Estação fixa</span> card verde</span>
+        <span><span class="tx trailer">Trailer</span> roxo</span>
+        <span><span class="tx fixa">Estação fixa</span> verde</span>
         <span><span class="tx cerv">Cervejaria</span> círculo âmbar</span>
+        <span style="color:var(--texto-suave)">Demais categorias: cada uma com sua cor</span>
         <button class="btn btn-g btn-sm" style="margin-left:auto" onclick="window.print()">Imprimir / PDF</button>
       </div>
       <div id="mapaWrap"></div>
@@ -407,6 +408,27 @@
   let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[], ORC=[], AREAS=[];
   const areaNome = id => { const a = AREAS.find(x=>x.id===id); return a ? a.nome : 'Sem categoria'; };
   const areaEhXis = id => /xis/i.test(areaNome(id));
+  // Cor da categoria: nomes conhecidos têm cor fixa; demais recebem cor da paleta
+  const PALETA_AREA = [
+    {bg:'#e6f1fb',bd:'#378add',tx:'#0c447c'},  // azul
+    {bg:'#e1f5ee',bd:'#1d9e75',tx:'#085041'},  // teal
+    {bg:'#faece7',bd:'#d85a30',tx:'#712b13'},  // coral
+    {bg:'#e0f4f7',bd:'#1994a8',tx:'#0b4c57'},  // ciano
+    {bg:'#efe9fb',bd:'#7f77dd',tx:'#3c3489'},  // lilás
+    {bg:'#f5f0dc',bd:'#a89a2f',tx:'#5c541a'}   // oliva
+  ];
+  function areaCor(aid){
+    const n = norm(areaNome(aid));
+    if(/criativ/.test(n))        return {bg:'#fbeaf0',bd:'#d4537e',tx:'#72243e'}; // rosa
+    if(/caf|torta/.test(n))      return {bg:'#f2e9e2',bd:'#8a5a3b',tx:'#52351f'}; // marrom café
+    if(/infantil/.test(n))       return {bg:'#faece7',bd:'#d85a30',tx:'#712b13'};
+    if(/marvin|trem|ferro/.test(n)) return {bg:'#e1f5ee',bd:'#1d9e75',tx:'#085041'};
+    if(/palco|audit/.test(n))    return {bg:'#e6f1fb',bd:'#378add',tx:'#0c447c'};
+    if(/ativa/.test(n))          return {bg:'#e0f4f7',bd:'#1994a8',tx:'#0b4c57'};
+    if(/loja/.test(n))           return {bg:'#efe9fb',bd:'#7f77dd',tx:'#3c3489'};
+    const i = Math.max(0, AREAS.findIndex(a=>a.id===aid));
+    return PALETA_AREA[i % PALETA_AREA.length];
+  }
   let EXP_DIM='criativo';
   let editEsp=null, editPart=null, editAtr=null, editPat=null, editForn=null;
 
@@ -558,12 +580,16 @@
     g('mapaSub').textContent = `${ESPACOS.length} espaços · ${totL} livres · ${totR} reservados · ${totO} ocupados`;
     const tiles = lts => `<div class="mapa-grid">${lts.map(e=>{
       const st = stDoEspaco(e), lbl = ocupLabel(e.id);
-      // Xis: card colorido pelo tipo (roxo trailer / verde fixa / círculo âmbar cervejaria)
-      const cls = e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : e.tipo_xis==='cervejaria' ? 'tx-cerv' : st;
-      const linhaStatus = e.tipo_xis
-        ? `<span class="stdot ${st}"></span>${st==='livre' ? 'Livre' : esc(lbl)}`
-        : (st==='livre' ? 'Livre' : esc(lbl));
-      return `<div class="tile ${cls}" onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(lbl)}">
+      // Xis: card colorido pelo tipo (roxo/verde/âmbar). Demais categorias: cor da própria categoria.
+      let cls = '', estilo = '';
+      if(e.tipo_xis){
+        cls = e.tipo_xis==='trailer' ? 'tx-trailer' : e.tipo_xis==='estacao_fixa' ? 'tx-fixa' : 'tx-cerv';
+      } else {
+        const c = areaCor(e.area_id);
+        estilo = ` style="background:${c.bg};border-color:${c.bd};color:${c.tx}"`;
+      }
+      const linhaStatus = `<span class="stdot ${st}"></span>${st==='livre' ? 'Livre' : esc(lbl)}`;
+      return `<div class="tile ${cls}"${estilo} onclick="tab('espacos');editarEspaco('${e.id}')" title="${st==='livre'?'Livre':esc(lbl)}">
         <div class="tc">${esc(e.codigo)}</div>
         <div class="tn">${linhaStatus}</div>
         <div class="tv">${fmtRS(e.valor)}${e.metragem?' · '+e.metragem+'m²':''}</div>
@@ -586,7 +612,9 @@
         }).join('');
         return `<div class="mapa-sec"><h3>${esc(rot)}</h3><div class="cnt">${conta(lts)}</div>${sub}</div>`;
       }
-      return `<div class="mapa-sec"><h3>${esc(rot)}</h3><div class="cnt">${conta(lts)}</div>${tiles(lts)}</div>`;
+      const c = areaCor(aid);
+      const chip = `<span style="display:inline-block;width:14px;height:14px;border-radius:5px;background:${c.bd};margin-right:8px;vertical-align:-1px"></span>`;
+      return `<div class="mapa-sec" style="border-left:5px solid ${c.bd}"><h3>${chip}${esc(rot)}</h3><div class="cnt">${conta(lts)}</div>${tiles(lts)}</div>`;
     }).join('') || '<div class="card" style="color:var(--texto-suave)">Nenhum espaço nas categorias ainda.</div>';
   }
 
@@ -610,8 +638,9 @@
     if(!g('listaAreas')) return;
     g('listaAreas').innerHTML = AREAS.length ? AREAS.map(a=>{
       const n = ESPACOS.filter(e=>e.area_id===a.id).length;
-      return `<span style="display:inline-flex;align-items:center;gap:8px;background:var(--fundo);border:1.5px solid var(--borda);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700">
-        ${esc(a.nome)} <span style="color:var(--texto-suave);font-weight:600">${n}</span>
+      const c = areaEhXis(a.id) ? {bg:'#f1e7fb',bd:'#5C2890',tx:'#4b1a60'} : areaCor(a.id);
+      return `<span style="display:inline-flex;align-items:center;gap:8px;background:${c.bg};border:1.5px solid ${c.bd};color:${c.tx};border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700">
+        ${esc(a.nome)} <span style="opacity:.7;font-weight:600">${n}</span>
         <a style="color:var(--vermelho);cursor:pointer;font-weight:800" onclick="excluirArea('${a.id}')" title="Excluir categoria">×</a></span>`;
     }).join('') : '<span style="font-size:13px;color:var(--texto-suave)">Nenhuma categoria — crie a primeira acima.</span>';
     const opts = AREAS.map(a=>`<option value="${a.id}">${esc(a.nome)}</option>`).join('');
