@@ -175,8 +175,8 @@
       <div class="sub" id="geralSub"></div>
       <div class="kpis" id="kpis"></div>
       <div class="card">
-        <h3>Links de inscrição por categoria</h3>
-        <div class="sub" style="margin-bottom:10px">Envie o link da categoria aos interessados — as inscrições caem direto na aba correspondente como "Interessado".</div>
+        <h3>Manifestação de interesse — links por categoria</h3>
+        <div class="sub" style="margin-bottom:10px">Envie o link da categoria aos interessados — as manifestações caem direto na aba correspondente como "Interessado".</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-g btn-sm" onclick="copiarInscricao('xis')">Operações de Xis</button>
           <button class="btn btn-g btn-sm" onclick="copiarInscricao('cervejaria')">Cervejarias</button>
@@ -1203,7 +1203,7 @@
     const url = new URL('inscricao-festival.html'+(cat?'?c='+cat:''), location.href).href;
     try{
       await navigator.clipboard.writeText(url);
-      toast('Link de inscrição copiado — é só enviar aos interessados');
+      toast('Link de manifestação de interesse copiado — é só enviar aos interessados');
     }catch(e){ prompt('Copie o link:', url); }
   }
 
