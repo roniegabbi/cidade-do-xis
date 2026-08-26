@@ -219,6 +219,11 @@
         <div id="listaAreas" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       </div>
       <div class="card">
+        <h3>Tabela de preços por faixa</h3>
+        <div class="sub" style="margin-bottom:8px">Defina o valor e aplique a todos os espaços da faixa — editável a qualquer momento. Participações já alocadas mantêm a taxa acordada.</div>
+        <div id="listaPrecos"></div>
+      </div>
+      <div class="card">
         <h3 id="espFormTit">Novo espaço</h3>
         <div class="grid3">
           <div class="field"><label>Identificação *</label><input id="eCod" placeholder="Ex.: X-01, MC-12"></div>
@@ -523,7 +528,7 @@
     renderTudo();
   }
   function renderTudo(){
-    renderAreas(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
+    renderAreas(); renderPrecos(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
     renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); finFonteOpts();
     preencherSelEspacos();
@@ -701,6 +706,55 @@
     g('fEspArea').innerHTML = '<option value="">Todas as categorias</option>'+opts;
     if(curF && AREAS.some(a=>a.id===curF)) g('fEspArea').value = curF;
     eTipoToggle();
+  }
+
+  // ===== TABELA DE PREÇOS POR FAIXA =====
+  function faixasDePreco(){
+    const fx = [];
+    AREAS.forEach(a=>{
+      const lts = ESPACOS.filter(e=>e.area_id===a.id);
+      if(!lts.length) return;
+      if(lts.some(e=>e.tipo_xis)){
+        [['trailer','Trailers'],['estacao_fixa','Estações fixas'],['cervejaria','Cervejarias']].forEach(([t,rot])=>{
+          const sub = lts.filter(e=>e.tipo_xis===t);
+          if(sub.length) fx.push({area:a, tipo:t, rot:a.nome+' — '+rot, lts:sub});
+        });
+        const semTipo = lts.filter(e=>!e.tipo_xis);
+        if(semTipo.length) fx.push({area:a, tipo:null, rot:a.nome+' — sem tipo', lts:semTipo});
+      } else {
+        fx.push({area:a, tipo:undefined, rot:a.nome, lts});
+      }
+    });
+    return fx;
+  }
+  function renderPrecos(){
+    const el = g('listaPrecos');
+    if(!el) return;
+    const fx = faixasDePreco();
+    el.innerHTML = fx.length ? fx.map((f,i)=>{
+      const vals = [...new Set(f.lts.map(e=>Number(e.valor||0)))];
+      const atual = vals.length===1 ? fmtRS(vals[0]) : fmtRS(Math.min(...vals))+' a '+fmtRS(Math.max(...vals));
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--fundo);flex-wrap:wrap">
+        <span style="font-weight:700;font-size:13.5px;min-width:220px">${esc(f.rot)}</span>
+        <span style="font-size:12px;color:var(--texto-suave)">${f.lts.length} espaços · hoje: ${atual}</span>
+        <input type="number" step="0.01" id="preco_${i}" placeholder="Novo valor (R$)"
+          style="width:150px;padding:8px 10px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;margin-left:auto">
+        <button class="btn btn-p btn-sm" onclick="aplicarPreco(${i})">Aplicar à faixa</button>
+      </div>`;
+    }).join('') : '<div class="sub">Cadastre espaços para definir preços.</div>';
+  }
+  async function aplicarPreco(i){
+    const fx = faixasDePreco()[i];
+    if(!fx) return;
+    const v = parseFloat(g('preco_'+i).value);
+    if(!(v>=0)){ toast('Informe o valor da faixa'); return; }
+    if(!confirm(`Aplicar ${fmtRS(v)} a ${fx.lts.length} espaço(s) de "${fx.rot}"?`)) return;
+    let q = SB.from('festival_espacos').update({valor:v}).eq('evento_id',EV.id).eq('area_id',fx.area.id);
+    if(fx.tipo !== undefined) q = fx.tipo===null ? q.is('tipo_xis',null) : q.eq('tipo_xis',fx.tipo);
+    const r = await q;
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast(`Faixa "${fx.rot}" precificada em ${fmtRS(v)}`);
+    loadAll();
   }
 
   // ===== ESPAÇOS =====
