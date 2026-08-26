@@ -645,7 +645,9 @@
     }).join('')}</div>`;
     const conta = lts => {
       const l=lts.filter(e=>stDoEspaco(e)==='livre').length, r=lts.filter(e=>stDoEspaco(e)==='reservado').length, o=lts.filter(e=>stDoEspaco(e)==='ocupado').length;
-      return `${lts.length} espaços · ${l} livres · ${r} reservados · ${o} ocupados`;
+      const pot=lts.reduce((s,e)=>s+Number(e.valor||0),0);
+      const vend=lts.filter(e=>stDoEspaco(e)==='ocupado').reduce((s,e)=>s+Number(e.valor||0),0);
+      return `${lts.length} espaços · ${l} livres · ${r} reservados · ${o} ocupados · potencial ${fmtRS(pot)} · vendido ${fmtRS(vend)}`;
     };
     const grupos = AREAS.map(a=>[a.id, a.nome]).concat(ESPACOS.some(e=>!e.area_id) ? [[null,'Sem categoria']] : []);
     wrap.innerHTML = grupos.map(([aid, rot])=>{
@@ -1165,12 +1167,19 @@
     const vendido = soma(ESPACOS.filter(e=>stE(e)==='ocupado'));
     const reservado = soma(ESPACOS.filter(e=>stE(e)==='reservado'));
     const recEspaco = FIN.filter(l=>l.tipo==='receber'&&l.realizado&&l.participacao_id).reduce((s,l)=>s+Number(l.valor||0),0);
-    g('tabOrcEsp').innerHTML = `<tr><th></th><th>Espaços</th><th>Valor</th></tr>
-      <tr><td>Potencial total (todos os espaços)</td><td>${ESPACOS.length}</td><td><b>${fmtRS(potencial)}</b></td></tr>
-      <tr><td>Vendido (ocupado confirmado)</td><td>${ESPACOS.filter(e=>stE(e)==='ocupado').length}</td><td><b>${fmtRS(vendido)}</b></td></tr>
-      <tr><td>Reservado (interessado)</td><td>${ESPACOS.filter(e=>stE(e)==='reservado').length}</td><td>${fmtRS(reservado)}</td></tr>
-      <tr><td>Disponível (livre)</td><td>${ESPACOS.filter(e=>stE(e)==='livre').length}</td><td>${fmtRS(potencial-vendido-reservado)}</td></tr>
-      <tr><td>Taxas já recebidas</td><td></td><td style="color:var(--verde)"><b>${fmtRS(recEspaco)}</b></td></tr>`;
+    // Detalhamento por categoria de espaço — cada área conectada ao orçamento
+    const linhasArea = AREAS.map(a=>{
+      const lts = ESPACOS.filter(e=>e.area_id===a.id);
+      if(!lts.length) return '';
+      const pot = soma(lts), ven = soma(lts.filter(e=>stE(e)==='ocupado')), res = soma(lts.filter(e=>stE(e)==='reservado'));
+      return `<tr><td>${esc(a.nome)}</td><td>${lts.length}</td><td>${fmtRS(pot)}</td>
+        <td style="color:var(--verde)"><b>${fmtRS(ven)}</b></td><td>${fmtRS(res)}</td><td>${fmtRS(pot-ven-res)}</td></tr>`;
+    }).join('');
+    g('tabOrcEsp').innerHTML = `<tr><th>Categoria</th><th>Espaços</th><th>Potencial</th><th>Vendido</th><th>Reservado</th><th>Disponível</th></tr>`
+      + linhasArea
+      + `<tr class="tot" style="font-weight:800"><td>Total</td><td>${ESPACOS.length}</td><td>${fmtRS(potencial)}</td>
+          <td style="color:var(--verde)">${fmtRS(vendido)}</td><td>${fmtRS(reservado)}</td><td>${fmtRS(potencial-vendido-reservado)}</td></tr>`
+      + `<tr><td colspan="5">Taxas já recebidas (baixas no financeiro)</td><td style="color:var(--verde)"><b>${fmtRS(recEspaco)}</b></td></tr>`;
     // Captação de patrocínio por origem e status
     const pats = PATROC.filter(p=>p.status!=='cancelado');
     const linhaOrig = (rot, lista) => {
