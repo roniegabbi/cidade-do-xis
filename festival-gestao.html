@@ -1320,6 +1320,16 @@
         <td${sub?'':' style="font-weight:800"'}>${fmtRS(res)}</td>
         <td${sub?'':' style="font-weight:800"'}>${fmtRS(pot-ven-res)}</td></tr>`;
     };
+    // Itens nomeados: cada espaço vendido/reservado com o ocupante (mesmo padrão da captação)
+    const ocupRows = (ls, pad) => ls.filter(e=>stE(e)!=='livre')
+      .sort((x,y)=>x.codigo.localeCompare(y.codigo,'pt-BR',{numeric:true}))
+      .map(e=>{
+        const s = stE(e), v = Number(e.valor||0);
+        return `<tr><td style="padding-left:${pad}px;color:var(--texto-suave)">· Espaço ${esc(e.codigo)} — ${esc(ocupLabel(e.id)||'—')}</td>
+          <td>1</td><td>${fmtRS(v)}</td>
+          <td style="color:var(--verde)">${s==='ocupado'?'<b>'+fmtRS(v)+'</b>':'—'}</td>
+          <td>${s==='reservado'?fmtRS(v):'—'}</td><td>—</td></tr>`;
+      }).join('');
     const linhasArea = AREAS.map(a=>{
       const lts = ESPACOS.filter(e=>e.area_id===a.id);
       if(!lts.length) return '';
@@ -1328,9 +1338,9 @@
         .filter(s=>s.lts.length);
       // Grupo com SubGrupos (quando há tipos, ex.: Operações de Xis) ou grupo simples
       if(subs.length>1 || (subs.length===1 && subs[0].t!==null && lts.some(e=>e.tipo_xis))){
-        return linhaVals(a.nome, lts, false) + subs.map(s=>linhaVals(s.rot, s.lts, true)).join('');
+        return linhaVals(a.nome, lts, false) + subs.map(s=>linhaVals(s.rot, s.lts, true)+ocupRows(s.lts, 46)).join('');
       }
-      return linhaVals(a.nome, lts, false);
+      return linhaVals(a.nome, lts, false) + ocupRows(lts, 26);
     }).join('');
     g('tabOrcEsp').innerHTML = `<tr><th>Grupo / SubGrupo</th><th>Espaços</th><th>Potencial</th><th>Vendido</th><th>Reservado</th><th>Disponível</th></tr>`
       + linhasArea
@@ -1474,10 +1484,17 @@
           ${td(fmtRS(ven),'color:#1d9e57'+(grupo?';background:#f6f1fa;font-weight:700':''))}
           ${td(fmtRS(res), grupo?'background:#f6f1fa':'')}${td(fmtRS(pot-ven-res), grupo?'background:#f6f1fa':'')}</tr>`;
       };
+      const ocupR = (ls, pad) => ls.filter(e=>st(e)!=='livre')
+        .sort((x,y)=>x.codigo.localeCompare(y.codigo,'pt-BR',{numeric:true}))
+        .map(e=>{ const s2=st(e), v=Number(e.valor||0);
+          return `<tr>${td('<span style="color:#8a7f95;padding-left:'+pad+'px;display:inline-block">· Espaço '+esc(e.codigo)+' — '+esc(ocupLabel(e.id)||'—')+'</span>')}
+            ${td('1')}${td(fmtRS(v))}${td(s2==='ocupado'?'<b>'+fmtRS(v)+'</b>':'—','color:#1d9e57')}
+            ${td(s2==='reservado'?fmtRS(v):'—')}${td('—')}</tr>`; }).join('');
       const subs = [['trailer','Trailer'],['estacao_fixa','Estação fixa'],['cervejaria','Cervejaria'],[null,'Sem tipo']]
         .map(([t,rot])=>({rot, ls: lts.filter(e=>(e.tipo_xis||null)===t)})).filter(s=>s.ls.length);
       espRows += linha(a.nome, lts, true);
-      if(subs.length>1 || lts.some(e=>e.tipo_xis)) subs.forEach(s=>{ espRows += linha(s.rot, s.ls, false); });
+      if(subs.length>1 || lts.some(e=>e.tipo_xis)) subs.forEach(s=>{ espRows += linha(s.rot, s.ls, false) + ocupR(s.ls, 26); });
+      else espRows += ocupR(lts, 14);
     });
     const potT=soma(ESPACOS), venT=soma(ESPACOS.filter(e=>st(e)==='ocupado')), resT=soma(ESPACOS.filter(e=>st(e)==='reservado'));
 
