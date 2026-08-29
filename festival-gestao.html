@@ -1707,6 +1707,42 @@
     const fsum = (t,r) => FIN.filter(l=>l.tipo===t && l.realizado===r).reduce((s,l)=>s+Number(l.valor||0),0);
     const recAb=fsum('receber',false), recOk=fsum('receber',true), pagAb=fsum('pagar',false), pagOk=fsum('pagar',true);
 
+    // 0. Resumo executivo (Potencial · Reservado · Confirmado)
+    const ehCom = a => /comercia|digital|ativa/.test(norm(a.nome));
+    const idsComF = new Set(AREAS.filter(ehCom).map(a=>a.id));
+    const eOper = ESPACOS.filter(e=>!idsComF.has(e.area_id)), eCom = ESPACOS.filter(e=>idsComF.has(e.area_id));
+    const sPot = ls=>soma(ls), sRes = ls=>soma(ls.filter(e=>st(e)==='reservado')), sConf = ls=>soma(ls.filter(e=>st(e)==='ocupado'));
+    const pPriv = pats.filter(p=>(p.origem||'privado')==='privado'), pPub = pats.filter(p=>p.origem==='publico');
+    const pR = a=>soma(a.filter(p=>p.status==='previsto'||p.status==='empenhado')), pC = a=>soma(a.filter(p=>p.status==='recebido'));
+    const cvPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
+    const cvComp = PARTS.filter(p=>p.convenio_id && p.status!=='cancelado').reduce((s,p)=>s+Number(p.valor_subsidio||0),0);
+    const cvRec = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+    const pagT = FIN.filter(l=>l.tipo==='pagar');
+    const gA = pagT.filter(l=>l.atracao_id), gF = pagT.filter(l=>!l.atracao_id && l.fornecedor_id), gO = pagT.filter(l=>!l.atracao_id && !l.fornecedor_id);
+    const tT = a=>a.reduce((s,l)=>s+Number(l.valor||0),0), tA = a=>a.filter(l=>!l.realizado).reduce((s,l)=>s+Number(l.valor||0),0), tP = a=>a.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+    const rPot = sPot(eOper)+sPot(eCom)+soma(pPriv)+soma(pPub);
+    const rRes = sRes(eOper)+sRes(eCom)+pR(pPriv)+pR(pPub);
+    const rConf = sConf(eOper)+sConf(eCom)+pC(pPriv)+pC(pPub);
+    const rexLinha = (rot,a,b,c,extra='') => `<tr>${td(rot,extra)}${td(fmtRS(a),'text-align:right;'+extra)}${td(fmtRS(b),'text-align:right;'+extra)}${td(fmtRS(c),'text-align:right;'+(extra||'color:#1d9e57;font-weight:700'))}</tr>`;
+    const resumoHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${th('Receitas')}${th('Potencial')}${th('Reservado')}${th('Confirmado')}</tr>
+        ${rexLinha('1. Vendas de Espaços — Operações', sPot(eOper), sRes(eOper), sConf(eOper))}
+        ${rexLinha('2. Vendas de Espaços — Expositores Comerciais e Ativação de Marcas', sPot(eCom), sRes(eCom), sConf(eCom))}
+        ${rexLinha('3. Patrocínios Privados ('+pPriv.length+')', soma(pPriv), pR(pPriv), pC(pPriv))}
+        ${rexLinha('4. Verbas Públicas ('+pPub.length+')', soma(pPub), pR(pPub), pC(pPub))}
+        ${cvPrev>0 ? rexLinha('&nbsp;&nbsp;↳ das vendas de espaços, subsidiado por Convênios ('+CONV.map(c=>esc(c.nome)).join(', ')+') — já incluído, não soma', cvPrev, cvComp, cvRec, 'color:#8a7f95') : ''}
+        ${rexLinha('<b>RECEITA TOTAL</b>', rPot, rRes, rConf, 'background:#efe7f4;font-weight:800')}
+        <tr>${th('Despesas')}${th('Comprometido')}${th('Em aberto')}${th('Pago')}</tr>
+        ${rexLinha('Atrações culturais (cachês)', tT(gA), tA(gA), tP(gA))}
+        ${rexLinha('Fornecedores (estrutura e serviços)', tT(gF), tA(gF), tP(gF))}
+        ${rexLinha('Outras despesas', tT(gO), tA(gO), tP(gO))}
+        ${rexLinha('<b>DESPESA TOTAL</b>', tT(pagT), tA(pagT), tP(pagT), 'background:#efe7f4;font-weight:800')}
+        <tr>${td('<b>RESULTADO PREVISTO</b> (reservado + confirmado − despesas comprometidas)','background:#f6f1fa;font-weight:800')}
+          ${td('','background:#f6f1fa')}${td('','background:#f6f1fa')}
+          ${td('<b>'+fmtRS(rRes+rConf-tT(pagT))+'</b>','background:#f6f1fa;text-align:right;color:'+((rRes+rConf-tT(pagT))>=0?'#1d9e57':'#d63344'))}</tr>
+      </table>`;
+
     const doc = document.createElement('div');
     doc.style.cssText = 'width:190mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:10.5px;line-height:1.5';
     doc.innerHTML = `
@@ -1718,29 +1754,31 @@
           Documento gerado pela plataforma Cidade do Xis em ${new Date().toLocaleString('pt-BR')}</div>
         </div>
       </div>
-      ${sec('1. Receita de espaços — por grupo e subgrupo (fiel ao mapa de espaços)')}
+      ${sec('1. Resumo executivo — Potencial · Reservado · Confirmado')}
+      ${resumoHTML}
+      ${sec('2. Receita de espaços — por grupo e subgrupo (fiel ao mapa de espaços)')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Grupo / SubGrupo')}${th('Espaços')}${th('Potencial')}${th('Vendido')}${th('Reservado')}${th('Disponível')}</tr>
         ${espRows}
         <tr>${td('<b>TOTAL</b>','background:#efe7f4')}${td('<b>'+ESPACOS.length+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(potT)+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(venT)+'</b>','background:#efe7f4;color:#1d9e57')}${td('<b>'+fmtRS(resT)+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(potT-venT-resT)+'</b>','background:#efe7f4')}</tr>
       </table>
-      ${sec('2. Captação de patrocínios — por origem e status')}
+      ${sec('3. Captação de patrocínios — por origem e status')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Origem')}${th('Previsto')}${th('Empenhado')}${th('Recebido')}${th('Total')}</tr>
         ${patRow('Privado','privado')}${patRow('Público (emendas, convênios de patrocínio)','publico')}
         <tr>${td('<b>TOTAL</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','previsto')+pOr('publico','previsto'))+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','empenhado')+pOr('publico','empenhado'))+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','recebido')+pOr('publico','recebido'))+'</b>','background:#efe7f4;color:#1d9e57')}${td('<b>'+fmtRS(soma(pats))+'</b>','background:#efe7f4')}</tr>
       </table>
-      ${sec('3. Receitas de Convênios — subsídios de taxas de espaço')}
+      ${sec('4. Receitas de Convênios — subsídios de taxas de espaço (origem de pagamento, já contidas na venda de espaços)')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Convênio')}${th('Previsto')}${th('Comprometido')}${th('Recebido')}${th('Saldo do previsto')}</tr>
         ${convRows}
       </table>
-      ${sec('4. Metas orçamentárias')}
+      ${sec('5. Metas orçamentárias')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Tipo')}${th('Categoria')}${th('Valor previsto')}</tr>
         ${metaRows}
       </table>
-      ${sec('5. Resumo financeiro do evento')}
+      ${sec('6. Resumo financeiro do evento (caixa)')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Indicador')}${th('Valor')}</tr>
         <tr>${td('Receitas recebidas (baixadas)')}${td('<b>'+fmtRS(recOk)+'</b>','color:#1d9e57')}</tr>
