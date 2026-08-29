@@ -1450,34 +1450,47 @@
       const priv = soma(patsR.filter(p=>(p.origem||'privado')==='privado'));
       const pub  = soma(patsR.filter(p=>p.origem==='publico'));
       const convPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
-      // Convênio é ORIGEM de pagamento das taxas (já dentro das vendas) — não soma no total
-      const recTotal = comerc(espOper)+comerc(espCom)+priv+pub;
-      // Despesas por grupo (lançamentos a pagar)
+      const reserv = ls => soma(ls.filter(e=>stE(e)==='reservado'));
+      // Patrocínios por coluna: Potencial = tudo cadastrado · Reservado = previsto+empenhado · Confirmado = recebido
+      const patsPriv = patsR.filter(p=>(p.origem||'privado')==='privado');
+      const patsPub  = patsR.filter(p=>p.origem==='publico');
+      const pRes = a => soma(a.filter(p=>p.status==='previsto'||p.status==='empenhado'));
+      const pConf = a => soma(a.filter(p=>p.status==='recebido'));
+      // Convênio (composição): comprometido nas participações e recebido no financeiro
+      const convComp = PARTS.filter(p=>p.convenio_id && p.status!=='cancelado').reduce((s,p)=>s+Number(p.valor_subsidio||0),0);
+      const convRec  = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      // Despesas por grupo
       const pag = FIN.filter(l=>l.tipo==='pagar');
       const gAtr  = pag.filter(l=>l.atracao_id);
       const gForn = pag.filter(l=>!l.atracao_id && l.fornecedor_id);
       const gOut  = pag.filter(l=>!l.atracao_id && !l.fornecedor_id);
       const tot = a => a.reduce((s,l)=>s+Number(l.valor||0),0);
+      const abertoDe = a => a.filter(l=>!l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
       const pagoDe = a => a.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-      const metaDesp = ORC.filter(m=>m.tipo==='despesa').reduce((s,m)=>s+Number(m.valor_previsto||0),0);
       const despTotal = tot(pag);
-      const rL = (rot, val, extra='') => `<tr><td>${rot}</td><td style="text-align:right"><b>${fmtRS(val)}</b></td><td style="color:var(--texto-suave);font-size:12px">${extra}</td></tr>`;
-      const rH = rot => `<tr><td colspan="3" style="background:var(--fundo);font-weight:800;color:var(--roxo-esc)">${rot}</td></tr>`;
+      const v = (x,b) => `<td style="text-align:right${b?';font-weight:800':''}">${fmtRS(x)}</td>`;
+      const rL = (rot,pot,res,conf) => `<tr><td>${rot}</td>${v(pot)}${v(res)}<td style="text-align:right;color:var(--verde)"><b>${fmtRS(conf)}</b></td></tr>`;
+      const rH = (rot,c1='Potencial',c2='Reservado',c3='Confirmado') => `<tr><td style="background:var(--fundo);font-weight:800;color:var(--roxo-esc)">${rot}</td>
+        <th style="text-align:right">${c1}</th><th style="text-align:right">${c2}</th><th style="text-align:right">${c3}</th></tr>`;
+      const potRec = soma(espOper)+soma(espCom)+priv+pub;
+      const resRec = reserv(espOper)+reserv(espCom)+pRes(patsPriv)+pRes(patsPub);
+      const confRec = vend(espOper)+vend(espCom)+pConf(patsPriv)+pConf(patsPub);
       g('tabResumoOrc').innerHTML =
         rH('Receitas')
-        + rL('1. Vendas de Espaços — Operações', comerc(espOper), `potencial ${fmtRS(soma(espOper))} · vendido ${fmtRS(vend(espOper))}`)
-        + rL('2. Vendas de Espaços — Expositores Comerciais e Ativação de Marcas', comerc(espCom), `potencial ${fmtRS(soma(espCom))} · vendido ${fmtRS(vend(espCom))}`)
-        + rL('3. Patrocínios Privados', priv, patsR.filter(p=>(p.origem||'privado')==='privado').length+' patrocinador(es)')
-        + rL('4. Verbas Públicas', pub, patsR.filter(p=>p.origem==='publico').length+' fonte(s)')
-        + (convPrev>0 ? `<tr><td style="padding-left:22px;color:var(--texto-suave)">↳ das vendas acima, subsidiado por Convênios (${CONV.map(c=>esc(c.nome)).join(', ')})</td><td style="text-align:right;color:var(--texto-suave)">${fmtRS(convPrev)}</td><td style="color:var(--texto-suave);font-size:12px">origem de pagamento — já incluído nas vendas, não soma no total</td></tr>` : '')
-        + `<tr style="background:#efe7f4"><td style="font-weight:800">RECEITA TOTAL (vendas comercializadas + captação)</td><td style="text-align:right;font-weight:800;color:var(--verde)">${fmtRS(recTotal)}</td><td></td></tr>`
-        + rH('Despesas (lançamentos a pagar)')
-        + rL('Atrações culturais (cachês)', tot(gAtr), 'pago '+fmtRS(pagoDe(gAtr)))
-        + rL('Fornecedores (estrutura e serviços)', tot(gForn), 'pago '+fmtRS(pagoDe(gForn)))
-        + rL('Outras despesas', tot(gOut), 'pago '+fmtRS(pagoDe(gOut)))
-        + (metaDesp>0 ? rL('Metas de despesa cadastradas (previsto)', metaDesp, 'planejamento') : '')
-        + `<tr style="background:#efe7f4"><td style="font-weight:800">DESPESA TOTAL (comprometida)</td><td style="text-align:right;font-weight:800">${fmtRS(despTotal)}</td><td></td></tr>`
-        + `<tr style="background:var(--fundo)"><td style="font-weight:800;color:var(--roxo-esc)">RESULTADO PREVISTO (receitas − despesas)</td><td style="text-align:right;font-weight:800;color:${recTotal-despTotal>=0?'var(--verde)':'var(--vermelho)'}">${fmtRS(recTotal-despTotal)}</td><td></td></tr>`;
+        + rL('1. Vendas de Espaços — Operações', soma(espOper), reserv(espOper), vend(espOper))
+        + rL('2. Vendas de Espaços — Expositores Comerciais e Ativação de Marcas', soma(espCom), reserv(espCom), vend(espCom))
+        + rL('3. Patrocínios Privados ('+patsPriv.length+')', priv, pRes(patsPriv), pConf(patsPriv))
+        + rL('4. Verbas Públicas ('+patsPub.length+')', pub, pRes(patsPub), pConf(patsPub))
+        + (convPrev>0 ? `<tr style="color:var(--texto-suave)"><td style="padding-left:22px">↳ das vendas de espaços, subsidiado por Convênios (${CONV.map(c=>esc(c.nome)).join(', ')}) — já incluído acima, não soma</td>
+            <td style="text-align:right">${fmtRS(convPrev)}</td><td style="text-align:right">${fmtRS(convComp)}</td><td style="text-align:right">${fmtRS(convRec)}</td></tr>` : '')
+        + `<tr style="background:#efe7f4;font-weight:800"><td>RECEITA TOTAL</td>${v(potRec,1)}${v(resRec,1)}<td style="text-align:right;font-weight:800;color:var(--verde)">${fmtRS(confRec)}</td></tr>`
+        + rH('Despesas (lançamentos a pagar)','Comprometido','Em aberto','Pago')
+        + rL('Atrações culturais (cachês)', tot(gAtr), abertoDe(gAtr), pagoDe(gAtr))
+        + rL('Fornecedores (estrutura e serviços)', tot(gForn), abertoDe(gForn), pagoDe(gForn))
+        + rL('Outras despesas', tot(gOut), abertoDe(gOut), pagoDe(gOut))
+        + `<tr style="background:#efe7f4;font-weight:800"><td>DESPESA TOTAL</td>${v(despTotal,1)}${v(abertoDe(pag),1)}<td style="text-align:right;font-weight:800">${fmtRS(pagoDe(pag))}</td></tr>`
+        + `<tr style="background:var(--fundo)"><td style="font-weight:800;color:var(--roxo-esc)">RESULTADO PREVISTO (reservado + confirmado − despesas comprometidas)</td>
+            <td></td><td></td><td style="text-align:right;font-weight:800;color:${(resRec+confRec-despTotal)>=0?'var(--verde)':'var(--vermelho)'}">${fmtRS(resRec+confRec-despTotal)}</td></tr>`;
     }
 
     // Grupos e SubGrupos — estrutura fiel ao mapa de espaços
