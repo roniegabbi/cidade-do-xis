@@ -210,7 +210,7 @@
           <tr><td>Reservar um espaço para alguém</td><td><b>Mapa de espaços</b> — clique no lote livre e escolha o ocupante</td></tr>
           <tr><td>Definir o preço dos espaços</td><td><b>Espaços e categorias</b> — Tabela de preços por faixa</td></tr>
           <tr><td>Confirmar uma venda de espaço</td><td>Aba da categoria (ex.: Operações de Xis) — botão <b>Confirmar</b>; depois <b>Cobrança</b></td></tr>
-          <tr><td><b>Prever uma despesa ou receita</b> (planejamento)</td><td><b>Planejamento Orçamentário</b> — "Lançar previsão de receita ou despesa"</td></tr>
+          <tr><td><b>Prever uma despesa</b> (estrutura, segurança, atrações…)</td><td><b>Planejamento Orçamentário</b> — "Lançar previsão de despesa" (categoria + fornecedor)</td></tr>
           <tr><td>Lançar uma conta real (com vencimento)</td><td><b>Contas a Pagar e Receber</b> — "Lançar conta a pagar ou a receber"</td></tr>
           <tr><td>Registrar pagamento/recebimento</td><td><b>Contas a Pagar e Receber</b> — botão "Pago"/"Recebido" na linha</td></tr>
           <tr><td>Registrar patrocínio ou verba pública</td><td><b>Patrocinadores</b> — com origem Privado/Público e status da captação</td></tr>
@@ -438,15 +438,61 @@
         <button class="btn btn-p btn-sm" id="btnFichaOrc" onclick="baixarFichaOrc()">Ficha Técnica (PDF)</button>
       </div>
       <div class="card no-print">
-        <h3>Lançar previsão de receita ou despesa</h3>
-        <div class="sub" style="margin-bottom:8px">Use para montar o plano: "quanto pretendemos gastar com estrutura?", "quanto esperamos captar?". Sem vencimento, sem baixa — é planejamento. Quando a despesa virar contrato de verdade, lance também em Contas a Pagar.</div>
+        <h3>Lançar previsão de despesa</h3>
+        <div class="sub" style="margin-bottom:8px">As receitas previstas são calculadas automaticamente (espaços, patrocínios e convênios) — aqui você planeja os GASTOS do evento, sem risco de duplicar receita. Quando a despesa virar contrato, lance também em Contas a Pagar.</div>
         <div class="grid3">
-          <div class="field"><label>É uma previsão de…</label>
-            <select id="mTipo"><option value="despesa">Despesa (gasto planejado)</option><option value="receita">Receita (entrada esperada)</option></select></div>
-          <div class="field"><label>Com o quê? *</label><input id="mCat" placeholder="Ex.: Estrutura e palco, Segurança, Comunicação"></div>
+          <div class="field"><label>Categoria da despesa *</label>
+            <select id="mCat">
+              <option value="">— selecione —</option>
+              <optgroup label="Estrutura e montagem">
+                <option>Cobertura lonada / tendas</option>
+                <option>Octanormes / stands modulares</option>
+                <option>Pisos e tablados</option>
+                <option>Palco e cobertura de palco</option>
+                <option>Fechamentos, grades e portais</option>
+                <option>Camarins e áreas de apoio</option>
+              </optgroup>
+              <optgroup label="Técnica">
+                <option>Som e iluminação</option>
+                <option>Energia e geradores</option>
+                <option>Telões e painéis de LED</option>
+              </optgroup>
+              <optgroup label="Operação e serviços">
+                <option>Segurança privada</option>
+                <option>Brigada de incêndio e ambulância</option>
+                <option>Sanitários químicos</option>
+                <option>Limpeza e coleta de resíduos</option>
+                <option>Credenciamento e controle de acesso</option>
+                <option>Transporte e logística</option>
+                <option>Alimentação de equipe (staff)</option>
+              </optgroup>
+              <optgroup label="Atrações e programação">
+                <option>Cachês artísticos (shows e apresentações)</option>
+                <option>Hospedagem e alimentação de artistas</option>
+                <option>Transporte de artistas e bandas</option>
+                <option>Atrações e experiências contratadas</option>
+              </optgroup>
+              <optgroup label="Comunicação e conteúdo">
+                <option>Sinalização e comunicação visual</option>
+                <option>Divulgação e mídia</option>
+                <option>Decoração e ambientação</option>
+                <option>Fotografia e cobertura audiovisual</option>
+              </optgroup>
+              <optgroup label="Administrativo">
+                <option>Locação de equipamentos</option>
+                <option>Taxas, licenças e ART</option>
+                <option>Outras despesas</option>
+              </optgroup>
+            </select></div>
+          <div class="field"><label>Detalhe <span style="font-weight:400">(opcional)</span></label><input id="mDet" placeholder="Ex.: 20 tendas 10x10 · 3 dias"></div>
           <div class="field"><label>Valor previsto (R$) *</label><input id="mVal" type="number" step="0.01"></div>
+          <div class="field"><label>Fornecedor <span style="font-weight:400">(amarra a despesa)</span></label>
+            <div style="display:flex;gap:6px">
+              <select id="mForn" style="flex:1"><option value="">— a definir —</option></select>
+              <button class="btn btn-g btn-sm" type="button" onclick="novoFornecedorRapido()" title="Cadastrar fornecedor agora">+ Novo</button>
+            </div></div>
         </div>
-        <button class="btn btn-p" onclick="salvarMeta()">Salvar previsão</button>
+        <button class="btn btn-p" onclick="salvarMeta()">Salvar previsão de despesa</button>
       </div>
       <div id="orcAviso"></div>
       <div class="card" style="border:2px solid var(--roxo)"><h3>Resumo do Orçamento</h3><div style="overflow-x:auto"><table class="fin" id="tabResumoOrc"></table></div></div>
@@ -627,7 +673,7 @@
   function renderTudo(){
     renderAreas(); renderPrecos(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
-    renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); renderConvenios(); finFonteOpts();
+    renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); renderConvenios(); finFonteOpts(); preencherSelFornMeta();
     preencherSelEspacos();
   }
 
@@ -1422,14 +1468,30 @@
 
   // ===== ORÇAMENTO =====
   async function salvarMeta(){
-    const cat = g('mCat').value.trim(), val = parseFloat(g('mVal').value);
-    if(!cat || !(val>=0)){ toast('Informe categoria e valor'); return; }
-    const r = await SB.from('festival_orcamento').upsert(
-      { evento_id:EV.id, tipo:g('mTipo').value, categoria:cat, valor_previsto:val },
-      { onConflict:'evento_id,tipo,categoria' });
+    const cat = g('mCat').value, val = parseFloat(g('mVal').value);
+    if(!cat){ toast('Escolha a categoria da despesa'); return; }
+    if(!(val>0)){ toast('Informe o valor previsto'); return; }
+    const r = await SB.from('festival_orcamento').insert({
+      evento_id:EV.id, tipo:'despesa', categoria:cat, valor_previsto:val,
+      obs: g('mDet').value.trim()||null, fornecedor_id: g('mForn').value||null });
     if(r.error){ toast('Erro: '+r.error.message); return; }
-    g('mCat').value=''; g('mVal').value='';
-    toast('Meta salva'); loadAll();
+    g('mCat').value=''; g('mVal').value=''; g('mDet').value=''; g('mForn').value='';
+    toast('Previsão de despesa salva'); loadAll();
+  }
+  async function novoFornecedorRapido(){
+    const nome = prompt('Razão social do fornecedor:');
+    if(!nome || !nome.trim()) return;
+    const r = await SB.from('festival_fornecedores').insert({ razao_social:nome.trim() }).select('id').single();
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Fornecedor cadastrado — complete os dados na aba Fornecedores');
+    await loadAll();
+    if(g('mForn')) g('mForn').value = r.data.id;
+  }
+  function preencherSelFornMeta(){
+    const sel = g('mForn'); if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— a definir —</option>'+FORNEC.map(f=>`<option value="${f.id}">${esc(f.razao_social)}</option>`).join('');
+    if(cur && FORNEC.some(f=>f.id===cur)) sel.value = cur;
   }
   async function excluirMeta(id){
     if(!confirm('Excluir esta meta?')) return;
@@ -1576,12 +1638,15 @@
     };
     const linhas = ORC.map(m=>{
       const a = auto[m.tipo+'|'+m.categoria] || null;
-      const contr = a ? a.contr : (m.tipo==='despesa' ? pag.reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0) : 0);
+      const fornM = m.fornecedor_id ? (FORNEC.find(f=>f.id===m.fornecedor_id)||{}).razao_social : null;
+      const contr = a ? a.contr : (m.tipo==='despesa'
+        ? pag.reduce((s,l)=>s+((l.fornecedor_id && l.fornecedor_id===m.fornecedor_id) || norm(l.descricao).includes(norm(m.categoria)) ? Number(l.valor||0):0),0) : 0);
       const real = a ? a.real : (m.tipo==='despesa'
-        ? pag.filter(l=>l.realizado).reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0)
+        ? pag.filter(l=>l.realizado).reduce((s,l)=>s+((l.fornecedor_id && l.fornecedor_id===m.fornecedor_id) || norm(l.descricao).includes(norm(m.categoria)) ? Number(l.valor||0):0),0)
         : rec.filter(l=>l.realizado).reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0));
       const pct = m.valor_previsto>0 ? Math.round(real/m.valor_previsto*100) : 0;
-      return `<tr><td>${m.tipo==='receita'?'Receita':'Despesa'}</td><td>${esc(m.categoria)}</td>
+      return `<tr><td>${m.tipo==='receita'?'Receita':'Despesa'}</td>
+        <td>${esc(m.categoria)}${m.obs?` <span style="color:var(--texto-suave);font-size:12px">· ${esc(m.obs)}</span>`:''}${fornM?`<br><span style="color:var(--roxo);font-size:12px">Fornecedor: ${esc(fornM)}</span>`:''}</td>
         <td><b>${fmtRS(m.valor_previsto)}</b></td><td>${fmtRS(contr)}</td>
         <td style="color:var(--verde)"><b>${fmtRS(real)}</b></td><td>${pct}%</td>
         <td class="no-print"><button class="btn btn-r btn-sm" onclick="excluirMeta('${m.id}')">Excluir</button></td></tr>`;
