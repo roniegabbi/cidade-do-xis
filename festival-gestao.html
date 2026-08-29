@@ -158,7 +158,7 @@
     <div class="cat">Painel</div>
     <a class="on" data-p="geral" onclick="tab('geral')">Visão geral</a>
     <div class="cat">Captação</div>
-    <a data-p="int26" onclick="tab('int26')">Interessados 2026 <span class="bdg hide" id="bdgInt26">0</span></a>
+    <a data-p="int26" onclick="tab('int26')">Manifestações de Interesse <span class="bdg hide" id="bdgInt26">0</span></a>
     <div class="cat">Espaços do evento</div>
     <a data-p="mapa" onclick="tab('mapa')">Mapa de espaços</a>
     <a data-p="espacos" onclick="tab('espacos')">Espaços e categorias</a>
@@ -169,13 +169,13 @@
     <a class="sub-item" data-p="exp" data-dim="ferromodelismo" onclick="abrirExp('ferromodelismo')">Ferromodelismo</a>
     <a class="sub-item" data-p="exp" data-dim="outros" onclick="abrirExp('outros')">Outros Expositores</a>
     <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Atrações Culturais</a>
-    <div class="cat">Parceiros e receitas</div>
+    <div class="cat">Parceiros</div>
     <a class="sub-item" data-p="patroc" onclick="tab('patroc')">Patrocinadores</a>
     <a class="sub-item" data-p="exp" data-dim="ativacao" onclick="abrirExp('ativacao')">Ativação Digital de Marcas</a>
+    <div class="cat">Dinheiro do evento</div>
+    <a class="sub-item" data-p="orc" onclick="tab('orc')">Planejamento Orçamentário<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">previsões de receitas e despesas</span></a>
+    <a class="sub-item" data-p="fin" onclick="tab('fin')">Contas a Pagar e Receber <span class="bdg hide" id="bdgVenc">0</span><br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">lançamentos reais, com vencimento</span></a>
     <a class="sub-item" data-p="fornec" onclick="tab('fornec')">Fornecedores</a>
-    <div class="cat">Financeiro</div>
-    <a class="sub-item" data-p="orc" onclick="tab('orc')">Orçamento</a>
-    <a class="sub-item" data-p="fin" onclick="tab('fin')">Financeiro <span class="bdg hide" id="bdgVenc">0</span></a>
     <a class="sub-item" data-p="prest" onclick="tab('prest')">Prestação de Contas</a>
     <div class="cat">Relatórios</div>
     <a class="sub-item" data-p="reled" onclick="tab('reled');renderRelEd()">Participantes por Edição</a>
@@ -202,13 +202,29 @@
           <button class="btn btn-p btn-sm" onclick="copiarInt26('')">Link geral (todas)</button>
         </div>
       </div>
+      <div class="card">
+        <h3>Onde faço o quê?</h3>
+        <div style="overflow-x:auto"><table class="fin">
+          <tr><th>Quero…</th><th>Vá em…</th></tr>
+          <tr><td>Ver quem se inscreveu para participar</td><td><b>Manifestações de Interesse</b> — aprove com "Converter em participação"</td></tr>
+          <tr><td>Reservar um espaço para alguém</td><td><b>Mapa de espaços</b> — clique no lote livre e escolha o ocupante</td></tr>
+          <tr><td>Definir o preço dos espaços</td><td><b>Espaços e categorias</b> — Tabela de preços por faixa</td></tr>
+          <tr><td>Confirmar uma venda de espaço</td><td>Aba da categoria (ex.: Operações de Xis) — botão <b>Confirmar</b>; depois <b>Cobrança</b></td></tr>
+          <tr><td><b>Prever uma despesa ou receita</b> (planejamento)</td><td><b>Planejamento Orçamentário</b> — "Lançar previsão de receita ou despesa"</td></tr>
+          <tr><td>Lançar uma conta real (com vencimento)</td><td><b>Contas a Pagar e Receber</b> — "Lançar conta a pagar ou a receber"</td></tr>
+          <tr><td>Registrar pagamento/recebimento</td><td><b>Contas a Pagar e Receber</b> — botão "Pago"/"Recebido" na linha</td></tr>
+          <tr><td>Registrar patrocínio ou verba pública</td><td><b>Patrocinadores</b> — com origem Privado/Público e status da captação</td></tr>
+          <tr><td>Registrar subsídio de convênio (ex.: SEBRAE)</td><td><b>Planejamento Orçamentário</b> — Receitas de Convênios; depois botão "Subsídio" na operação</td></tr>
+          <tr><td>Exportar o orçamento para reunião</td><td><b>Planejamento Orçamentário</b> — botão "Ficha Técnica (PDF)"</td></tr>
+        </table></div>
+      </div>
       <div class="card"><h3>Termômetro de captação</h3><div id="termometro"></div></div>
       <div class="card"><h3>Vencimentos</h3><div id="alertas"></div></div>
       <div class="card"><h3>Ocupação por dimensão</h3><div id="ocupacaoDim"></div></div>
     </section>
 
     <section class="pane hide" id="p-int26">
-      <div class="h">Interessados — Edição 2026</div>
+      <div class="h">Manifestações de Interesse — Edição 2026</div>
       <div class="sub">Manifestações recebidas pelo link "Quero participar" (13, 14 e 15 de novembro · Largo da Gare). Área separada dos cadastros do festival: nada entra nas categorias sem a sua conversão.</div>
       <div class="card" style="margin-bottom:14px">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -416,20 +432,21 @@
     </section>
 
     <section class="pane hide" id="p-orc">
-      <div class="h">Planejamento orçamentário</div>
-      <div class="sub">Metas de receita e despesa comparadas com o contratado e o realizado.</div>
+      <div class="h">Planejamento Orçamentário</div>
+      <div class="sub">Aqui você PREVÊ o dinheiro do evento: receitas esperadas e despesas planejadas, comparadas com o que já foi contratado e realizado. Contas reais, com data de vencimento, ficam em "Contas a Pagar e Receber".</div>
       <div class="filtros no-print">
         <button class="btn btn-p btn-sm" id="btnFichaOrc" onclick="baixarFichaOrc()">Ficha Técnica (PDF)</button>
       </div>
       <div class="card no-print">
-        <h3>Nova meta</h3>
+        <h3>Lançar previsão de receita ou despesa</h3>
+        <div class="sub" style="margin-bottom:8px">Use para montar o plano: "quanto pretendemos gastar com estrutura?", "quanto esperamos captar?". Sem vencimento, sem baixa — é planejamento. Quando a despesa virar contrato de verdade, lance também em Contas a Pagar.</div>
         <div class="grid3">
-          <div class="field"><label>Tipo</label>
-            <select id="mTipo"><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div>
-          <div class="field"><label>Categoria *</label><input id="mCat" placeholder="Ex.: Patrocínio privado, Estrutura, Venda de espaços"></div>
+          <div class="field"><label>É uma previsão de…</label>
+            <select id="mTipo"><option value="despesa">Despesa (gasto planejado)</option><option value="receita">Receita (entrada esperada)</option></select></div>
+          <div class="field"><label>Com o quê? *</label><input id="mCat" placeholder="Ex.: Estrutura e palco, Segurança, Comunicação"></div>
           <div class="field"><label>Valor previsto (R$) *</label><input id="mVal" type="number" step="0.01"></div>
         </div>
-        <button class="btn btn-p" onclick="salvarMeta()">Salvar meta</button>
+        <button class="btn btn-p" onclick="salvarMeta()">Salvar previsão</button>
       </div>
       <div id="orcAviso"></div>
       <div class="card" style="border:2px solid var(--roxo)"><h3>Resumo do Orçamento</h3><div style="overflow-x:auto"><table class="fin" id="tabResumoOrc"></table></div></div>
@@ -449,10 +466,10 @@
     </section>
 
     <section class="pane hide" id="p-fin">
-      <div class="h">Financeiro</div>
-      <div class="sub">Contas a receber e a pagar do evento. "Atrasado" = previsto com vencimento passado.</div>
+      <div class="h">Contas a Pagar e Receber</div>
+      <div class="sub">Aqui entram os compromissos REAIS: cada conta com valor, vencimento e baixa (pago/recebido). "Atrasado" = em aberto com vencimento passado. Para apenas prever valores do plano, use o Planejamento Orçamentário.</div>
       <div class="card" id="finFormCard">
-        <h3>Novo lançamento</h3>
+        <h3>Lançar conta a pagar ou a receber</h3>
         <div class="grid3">
           <div class="field"><label>Tipo</label>
             <select id="nTipo"><option value="receber">A receber</option><option value="pagar">A pagar</option></select></div>
