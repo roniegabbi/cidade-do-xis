@@ -42,6 +42,10 @@
   .rodape{text-align:center;margin-top:18px;font-size:12.5px;color:var(--texto-suave)}
   .rodape a{color:var(--roxo);font-weight:700;text-decoration:none}
   .divisor{grid-column:1/-1;border-top:1.5px dashed var(--borda);padding-top:14px;font-size:13px;font-weight:800;color:var(--roxo)}
+  .drop{display:block;border:2px dashed var(--rosa);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:#fff7fb}
+  .drop strong{display:block;color:var(--rosa);font-size:15px}
+  .drop span{display:block;font-size:12.5px;color:var(--texto-suave);margin-top:4px}
+  .drop img{max-width:100%;max-height:190px;border-radius:10px;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -65,6 +69,10 @@
             <option value="outros">Outros expositores (bebidas e diversos)</option>
           </select>
         </div>
+        <div class="field full hide" id="tipoWrap">
+          <label>Tipo de operação *</label>
+          <select id="fTipoOp" onchange="tipoToggle()"><option value="">— selecione —</option><option value="trailer">Trailer</option><option value="estacao_fixa">Estação fixa</option></select>
+        </div>
         <div class="field full"><label>Nome da operação / marca *</label><input id="fNome" placeholder="Ex.: Xis do Gaúcho, Cerveja Estação, Ateliê da Ana"></div>
         <div class="field"><label>CNPJ ou CPF</label><input id="fDoc" placeholder="00.000.000/0000-00"></div>
         <div class="field"><label>Responsável *</label><input id="fResp" placeholder="Nome completo"></div>
@@ -75,8 +83,19 @@
         <div class="divisor">Sobre a sua operação</div>
         <div class="field"><label>Possui Certificado de Boas Práticas Alimentares? *</label>
           <select id="fBoas"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
-        <div class="field"><label>Quantos xis você tem no cardápio?</label><input id="fQtdXis" placeholder="Ex.: 12" inputmode="numeric"></div>
+        <div class="field"><label>Quanto tempo você trabalha com Xis?</label><input id="fTempoXis" placeholder="Ex.: 8 anos"></div>
         <div class="field full"><label>Em poucas palavras, conte tua história com o Xis</label><textarea id="fHistoria" rows="3" placeholder="Como o xis entrou na tua vida e na tua operação…"></textarea></div>
+
+        <div class="divisor hide" id="divTrailer">Sobre o seu Trailer</div>
+        <div class="field full hide" id="licWrap"><label>Para qual endereço seu Trailer está licenciado? *</label><input id="fEndLic" placeholder="Rua, número, bairro — cidade"></div>
+        <div class="field full hide" id="fotoWrap">
+          <label>Envie uma foto do seu Trailer *</label>
+          <label class="drop" for="fFoto">
+            <input id="fFoto" type="file" accept="image/*" hidden onchange="previewFoto(this)">
+            <img id="fFotoPrev" class="hide" alt="">
+            <span id="fFotoTxt"><strong>Clique para escolher a foto</strong><span>JPG ou PNG, até 5 MB</span></span>
+          </label>
+        </div>
       </div>
       <div class="msg" id="cadMsg"></div>
       <button class="btn" id="fBtn" onclick="enviar()">Enviar manifestação de interesse</button>
@@ -100,25 +119,66 @@
   const g = id => document.getElementById(id);
   function cadMsg(t, tipo){ const m=g('cadMsg'); m.className='msg '+(tipo||'info'); m.textContent=t||''; }
 
+  // Campos condicionais: tipo aparece p/ Operação de Xis; endereço+foto aparecem p/ Trailer
+  function catToggle(){
+    const ehXis = g('fCat').value==='xis';
+    g('tipoWrap').classList.toggle('hide', !ehXis);
+    if(!ehXis){ g('fTipoOp').value=''; }
+    tipoToggle();
+  }
+  function tipoToggle(){
+    const ehTrailer = g('fCat').value==='xis' && g('fTipoOp').value==='trailer';
+    ['divTrailer','licWrap','fotoWrap'].forEach(id=>g(id).classList.toggle('hide', !ehTrailer));
+  }
+  function previewFoto(inp){
+    const f = inp.files && inp.files[0]; if(!f) return;
+    if(f.size > 5*1024*1024){ cadMsg('A foto deve ter até 5 MB.','erro'); inp.value=''; return; }
+    g('fFotoPrev').src = URL.createObjectURL(f);
+    g('fFotoPrev').classList.remove('hide');
+    g('fFotoTxt').querySelector('strong').textContent = 'Trocar foto';
+    g('fFotoTxt').querySelectorAll('span')[0].textContent = f.name;
+    cadMsg('','info');
+  }
+  g('fCat').addEventListener('change', catToggle);
+
   const pre = new URLSearchParams(location.search).get('c') || '';
   if(['xis','cervejaria','criativo','ferromodelismo','outros'].includes(pre)) g('fCat').value = pre;
+  catToggle();
 
   async function enviar(){
     const nome=g('fNome').value.trim(), resp=g('fResp').value.trim(), tel=g('fTel').value.trim(), boas=g('fBoas').value;
+    const cat=g('fCat').value, tipoOp=g('fTipoOp').value;
     if(!nome || !resp || !tel){ cadMsg('Preencha os campos obrigatórios (*).','erro'); return; }
     if(!boas){ cadMsg('Informe se possui o Certificado de Boas Práticas Alimentares.','erro'); return; }
+    if(cat==='xis' && !tipoOp){ cadMsg('Informe se sua operação é Trailer ou Estação fixa.','erro'); return; }
+    const ehTrailer = cat==='xis' && tipoOp==='trailer';
+    const foto = g('fFoto').files && g('fFoto').files[0];
+    if(ehTrailer && !g('fEndLic').value.trim()){ cadMsg('Informe o endereço de licenciamento do Trailer.','erro'); return; }
+    if(ehTrailer && !foto){ cadMsg('Envie uma foto do seu Trailer.','erro'); return; }
     if(!SB){ cadMsg('Sem conexão com o servidor. Tente novamente.','erro'); return; }
     const btn=g('fBtn'); btn.disabled=true; cadMsg('Enviando…','info');
+    let fotoUrl = null;
     try{
+      if(ehTrailer && foto){
+        const ext = (foto.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+        const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+        const path = 'interessados-2026/'+id+'.'+ext;
+        const up = await SB.storage.from('estabelecimentos').upload(path, foto, { contentType: foto.type||'image/jpeg', upsert:true });
+        if(up.error) throw up.error;
+        fotoUrl = SB.storage.from('estabelecimentos').getPublicUrl(path).data.publicUrl;
+      }
       const {error} = await SB.rpc('manifestar_interesse_2026', {
-        p_categoria: g('fCat').value,
+        p_categoria: cat,
         p_dados: {
           nome, responsavel:resp, telefone:tel,
           documento:g('fDoc').value.trim(), email:g('fEmail').value.trim(),
           descricao:g('fObs').value.trim(),
           boas_praticas: boas==='sim',
-          qtd_xis_cardapio: g('fQtdXis').value.trim(),
-          historia: g('fHistoria').value.trim()
+          tempo_xis: g('fTempoXis').value.trim(),
+          historia: g('fHistoria').value.trim(),
+          tipo_operacao: cat==='xis' ? tipoOp : null,
+          endereco_licenca: ehTrailer ? g('fEndLic').value.trim() : null,
+          foto_trailer: fotoUrl
         }
       });
       if(error) throw error;

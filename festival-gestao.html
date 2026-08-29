@@ -1432,8 +1432,11 @@
       <div style="min-width:0;flex:1">
         <div class="nm">${esc(i.nome)} ${stPill(i.status)}
           <span class="pill ${i.boas_praticas?'ok':'bad'}">${i.boas_praticas?'Boas práticas: sim':'Boas práticas: não'}</span>
-          ${i.qtd_xis_cardapio?`<span class="pill info">${esc(i.qtd_xis_cardapio)} xis no cardápio</span>`:''}</div>
+          ${i.tempo_xis?`<span class="pill info">Trabalha com xis há ${esc(i.tempo_xis)}</span>`:''}
+          ${i.tipo_operacao?txBadge(i.tipo_operacao):''}</div>
         <div class="mt">${INT26_CATS[i.categoria]||i.categoria} · ${[i.responsavel,i.telefone,i.email,i.documento].filter(Boolean).map(esc).join(' · ')}</div>
+        ${i.endereco_licenca?`<div class="mt" style="margin-top:4px">Licenciado em: ${esc(i.endereco_licenca)}</div>`:''}
+        ${i.foto_trailer?`<div class="mt" style="margin-top:4px"><a href="${esc(i.foto_trailer)}" target="_blank" rel="noopener" style="color:var(--roxo);font-weight:700">Ver foto do trailer</a></div>`:''}
         ${i.descricao?`<div class="mt" style="margin-top:4px">${esc(i.descricao)}</div>`:''}
         ${i.historia?`<div class="mt" style="margin-top:4px;font-style:italic;color:var(--roxo)">"${esc(i.historia)}"</div>`:''}
         <div class="mt" style="margin-top:4px;font-size:11px">Recebido em ${i.criado_em ? new Date(i.criado_em).toLocaleString('pt-BR') : '—'}</div>
@@ -1458,9 +1461,11 @@
     const i = INT26.find(x=>x.id===id); if(!i) return;
     if(!confirm(`Converter "${i.nome}" em participação na categoria ${INT26_CATS[i.categoria]||i.categoria}?`)) return;
     const dim = i.categoria==='cervejaria' ? 'xis' : i.categoria;
-    const tipo = i.categoria==='cervejaria' ? 'cervejaria' : null;
+    const tipo = i.categoria==='cervejaria' ? 'cervejaria' : (i.tipo_operacao||null);
     const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
-      i.qtd_xis_cardapio?('Xis no cardápio: '+i.qtd_xis_cardapio):null].filter(Boolean).join(' · ');
+      i.tempo_xis?('Trabalha com xis há: '+i.tempo_xis):null,
+      i.endereco_licenca?('Licenciado em: '+i.endereco_licenca):null,
+      i.foto_trailer?('Foto do trailer: '+i.foto_trailer):null].filter(Boolean).join(' · ');
     const r = await SB.from('festival_participacoes').insert({
       evento_id:EV.id, dimensao:dim, tipo_xis:tipo, nome:i.nome, documento:i.documento,
       responsavel:i.responsavel, telefone:i.telefone, email:i.email, obs:obsExtra||null, status:'interessado' });
