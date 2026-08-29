@@ -355,13 +355,13 @@
       const pub = capD.filter(c=>c.origem==='publico').reduce((s,c)=>s+Number(c.total||0),0);
       const nPub = capD.filter(c=>c.origem==='publico').reduce((s,c)=>s+Number(c.quantidade||0),0);
       const conv = (cnv.data && cnv.data[0]) ? Number(cnv.data[0].previsto||0) : 0;
-      const geral = tot + priv + pub + conv;
+      const geral = tot + priv + pub;
       document.getElementById('tbReceitas').innerHTML =
         `<tr><th>Fonte</th><th>Base de cálculo</th><th>Valor previsto</th></tr>` + rows
         + `<tr class="tot"><td colspan="2">Subtotal — venda de espaços (potencial)</td><td>${fmt(tot)}</td></tr>`
+        + (conv>0 ? `<tr><td style="padding-left:18px;color:var(--texto-suave)">↳ Composição da venda de espaços: subsídio via convênios</td><td style="color:var(--texto-suave)">Ex.: SEBRAE cobre 50% da taxa de operações selecionadas — valor já contido no subtotal acima (${fmt(conv)} convênio + ${fmt(tot-conv)} recurso próprio das operações)</td><td style="color:var(--texto-suave)">${fmt(conv)}</td></tr>` : '')
         + `<tr><td>Patrocínio privado</td><td>${nPriv} patrocinador(es) — cotas e espaços de ativação</td><td><b>${fmt(priv)}</b></td></tr>`
         + `<tr><td>Recurso público</td><td>${nPub} fonte(s) — emendas, convênios e dotações</td><td><b>${fmt(pub)}</b></td></tr>`
-        + `<tr><td>Receitas de convênios</td><td>Subsídio de taxas de espaço (ex.: SEBRAE)</td><td><b>${fmt(conv)}</b></td></tr>`
         + `<tr class="tot"><td colspan="2">Total de receitas previstas</td><td>${fmt(geral)}</td></tr>`;
       document.getElementById('tbReceitasNota').textContent =
         'Valores carregados em tempo real da plataforma de gestão em '+new Date().toLocaleString('pt-BR')+'. O detalhamento por empresa está na Ficha Técnica Orçamentária do módulo de gestão.';

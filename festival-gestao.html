@@ -1450,7 +1450,8 @@
       const priv = soma(patsR.filter(p=>(p.origem||'privado')==='privado'));
       const pub  = soma(patsR.filter(p=>p.origem==='publico'));
       const convPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
-      const recTotal = comerc(espOper)+comerc(espCom)+priv+pub+convPrev;
+      // Convênio é ORIGEM de pagamento das taxas (já dentro das vendas) — não soma no total
+      const recTotal = comerc(espOper)+comerc(espCom)+priv+pub;
       // Despesas por grupo (lançamentos a pagar)
       const pag = FIN.filter(l=>l.tipo==='pagar');
       const gAtr  = pag.filter(l=>l.atracao_id);
@@ -1468,8 +1469,8 @@
         + rL('2. Vendas de Espaços — Expositores Comerciais e Ativação de Marcas', comerc(espCom), `potencial ${fmtRS(soma(espCom))} · vendido ${fmtRS(vend(espCom))}`)
         + rL('3. Patrocínios Privados', priv, patsR.filter(p=>(p.origem||'privado')==='privado').length+' patrocinador(es)')
         + rL('4. Verbas Públicas', pub, patsR.filter(p=>p.origem==='publico').length+' fonte(s)')
-        + rL('5. Receitas de Convênios (previsto)', convPrev, CONV.map(c=>esc(c.nome)).join(', ')||'—')
-        + `<tr style="background:#efe7f4"><td style="font-weight:800">RECEITA TOTAL (comercializado + captado + convênios)</td><td style="text-align:right;font-weight:800;color:var(--verde)">${fmtRS(recTotal)}</td><td></td></tr>`
+        + (convPrev>0 ? `<tr><td style="padding-left:22px;color:var(--texto-suave)">↳ das vendas acima, subsidiado por Convênios (${CONV.map(c=>esc(c.nome)).join(', ')})</td><td style="text-align:right;color:var(--texto-suave)">${fmtRS(convPrev)}</td><td style="color:var(--texto-suave);font-size:12px">origem de pagamento — já incluído nas vendas, não soma no total</td></tr>` : '')
+        + `<tr style="background:#efe7f4"><td style="font-weight:800">RECEITA TOTAL (vendas comercializadas + captação)</td><td style="text-align:right;font-weight:800;color:var(--verde)">${fmtRS(recTotal)}</td><td></td></tr>`
         + rH('Despesas (lançamentos a pagar)')
         + rL('Atrações culturais (cachês)', tot(gAtr), 'pago '+fmtRS(pagoDe(gAtr)))
         + rL('Fornecedores (estrutura e serviços)', tot(gForn), 'pago '+fmtRS(pagoDe(gForn)))
