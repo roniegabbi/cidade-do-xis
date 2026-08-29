@@ -688,6 +688,10 @@
       <div class="field"><label>Link de vendas <span class="sub">(iFood, cardápio digital, delivery)</span></label><input id="edVenda" placeholder="https://..."></div>
       <div class="field"><label>Instagram <span class="sub">(@usuário ou link do perfil)</span></label><input id="edInstagram" placeholder="@meu_xis"></div>
       <div class="field">
+        <label>Festival do Xis <span class="sub">(marque as edições em que esta operação participou/participa)</span></label>
+        <div id="edFestChecks" style="display:flex;gap:16px;flex-wrap:wrap;font-size:14.5px;padding:6px 0">Carregando edições…</div>
+      </div>
+      <div class="field">
         <label>Localização no mapa <span class="sub">(Latitude e Longitude — copie do Google Maps)</span></label>
         <div class="grid2" style="gap:10px">
           <input id="edLat" placeholder="Latitude · -29.68680">
@@ -931,6 +935,7 @@
     if(e.foto){ p.src=e.foto; p.classList.remove('hide'); } else { p.src=''; p.classList.add('hide'); }
     document.getElementById('edFoto').value='';
     edFotoUrl=e.foto||'';
+    renderFestChecks(e.dbId||id);
     document.getElementById('edPosX').value=(e.foto_pos_x!=null?e.foto_pos_x:50);
     document.getElementById('edPosY').value=(e.foto_pos_y!=null?e.foto_pos_y:50);
     edSetModo(e.foto_modo==='inteira'?'inteira':'cobrir');
@@ -1299,6 +1304,54 @@
       await loadDestaques();
       toast('Destaque removido');
     }catch(e){ toast('❌ '+(e.message||'Falha ao remover')); }
+  }
+
+  // ===== PARTICIPAÇÕES NO FESTIVAL (por edição) =====
+  let FEST_EVENTOS = [];
+  async function loadFestEventos(){
+    if(!SB) return;
+    try{
+      const {data} = await SB.from('festival_eventos').select('id,nome,edicao,data_inicio').order('data_inicio');
+      if(Array.isArray(data)) FEST_EVENTOS = data;
+    }catch(e){}
+  }
+  async function renderFestChecks(estId){
+    const el = document.getElementById('edFestChecks');
+    if(!el) return;
+    if(!FEST_EVENTOS.length) await loadFestEventos();
+    if(!FEST_EVENTOS.length){ el.innerHTML = '<span class="sub">Sem acesso às edições do festival.</span>'; return; }
+    let parts = [];
+    try{
+      const {data} = await SB.from('festival_participacoes')
+        .select('id,evento_id,espaco_id,status').eq('estabelecimento_id', estId);
+      parts = data||[];
+    }catch(e){}
+    el.innerHTML = FEST_EVENTOS.map(ev=>{
+      const p = parts.find(x=>x.evento_id===ev.id && x.status!=='cancelado');
+      const rot = ev.edicao || ev.nome;
+      return `<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700">
+        <input type="checkbox" ${p?'checked':''} onchange="toggleFestPart('${estId}','${ev.id}',this.checked,'${p?p.id:''}',${p&&p.espaco_id?'true':'false'})">
+        ${esc(rot)}</label>`;
+    }).join('');
+  }
+  async function toggleFestPart(estId, eventoId, marcado, partId, temEspaco){
+    if(!sbUser){ toast('🔒 Faça login para editar'); renderFestChecks(estId); return; }
+    try{
+      if(marcado){
+        const r = await SB.from('festival_participacoes').insert({
+          evento_id:eventoId, dimensao:'xis', estabelecimento_id:estId, status:'confirmado' });
+        if(r.error) throw r.error;
+        toast('Participação registrada ✓');
+      } else {
+        if(temEspaco && !confirm('Esta participação tem espaço alocado no festival. Remover mesmo assim?')){
+          renderFestChecks(estId); return;
+        }
+        const r = await SB.from('festival_participacoes').delete().eq('id', partId);
+        if(r.error) throw r.error;
+        toast('Participação removida');
+      }
+    }catch(e){ toast('❌ '+(e.message||'Falha ao salvar')); }
+    renderFestChecks(estId);
   }
 
   // ===== COLETA DE ATUALIZAÇÕES CADASTRAIS (via link) =====
