@@ -210,7 +210,10 @@
         <select id="fIntCat" onchange="renderInt26()"><option value="">Todas as categorias</option><option value="xis">Operações de Xis</option><option value="cervejaria">Cervejarias</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros</option></select>
         <select id="fIntStatus" onchange="renderInt26()"><option value="">Todos os status</option><option value="novo">Novos</option><option value="contatado">Contatados</option><option value="convertido">Convertidos</option><option value="descartado">Descartados</option></select>
         <select id="fIntBoas" onchange="renderInt26()"><option value="">Boas práticas: todos</option><option value="sim">Com certificado</option><option value="nao">Sem certificado</option></select>
+        <button class="btn btn-p btn-sm" id="btnRelInt26" onclick="baixarRelInt26()">Relatório PDF</button>
+        <button class="btn btn-g btn-sm" onclick="csvInt26()">Exportar CSV</button>
       </div>
+      <div class="kpis" id="kpisInt26"></div>
       <div class="lista" id="listaInt26"></div>
     </section>
 
@@ -1418,15 +1421,23 @@
     try{ await navigator.clipboard.writeText(url); toast('Link de captação 2026 copiado'); }
     catch(e){ prompt('Copie o link:', url); }
   }
+  function int26Filtrada(){
+    const q=norm(g('fIntBusca').value), cat=g('fIntCat').value, st=g('fIntStatus').value, bp=g('fIntBoas').value;
+    return INT26.filter(i=>
+      (!q || norm([i.nome,i.responsavel,i.telefone,i.email,i.documento].join(' ')).includes(q))
+      && (!cat || i.categoria===cat) && (!st || i.status===st)
+      && (!bp || (bp==='sim')===(i.boas_praticas===true)));
+  }
   function renderInt26(){
     const novos = INT26.filter(i=>i.status==='novo').length;
     if(g('bdgInt26')){ g('bdgInt26').textContent = novos; g('bdgInt26').classList.toggle('hide', !novos); }
     const el = g('listaInt26'); if(!el) return;
-    const q=norm(g('fIntBusca').value), cat=g('fIntCat').value, st=g('fIntStatus').value, bp=g('fIntBoas').value;
-    const lista = INT26.filter(i=>
-      (!q || norm([i.nome,i.responsavel,i.telefone,i.email,i.documento].join(' ')).includes(q))
-      && (!cat || i.categoria===cat) && (!st || i.status===st)
-      && (!bp || (bp==='sim')===(i.boas_praticas===true)));
+    const lista = int26Filtrada();
+    if(g('kpisInt26')) g('kpisInt26').innerHTML = `
+      <div class="kpi"><div class="n">${INT26.length}</div><div class="l">Manifestações</div></div>
+      <div class="kpi"><div class="n">${novos}</div><div class="l">Novos</div></div>
+      <div class="kpi"><div class="n">${INT26.filter(i=>i.status==='convertido').length}</div><div class="l">Convertidos</div></div>
+      <div class="kpi"><div class="n">${INT26.filter(i=>i.boas_praticas===true).length}</div><div class="l">Com boas práticas</div></div>`;
     const stPill = s => s==='convertido'?'<span class="pill ok">Convertido</span>':s==='contatado'?'<span class="pill info">Contatado</span>':s==='descartado'?'<span class="pill bad">Descartado</span>':'<span class="pill warn">Novo</span>';
     el.innerHTML = lista.length ? lista.map(i=>`<div class="row" style="align-items:flex-start">
       <div style="min-width:0;flex:1">
@@ -1452,6 +1463,71 @@
       </div></div>`).join('')
       : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma manifestação ainda. Copie o link acima e envie aos interessados.</div>';
   }
+  // ===== RELATÓRIO DE INTERESSADOS (PDF respeitando os filtros) =====
+  const INT26_ST = {novo:'Novo', contatado:'Contatado', convertido:'Convertido', descartado:'Descartado'};
+  async function baixarRelInt26(){
+    if(typeof html2pdf === 'undefined'){ toast('Gerador de PDF ainda carregando — tente de novo'); return; }
+    const lista = int26Filtrada();
+    if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
+    const btn = g('btnRelInt26'); btn.disabled = true; btn.textContent = 'Gerando…';
+    const doc = document.createElement('div');
+    doc.style.cssText = 'width:277mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
+    doc.innerHTML = `
+      <div style="border-bottom:3px solid #e91e8c;padding-bottom:8px;margin-bottom:10px">
+        <div style="font-size:19px;font-weight:800;color:#4b1a60">Relatório de Interessados — Festival do Xis 2026</div>
+        <div style="font-size:11px;color:#8a7f95">${EV?esc(EV.nome):''} · 13 a 15 de novembro · Largo da Gare ·
+          gerado em ${new Date().toLocaleString('pt-BR')} · ${lista.length} interessado(s)</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${['Nome','Categoria','Tipo','Responsável','Contato','Boas práticas','Tempo c/ xis','Licenciamento','Status','Recebido em']
+          .map(h=>`<th style="background:#662382;color:#fff;text-align:left;padding:5px 7px;font-size:9px;text-transform:uppercase">${h}</th>`).join('')}</tr>
+        ${lista.map(i=>`<tr>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5"><b>${esc(i.nome)}</b>${i.historia?`<div style="font-style:italic;color:#8a7f95;font-size:9px">"${esc(i.historia)}"</div>`:''}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${INT26_CATS[i.categoria]||i.categoria}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.tipo_operacao?txLabel(i.tipo_operacao):'—'}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.responsavel||'—')}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc([i.telefone,i.email].filter(Boolean).join(' · ')||'—')}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.boas_praticas===true?'Sim':i.boas_praticas===false?'Não':'—'}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.tempo_xis||'—')}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.endereco_licenca||'—')}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${INT26_ST[i.status]||i.status}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.criado_em?new Date(i.criado_em).toLocaleDateString('pt-BR'):'—'}</td>
+        </tr>`).join('')}
+      </table>
+      <div style="margin-top:8px;font-size:9px;color:#8a7f95">Programa Xis · Prefeitura Municipal de Santa Maria · cidadedoxis.com</div>`;
+    document.body.appendChild(doc);
+    try{
+      await html2pdf().set({
+        margin: [8,8,8,8],
+        filename: 'Relatorio-Interessados-Festival-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, backgroundColor:'#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'landscape' },
+        pagebreak: { mode: ['css','legacy'] }
+      }).from(doc).save();
+      toast('Relatório PDF baixado');
+    }catch(e){ toast('Falha ao gerar o PDF'); }
+    doc.remove();
+    btn.disabled = false; btn.textContent = 'Relatório PDF';
+  }
+  function csvInt26(){
+    const lista = int26Filtrada();
+    if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
+    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Boas praticas','Tempo com xis','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
+    const linha = i => [i.nome, INT26_CATS[i.categoria]||i.categoria, i.tipo_operacao?txLabel(i.tipo_operacao):'',
+      i.responsavel, i.telefone, i.email, i.documento,
+      i.boas_praticas===true?'Sim':i.boas_praticas===false?'Nao':'', i.tempo_xis, i.historia,
+      i.endereco_licenca, i.foto_trailer, i.descricao, INT26_ST[i.status]||i.status,
+      i.criado_em?new Date(i.criado_em).toLocaleString('pt-BR'):'']
+      .map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(';');
+    const csv = '﻿'+cab.join(';')+'\n'+lista.map(linha).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+    a.download = 'Interessados-Festival-2026.csv';
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('CSV exportado');
+  }
+
   async function mudarStatusInt26(id, st){
     const r = await SB.from('festival_interessados').update({status:st}).eq('id',id);
     if(r.error){ toast('Erro: '+r.error.message); return; }
