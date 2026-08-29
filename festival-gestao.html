@@ -153,6 +153,7 @@
 <div class="layout hide" id="app">
   <nav class="side">
     <a class="on" data-p="geral" onclick="tab('geral')">Visão geral</a>
+    <a data-p="int26" onclick="tab('int26')">Interessados 2026 <span class="bdg hide" id="bdgInt26">0</span></a>
     <a data-p="mapa" onclick="tab('mapa')">Mapa de espaços</a>
     <a data-p="espacos" onclick="tab('espacos')">Espaços</a>
     <a data-p="xis" onclick="tab('xis')">Operações de Xis</a>
@@ -165,6 +166,7 @@
     <a data-p="orc" onclick="tab('orc')">Orçamento</a>
     <a data-p="fin" onclick="tab('fin')">Financeiro <span class="bdg hide" id="bdgVenc">0</span></a>
     <a data-p="prest" onclick="tab('prest')">Prestação de Contas</a>
+    <a data-p="reled" onclick="tab('reled');renderRelEd()">Participantes por Edição</a>
     <a onclick="window.open('livro-festival-do-xis.html','_blank')" style="border-top:1px solid var(--borda);margin-top:8px;padding-top:12px">Livro do Festival (PDF)</a>
   </nav>
 
@@ -189,6 +191,27 @@
       </div>
       <div class="card"><h3>Vencimentos</h3><div id="alertas"></div></div>
       <div class="card"><h3>Ocupação por dimensão</h3><div id="ocupacaoDim"></div></div>
+    </section>
+
+    <section class="pane hide" id="p-int26">
+      <div class="h">Interessados — Edição 2026</div>
+      <div class="sub">Manifestações recebidas pelo link "Quero participar" (13, 14 e 15 de novembro · Largo da Gare). Área separada dos cadastros do festival: nada entra nas categorias sem a sua conversão.</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <b style="font-size:14px">Link de captação:</b>
+          <button class="btn btn-p btn-sm" onclick="copiarInt26('')">Copiar link geral</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('xis')">Só Operações de Xis</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('cervejaria')">Só Cervejarias</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('criativo')">Só Mercado Criativo</button>
+        </div>
+      </div>
+      <div class="filtros">
+        <input id="fIntBusca" placeholder="Buscar por nome, responsável, contato…" oninput="renderInt26()">
+        <select id="fIntCat" onchange="renderInt26()"><option value="">Todas as categorias</option><option value="xis">Operações de Xis</option><option value="cervejaria">Cervejarias</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros</option></select>
+        <select id="fIntStatus" onchange="renderInt26()"><option value="">Todos os status</option><option value="novo">Novos</option><option value="contatado">Contatados</option><option value="convertido">Convertidos</option><option value="descartado">Descartados</option></select>
+        <select id="fIntBoas" onchange="renderInt26()"><option value="">Boas práticas: todos</option><option value="sim">Com certificado</option><option value="nao">Sem certificado</option></select>
+      </div>
+      <div class="lista" id="listaInt26"></div>
     </section>
 
     <section class="pane hide" id="p-mapa">
@@ -425,6 +448,19 @@
       <div class="card"><h3>Pagamentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestPag"></table></div></div>
     </section>
 
+    <section class="pane hide" id="p-reled">
+      <div class="h">Participantes por edição</div>
+      <div class="sub">Relatório histórico do Festival — escolha a edição e veja quem participou.</div>
+      <div class="filtros no-print">
+        <select id="relEdSel" onchange="renderRelEd()"></select>
+        <select id="relEdDim" onchange="renderRelEd()"><option value="">Todas as categorias</option><option value="xis">Operações de Xis</option><option value="criativo">Mercado Criativo</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros</option></select>
+        <input id="relEdBusca" placeholder="Buscar participante…" oninput="renderRelEd()">
+        <button class="btn btn-g btn-sm" onclick="window.print()">Imprimir / PDF</button>
+      </div>
+      <div class="kpis" id="relEdKpis"></div>
+      <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabRelEd"></table></div></div>
+    </section>
+
   </main>
 </div>
 
@@ -525,6 +561,8 @@
     const ars = await SB.from('festival_areas').select('*').eq('evento_id',EV.id).order('ordem').order('nome');
     ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
     PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[]; AREAS = ars.data||[];
+    RELED_CACHE = {};
+    loadInt26();
     renderTudo();
   }
   function renderTudo(){
@@ -1362,6 +1400,118 @@
       + (rec.length ? linhas(rec)+`<tr><td colspan="3"><b>Total recebido</b></td><td><b>${fmtRS(tot(rec))}</b></td></tr>` : '<tr><td colspan="4" style="color:var(--texto-suave)">Nenhum recebimento no período.</td></tr>');
     g('tabPrestPag').innerHTML = `<tr><th>Data</th><th>Descrição</th><th>Favorecido</th><th>Valor</th></tr>`
       + (pag.length ? linhas(pag)+`<tr><td colspan="3"><b>Total pago</b></td><td><b>${fmtRS(tot(pag))}</b></td></tr>` : '<tr><td colspan="4" style="color:var(--texto-suave)">Nenhum pagamento no período.</td></tr>');
+  }
+
+  // ===== INTERESSADOS 2026 (área separada) =====
+  let INT26 = [];
+  const INT26_CATS = {xis:'Operações de Xis', cervejaria:'Cervejaria', criativo:'Mercado Criativo', ferromodelismo:'Ferromodelismo', outros:'Outros'};
+  async function loadInt26(){
+    if(!SB || !EV) return;
+    try{
+      const {data,error} = await SB.from('festival_interessados').select('*').eq('evento_id',EV.id).order('criado_em',{ascending:false});
+      if(!error && Array.isArray(data)) INT26 = data;
+    }catch(e){}
+    renderInt26();
+  }
+  async function copiarInt26(cat){
+    const url = new URL('interesse-festival-2026.html'+(cat?'?c='+cat:''), location.href).href;
+    try{ await navigator.clipboard.writeText(url); toast('Link de captação 2026 copiado'); }
+    catch(e){ prompt('Copie o link:', url); }
+  }
+  function renderInt26(){
+    const novos = INT26.filter(i=>i.status==='novo').length;
+    if(g('bdgInt26')){ g('bdgInt26').textContent = novos; g('bdgInt26').classList.toggle('hide', !novos); }
+    const el = g('listaInt26'); if(!el) return;
+    const q=norm(g('fIntBusca').value), cat=g('fIntCat').value, st=g('fIntStatus').value, bp=g('fIntBoas').value;
+    const lista = INT26.filter(i=>
+      (!q || norm([i.nome,i.responsavel,i.telefone,i.email,i.documento].join(' ')).includes(q))
+      && (!cat || i.categoria===cat) && (!st || i.status===st)
+      && (!bp || (bp==='sim')===(i.boas_praticas===true)));
+    const stPill = s => s==='convertido'?'<span class="pill ok">Convertido</span>':s==='contatado'?'<span class="pill info">Contatado</span>':s==='descartado'?'<span class="pill bad">Descartado</span>':'<span class="pill warn">Novo</span>';
+    el.innerHTML = lista.length ? lista.map(i=>`<div class="row" style="align-items:flex-start">
+      <div style="min-width:0;flex:1">
+        <div class="nm">${esc(i.nome)} ${stPill(i.status)}
+          <span class="pill ${i.boas_praticas?'ok':'bad'}">${i.boas_praticas?'Boas práticas: sim':'Boas práticas: não'}</span>
+          ${i.qtd_xis_cardapio?`<span class="pill info">${esc(i.qtd_xis_cardapio)} xis no cardápio</span>`:''}</div>
+        <div class="mt">${INT26_CATS[i.categoria]||i.categoria} · ${[i.responsavel,i.telefone,i.email,i.documento].filter(Boolean).map(esc).join(' · ')}</div>
+        ${i.descricao?`<div class="mt" style="margin-top:4px">${esc(i.descricao)}</div>`:''}
+        ${i.historia?`<div class="mt" style="margin-top:4px;font-style:italic;color:var(--roxo)">"${esc(i.historia)}"</div>`:''}
+        <div class="mt" style="margin-top:4px;font-size:11px">Recebido em ${i.criado_em ? new Date(i.criado_em).toLocaleString('pt-BR') : '—'}</div>
+      </div>
+      <div class="acts" style="flex-direction:column;align-items:flex-end">
+        <select onchange="mudarStatusInt26('${i.id}',this.value)">
+          <option value="novo"${i.status==='novo'?' selected':''}>Novo</option>
+          <option value="contatado"${i.status==='contatado'?' selected':''}>Contatado</option>
+          <option value="descartado"${i.status==='descartado'?' selected':''}>Descartado</option>
+        </select>
+        ${i.status!=='convertido'?`<button class="btn btn-v btn-sm" onclick="converterInt26('${i.id}')">Converter em participação</button>`:''}
+        <button class="btn btn-r btn-sm" onclick="excluirInt26('${i.id}')">Excluir</button>
+      </div></div>`).join('')
+      : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma manifestação ainda. Copie o link acima e envie aos interessados.</div>';
+  }
+  async function mudarStatusInt26(id, st){
+    const r = await SB.from('festival_interessados').update({status:st}).eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Status atualizado'); loadInt26();
+  }
+  async function converterInt26(id){
+    const i = INT26.find(x=>x.id===id); if(!i) return;
+    if(!confirm(`Converter "${i.nome}" em participação na categoria ${INT26_CATS[i.categoria]||i.categoria}?`)) return;
+    const dim = i.categoria==='cervejaria' ? 'xis' : i.categoria;
+    const tipo = i.categoria==='cervejaria' ? 'cervejaria' : null;
+    const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
+      i.qtd_xis_cardapio?('Xis no cardápio: '+i.qtd_xis_cardapio):null].filter(Boolean).join(' · ');
+    const r = await SB.from('festival_participacoes').insert({
+      evento_id:EV.id, dimensao:dim, tipo_xis:tipo, nome:i.nome, documento:i.documento,
+      responsavel:i.responsavel, telefone:i.telefone, email:i.email, obs:obsExtra||null, status:'interessado' });
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    await SB.from('festival_interessados').update({status:'convertido'}).eq('id',id);
+    toast(`"${i.nome}" agora está na aba ${INT26_CATS[i.categoria]||i.categoria} como Interessado`);
+    loadAll(); loadInt26();
+  }
+  async function excluirInt26(id){
+    if(!confirm('Excluir esta manifestação?')) return;
+    const r = await SB.from('festival_interessados').delete().eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Manifestação excluída'); loadInt26();
+  }
+
+  // ===== RELATÓRIO DE PARTICIPANTES POR EDIÇÃO =====
+  let RELED_CACHE = {};
+  async function renderRelEd(){
+    const sel = g('relEdSel');
+    if(!sel) return;
+    if(!sel.options.length && EVENTOS.length){
+      sel.innerHTML = EVENTOS.map(e=>`<option value="${e.id}"${EV&&e.id===EV.id?' selected':''}>${esc(e.nome)}${e.edicao?' ('+esc(e.edicao)+')':''}</option>`).join('');
+    }
+    const evId = sel.value || (EV && EV.id);
+    if(!evId) return;
+    if(!RELED_CACHE[evId]){
+      const {data,error} = await SB.from('festival_participacoes')
+        .select('*, estabelecimentos(nome,bairro,categoria), festival_espacos(codigo)')
+        .eq('evento_id', evId).neq('status','cancelado').order('dimensao');
+      if(error){ toast('Erro: '+error.message); return; }
+      RELED_CACHE[evId] = data||[];
+    }
+    const todos = RELED_CACHE[evId];
+    const q = norm(g('relEdBusca').value), dim = g('relEdDim').value;
+    const lista = todos.filter(p=> (!dim || p.dimensao===dim) && (!q || norm(nomePart(p)).includes(q)))
+      .sort((a,b)=>nomePart(a).localeCompare(nomePart(b),'pt-BR'));
+    const porDim = d => todos.filter(p=>p.dimensao===d).length;
+    g('relEdKpis').innerHTML = `
+      <div class="kpi"><div class="n">${todos.length}</div><div class="l">Participantes</div></div>
+      <div class="kpi"><div class="n">${porDim('xis')}</div><div class="l">Operações de Xis</div></div>
+      <div class="kpi"><div class="n">${porDim('criativo')}</div><div class="l">Mercado Criativo</div></div>
+      <div class="kpi"><div class="n">${porDim('ferromodelismo')+porDim('outros')}</div><div class="l">Ferromodelismo + Outros</div></div>`;
+    g('tabRelEd').innerHTML = `<tr><th>Participante</th><th>Categoria</th><th>Tipo</th><th>Espaço</th><th>Status</th><th>Contato</th></tr>`
+      + (lista.length ? lista.map(p=>`<tr>
+          <td><b>${esc(nomePart(p))}</b></td>
+          <td>${DIMS[p.dimensao]||p.dimensao}</td>
+          <td>${p.tipo_xis?txLabel(p.tipo_xis):'—'}</td>
+          <td>${p.festival_espacos?esc(p.festival_espacos.codigo):'—'}</td>
+          <td>${p.status==='confirmado'?'Confirmado':'Interessado'}</td>
+          <td>${esc([p.telefone,p.email].filter(Boolean).join(' · ')||'—')}</td></tr>`).join('')
+        : '<tr><td colspan="6" style="color:var(--texto-suave)">Nenhum participante nesta edição/filtro.</td></tr>');
   }
 
   // ===== LINKS DE INSCRIÇÃO =====
