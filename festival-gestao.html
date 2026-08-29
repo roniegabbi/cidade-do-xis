@@ -410,6 +410,16 @@
       </div>
       <div class="card"><h3>Venda de espaços</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcEsp"></table></div></div>
       <div class="card"><h3>Captação de patrocínios</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcPat"></table></div></div>
+      <div class="card">
+        <h3>Receitas de Convênios</h3>
+        <div class="sub" style="margin-bottom:8px">Convênios que subsidiam taxas de espaço (ex.: SEBRAE cobre 50% de algumas operações). Defina o subsídio de cada participação na aba da categoria, pelo botão "Subsídio".</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <input id="cvNome" placeholder="Nome do convênio (Ex.: SEBRAE)" style="flex:1;min-width:180px;padding:9px 11px;border:1.5px solid var(--borda);border-radius:9px;font-size:14px">
+          <input id="cvVal" type="number" step="0.01" placeholder="Valor previsto (R$)" style="width:170px;padding:9px 11px;border:1.5px solid var(--borda);border-radius:9px;font-size:14px">
+          <button class="btn btn-p btn-sm" onclick="salvarConvenio()">Adicionar convênio</button>
+        </div>
+        <div style="overflow-x:auto"><table class="fin" id="tabConvenios"></table></div>
+      </div>
       <div class="card"><h3>Metas × contratado × realizado</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcMetas"></table></div></div>
     </section>
 
@@ -425,7 +435,7 @@
           <div class="field"><label>Valor (R$) *</label><input id="nValor" type="number" step="0.01"></div>
           <div class="field"><label>Vencimento</label><input id="nVenc" type="date"></div>
           <div class="field"><label>Vincular a</label>
-            <select id="nFonteTipo" onchange="finFonteOpts()"><option value="">— nada —</option><option value="fornecedor">Fornecedor</option><option value="patrocinador">Patrocinador</option><option value="participacao">Participação/Expositor</option><option value="atracao">Atração</option></select></div>
+            <select id="nFonteTipo" onchange="finFonteOpts()"><option value="">— nada —</option><option value="fornecedor">Fornecedor</option><option value="patrocinador">Patrocinador</option><option value="convenio">Convênio</option><option value="participacao">Participação/Expositor</option><option value="atracao">Atração</option></select></div>
           <div class="field"><label>Origem</label><select id="nFonteId"><option value="">—</option></select></div>
         </div>
         <button class="btn btn-p" onclick="salvarLancamento()">Adicionar lançamento</button>
@@ -497,7 +507,8 @@
   const g = id => document.getElementById(id);
 
   let USER=null, EVENTOS=[], EV=null;
-  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[], ORC=[], AREAS=[];
+  let ESPACOS=[], PARTS=[], ATRACOES=[], PATROC=[], FORNEC=[], FIN=[], ORC=[], AREAS=[], CONV=[];
+  const convNome = id => { const c = CONV.find(x=>x.id===id); return c ? c.nome : 'Convênio'; };
   const areaNome = id => { const a = AREAS.find(x=>x.id===id); return a ? a.nome : 'Sem categoria'; };
   const areaEhXis = id => /xis/i.test(areaNome(id));
   // Cor da categoria: nomes conhecidos têm cor fixa; demais recebem cor da paleta
@@ -562,6 +573,8 @@
     ]);
     const orc = await SB.from('festival_orcamento').select('*').eq('evento_id',EV.id).order('tipo').order('categoria');
     const ars = await SB.from('festival_areas').select('*').eq('evento_id',EV.id).order('ordem').order('nome');
+    const cnv = await SB.from('festival_convenios').select('*').eq('evento_id',EV.id).order('nome');
+    CONV = cnv.data||[];
     ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
     PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[]; AREAS = ars.data||[];
     RELED_CACHE = {};
@@ -571,7 +584,7 @@
   function renderTudo(){
     renderAreas(); renderPrecos(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
-    renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); finFonteOpts();
+    renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); renderConvenios(); finFonteOpts();
     preencherSelEspacos();
   }
 
@@ -995,8 +1008,9 @@
     const espLabel = p.festival_espacos ? `Espaço ${esc(p.festival_espacos.codigo)}` : 'Sem espaço';
     const det = p.estabelecimentos ? [p.estabelecimentos.categoria,p.estabelecimentos.bairro].filter(Boolean).join(' · ') : [p.documento,p.responsavel,p.telefone].filter(Boolean).join(' · ');
     return `<div class="row">
-      <div><div class="nm">${esc(nomePart(p))} ${stPill}${dim==='xis'?' '+txBadge(p.tipo_xis):''}${p.isento?' <span class="pill info">Isento</span>':''}</div>
-        <div class="mt">${esc(det)} · ${espLabel} · taxa ${fmtRS(p.taxa)}</div></div>
+      <div><div class="nm">${esc(nomePart(p))} ${stPill}${dim==='xis'?' '+txBadge(p.tipo_xis):''}${p.isento?' <span class="pill info">Isento</span>':''}
+        ${p.valor_subsidio>0?`<span class="pill info">${esc(convNome(p.convenio_id))} ${fmtRS(p.valor_subsidio)}</span>`:''}</div>
+        <div class="mt">${esc(det)} · ${espLabel} · taxa ${fmtRS(p.taxa)}${p.valor_subsidio>0?` (próprio ${fmtRS(Number(p.taxa||0)-Number(p.valor_subsidio||0))} + subsídio ${fmtRS(p.valor_subsidio)})`:''}</div></div>
       <div class="acts">
         ${dim==='xis'?`<select onchange="defTipoXis('${p.id}',this.value)">
           <option value=""${!p.tipo_xis?' selected':''}>Tipo…</option>
@@ -1007,7 +1021,8 @@
         ${p.status!=='confirmado'?`<button class="btn btn-v btn-sm" onclick="mudarStatusPart('${p.id}','confirmado')">Confirmar</button>`:''}
         ${p.status!=='cancelado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','cancelado')">Cancelar</button>`:''}
         ${dim!=='xis'?`<button class="btn btn-g btn-sm" onclick="editarExpositor('${p.id}')">Editar</button>`:''}
-        <button class="btn btn-g btn-sm" onclick="gerarCobranca('${p.id}')" title="Cria conta a receber com a taxa">Cobrança</button>
+        <button class="btn btn-g btn-sm" onclick="definirSubsidio('${p.id}')" title="Composição do pagamento: parte subsidiada por convênio + recurso próprio">Subsídio</button>
+        <button class="btn btn-g btn-sm" onclick="gerarCobranca('${p.id}')" title="Cria conta(s) a receber com a taxa">Cobrança</button>
         <button class="btn btn-r btn-sm" onclick="excluirPart('${p.id}')">Excluir</button>
       </div></div>`;
   }
@@ -1037,11 +1052,25 @@
     if(FIN.some(l=>l.participacao_id===id)){ if(!confirm('Já existe lançamento para esta participação. Criar outro?')) return; }
     const venc = prompt('Vencimento (AAAA-MM-DD):', hoje());
     if(venc===null) return;
-    const r = await SB.from('festival_financeiro').insert({
-      evento_id:EV.id, tipo:'receber', descricao:'Taxa de espaço — '+nomePart(p),
-      valor:p.taxa, vencimento:venc||null, participacao_id:id, espaco_id:p.espaco_id||null });
+    const sub = Number(p.valor_subsidio||0);
+    const proprio = Number(p.taxa||0) - sub;
+    const lancs = [];
+    if(sub > 0){
+      // Composição: parte do convênio + parte recurso próprio da operação
+      if(proprio > 0) lancs.push({ evento_id:EV.id, tipo:'receber',
+        descricao:'Taxa de espaço (recurso próprio) — '+nomePart(p),
+        valor:proprio, vencimento:venc||null, participacao_id:id, espaco_id:p.espaco_id||null });
+      lancs.push({ evento_id:EV.id, tipo:'receber',
+        descricao:'Taxa de espaço (subsídio '+convNome(p.convenio_id)+') — '+nomePart(p),
+        valor:sub, vencimento:venc||null, participacao_id:id, espaco_id:p.espaco_id||null, convenio_id:p.convenio_id });
+    } else {
+      lancs.push({ evento_id:EV.id, tipo:'receber', descricao:'Taxa de espaço — '+nomePart(p),
+        valor:p.taxa, vencimento:venc||null, participacao_id:id, espaco_id:p.espaco_id||null });
+    }
+    const r = await SB.from('festival_financeiro').insert(lancs);
     if(r.error){ toast('Erro: '+r.error.message); return; }
-    toast('Conta a receber criada'); loadAll();
+    toast(sub>0 ? `Cobrança dividida: próprio ${fmtRS(proprio)} + ${convNome(p.convenio_id)} ${fmtRS(sub)}` : 'Conta a receber criada');
+    loadAll();
   }
 
   // ===== EXPOSITORES =====
@@ -1262,15 +1291,30 @@
     const vendido = soma(ESPACOS.filter(e=>stE(e)==='ocupado'));
     const reservado = soma(ESPACOS.filter(e=>stE(e)==='reservado'));
     const recEspaco = FIN.filter(l=>l.tipo==='receber'&&l.realizado&&l.participacao_id).reduce((s,l)=>s+Number(l.valor||0),0);
-    // Detalhamento por categoria de espaço — cada área conectada ao orçamento
+    // Grupos e SubGrupos — estrutura fiel ao mapa de espaços
+    const linhaVals = (rot, lts, sub) => {
+      const pot = soma(lts), ven = soma(lts.filter(e=>stE(e)==='ocupado')), res = soma(lts.filter(e=>stE(e)==='reservado'));
+      return `<tr${sub?'':' style="background:var(--fundo)"'}>
+        <td style="${sub?'padding-left:26px':'font-weight:800;color:var(--roxo-esc)'}">${sub?'— ':''}${esc(rot)}</td>
+        <td${sub?'':' style="font-weight:800"'}>${lts.length}</td>
+        <td${sub?'':' style="font-weight:800"'}>${fmtRS(pot)}</td>
+        <td style="color:var(--verde)${sub?'':';font-weight:800'}">${fmtRS(ven)}</td>
+        <td${sub?'':' style="font-weight:800"'}>${fmtRS(res)}</td>
+        <td${sub?'':' style="font-weight:800"'}>${fmtRS(pot-ven-res)}</td></tr>`;
+    };
     const linhasArea = AREAS.map(a=>{
       const lts = ESPACOS.filter(e=>e.area_id===a.id);
       if(!lts.length) return '';
-      const pot = soma(lts), ven = soma(lts.filter(e=>stE(e)==='ocupado')), res = soma(lts.filter(e=>stE(e)==='reservado'));
-      return `<tr><td>${esc(a.nome)}</td><td>${lts.length}</td><td>${fmtRS(pot)}</td>
-        <td style="color:var(--verde)"><b>${fmtRS(ven)}</b></td><td>${fmtRS(res)}</td><td>${fmtRS(pot-ven-res)}</td></tr>`;
+      const subs = [['trailer','Trailer'],['estacao_fixa','Estação fixa'],['cervejaria','Cervejaria'],[null,'Sem tipo definido']]
+        .map(([t,rot])=>({t, rot, lts: lts.filter(e=>(e.tipo_xis||null)===t)}))
+        .filter(s=>s.lts.length);
+      // Grupo com SubGrupos (quando há tipos, ex.: Operações de Xis) ou grupo simples
+      if(subs.length>1 || (subs.length===1 && subs[0].t!==null && lts.some(e=>e.tipo_xis))){
+        return linhaVals(a.nome, lts, false) + subs.map(s=>linhaVals(s.rot, s.lts, true)).join('');
+      }
+      return linhaVals(a.nome, lts, false);
     }).join('');
-    g('tabOrcEsp').innerHTML = `<tr><th>Categoria</th><th>Espaços</th><th>Potencial</th><th>Vendido</th><th>Reservado</th><th>Disponível</th></tr>`
+    g('tabOrcEsp').innerHTML = `<tr><th>Grupo / SubGrupo</th><th>Espaços</th><th>Potencial</th><th>Vendido</th><th>Reservado</th><th>Disponível</th></tr>`
       + linhasArea
       + `<tr class="tot" style="font-weight:800"><td>Total</td><td>${ESPACOS.length}</td><td>${fmtRS(potencial)}</td>
           <td style="color:var(--verde)">${fmtRS(vendido)}</td><td>${fmtRS(reservado)}</td><td>${fmtRS(potencial-vendido-reservado)}</td></tr>`
@@ -1311,11 +1355,82 @@
         : '<tr><td colspan="7" style="color:var(--texto-suave)">Nenhuma meta cadastrada. Dica: crie metas como "Venda de espaços", "Patrocínio privado" e "Patrocínio público" — essas três se comparam sozinhas com os cadastros.</td></tr>');
   }
 
+  // ===== CONVÊNIOS (Receitas de Convênios) =====
+  async function salvarConvenio(){
+    const nome = g('cvNome').value.trim(), val = parseFloat(g('cvVal').value)||0;
+    if(!nome){ toast('Informe o nome do convênio'); return; }
+    const r = await SB.from('festival_convenios').insert({ evento_id:EV.id, nome, valor_previsto:val });
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    g('cvNome').value=''; g('cvVal').value='';
+    toast('Convênio cadastrado'); loadAll();
+  }
+  async function excluirConvenio(id){
+    if(PARTS.some(p=>p.convenio_id===id)){ toast('Há participações com subsídio deste convênio — remova antes'); return; }
+    if(!confirm('Excluir o convênio "'+convNome(id)+'"?')) return;
+    const r = await SB.from('festival_convenios').delete().eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Convênio excluído'); loadAll();
+  }
+  function renderConvenios(){
+    const el = g('tabConvenios'); if(!el) return;
+    const comprometido = c => PARTS.filter(p=>p.convenio_id===c.id && p.status!=='cancelado')
+      .reduce((s,p)=>s+Number(p.valor_subsidio||0),0);
+    const recebido = c => FIN.filter(l=>l.convenio_id===c.id && l.tipo==='receber' && l.realizado)
+      .reduce((s,l)=>s+Number(l.valor||0),0);
+    el.innerHTML = `<tr><th>Convênio</th><th>Previsto</th><th>Comprometido (subsídios)</th><th>Recebido</th><th>Saldo do previsto</th><th></th></tr>`
+      + (CONV.length ? CONV.map(c=>{
+          const comp = comprometido(c), rec = recebido(c);
+          return `<tr><td><b>${esc(c.nome)}</b></td><td>${fmtRS(c.valor_previsto)}</td><td>${fmtRS(comp)}</td>
+            <td style="color:var(--verde)"><b>${fmtRS(rec)}</b></td><td>${fmtRS((c.valor_previsto||0)-comp)}</td>
+            <td><button class="btn btn-r btn-sm" onclick="excluirConvenio('${c.id}')">Excluir</button></td></tr>`;
+        }).join('')
+        : '<tr><td colspan="6" style="color:var(--texto-suave)">Nenhum convênio cadastrado.</td></tr>');
+  }
+  // Composição de pagamento da participação: parte subsidiada + parte recurso próprio
+  async function definirSubsidio(partId){
+    const p = PARTS.find(x=>x.id===partId); if(!p) return;
+    if(!CONV.length){ toast('Cadastre um convênio primeiro (Orçamento → Receitas de Convênios)'); return; }
+    let conv = CONV[0];
+    if(CONV.length>1){
+      const esc_ = CONV.map((c,i)=>`${i+1} = ${c.nome}`).join(' · ');
+      const n = prompt('Qual convênio? Digite o número:\n'+esc_+'\n(0 = remover subsídio)');
+      if(n===null) return;
+      if(n.trim()==='0'){ return removerSubsidio(partId); }
+      conv = CONV[parseInt(n,10)-1];
+      if(!conv){ toast('Opção inválida'); return; }
+    } else if(p.convenio_id){
+      const acao = prompt(`Subsídio atual: ${convNome(p.convenio_id)} ${fmtRS(p.valor_subsidio)}.\nDigite o novo valor subsidiado (0 = remover):`, p.valor_subsidio);
+      if(acao===null) return;
+      const v0 = parseFloat(String(acao).replace(',','.'));
+      if(!(v0>0)) return removerSubsidio(partId);
+      return gravarSubsidio(partId, conv.id, v0, p);
+    }
+    const sugestao = (Number(p.taxa||0)/2).toFixed(2);
+    const v = prompt(`Taxa do espaço: ${fmtRS(p.taxa)}.\nQuanto será subsidiado por ${conv.nome}? (sugestão: 50%)`, sugestao);
+    if(v===null) return;
+    const val = parseFloat(String(v).replace(',','.'));
+    if(!(val>0)){ toast('Valor inválido'); return; }
+    gravarSubsidio(partId, conv.id, val, p);
+  }
+  async function gravarSubsidio(partId, convId, val, p){
+    if(val > Number(p.taxa||0)){ toast('O subsídio não pode ser maior que a taxa do espaço'); return; }
+    const r = await SB.from('festival_participacoes').update({convenio_id:convId, valor_subsidio:val}).eq('id',partId);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast(`Subsídio de ${fmtRS(val)} (${convNome(convId)}) — recurso próprio: ${fmtRS(Number(p.taxa||0)-val)}`);
+    loadAll();
+  }
+  async function removerSubsidio(partId){
+    const r = await SB.from('festival_participacoes').update({convenio_id:null, valor_subsidio:0}).eq('id',partId);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Subsídio removido'); loadAll();
+  }
+
   // ===== FINANCEIRO =====
   function finFonteOpts(){
     const t = g('nFonteTipo').value, sel = g('nFonteId');
     const opts = t==='fornecedor' ? FORNEC.map(f=>[f.id,f.razao_social])
       : t==='patrocinador' ? PATROC.map(p=>[p.id,p.nome])
+      : t==='convenio' ? CONV.map(c=>[c.id,c.nome])
       : t==='participacao' ? PARTS.map(p=>[p.id,nomePart(p)+' ('+(DIMS[p.dimensao]||p.dimensao)+')'])
       : t==='atracao' ? ATRACOES.map(a=>[a.id,a.nome]) : [];
     sel.innerHTML = '<option value="">—</option>'+opts.map(o=>`<option value="${o[0]}">${esc(o[1])}</option>`).join('');
@@ -1326,6 +1441,7 @@
     const t = g('nFonteTipo').value, fid = g('nFonteId').value||null;
     const reg = { evento_id:EV.id, tipo:g('nTipo').value, descricao:desc, valor:val, vencimento:g('nVenc').value||null,
       fornecedor_id: t==='fornecedor'?fid:null, patrocinador_id: t==='patrocinador'?fid:null,
+      convenio_id: t==='convenio'?fid:null,
       participacao_id: t==='participacao'?fid:null, atracao_id: t==='atracao'?fid:null };
     const r = await SB.from('festival_financeiro').insert(reg);
     if(r.error){ toast('Erro: '+r.error.message+(r.error.message.includes('policy')?' — seu papel permite lançar no financeiro?':'')); return; }
@@ -1347,6 +1463,7 @@
   function fonteLabel(l){
     if(l.fornecedor_id){ const f=FORNEC.find(x=>x.id===l.fornecedor_id); return f?'Forn.: '+f.razao_social:''; }
     if(l.patrocinador_id){ const p=PATROC.find(x=>x.id===l.patrocinador_id); return p?'Patroc.: '+p.nome:''; }
+    if(l.convenio_id && !l.participacao_id){ return 'Convênio: '+convNome(l.convenio_id); }
     if(l.participacao_id){ const p=PARTS.find(x=>x.id===l.participacao_id); return p?'Part.: '+nomePart(p):''; }
     if(l.atracao_id){ const a=ATRACOES.find(x=>x.id===l.atracao_id); return a?'Atração: '+a.nome:''; }
     return '';
