@@ -633,7 +633,9 @@
   function espacoStatus(espId){
     const p = ocupanteDoEspaco(espId);
     if(p) return p.status==='confirmado' ? 'ocupado' : 'reservado';
-    return patrocDoEspaco(espId) ? 'ocupado' : 'livre';
+    const s = patrocDoEspaco(espId);
+    if(s) return (s.status==='empenhado' || s.status==='recebido') ? 'ocupado' : 'reservado';
+    return 'livre';
   }
   function ocupLabel(espId){
     const p = ocupanteDoEspaco(espId);
@@ -1073,7 +1075,8 @@
           <option value="estacao_fixa"${p.tipo_xis==='estacao_fixa'?' selected':''}>Estação fixa</option>
           <option value="cervejaria"${p.tipo_xis==='cervejaria'?' selected':''}>Cervejaria</option></select>`:''}
         <select data-espsel="${dim==='xis'?'xis':EXP_DIM}" data-tx="${dim==='xis'?(p.tipo_xis||''):''}" data-cur="${p.espaco_id||''}" onchange="defEspaco('${p.id}',this.value)"></select>
-        ${p.status!=='confirmado'?`<button class="btn btn-v btn-sm" onclick="mudarStatusPart('${p.id}','confirmado')">Confirmar</button>`:''}
+        ${p.status!=='confirmado'?`<button class="btn btn-v btn-sm" onclick="mudarStatusPart('${p.id}','confirmado')" title="Efetiva a venda: passa a contar como Vendido no orçamento">Confirmar</button>`:''}
+        ${p.status==='confirmado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','interessado')" title="Volta para reserva: conta como Reservado no orçamento">Voltar a reservado</button>`:''}
         ${p.status!=='cancelado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','cancelado')">Cancelar</button>`:''}
         ${dim!=='xis'?`<button class="btn btn-g btn-sm" onclick="editarExpositor('${p.id}')">Editar</button>`:''}
         <button class="btn btn-g btn-sm" onclick="definirSubsidio('${p.id}')" title="Composição do pagamento: parte subsidiada por convênio + recurso próprio">Subsídio</button>
