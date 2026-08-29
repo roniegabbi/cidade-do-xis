@@ -1727,6 +1727,7 @@
         <div class="nm">${esc(i.nome)} ${stPill(i.status)}
           <span class="pill ${i.boas_praticas?'ok':'bad'}">${i.boas_praticas?'Boas práticas: sim':'Boas práticas: não'}</span>
           ${i.tempo_xis?`<span class="pill info">Trabalha com xis há ${esc(i.tempo_xis)}</span>`:''}
+          ${i.qtd_equipe?`<span class="pill info">Equipe: ${esc(i.qtd_equipe)} pessoa(s)</span>`:''}
           ${i.tipo_operacao?txBadge(i.tipo_operacao):''}</div>
         <div class="mt">${INT26_CATS[i.categoria]||i.categoria} · ${[i.responsavel,i.telefone,i.email,i.documento].filter(Boolean).map(esc).join(' · ')}</div>
         ${i.endereco_licenca?`<div class="mt" style="margin-top:4px">Licenciado em: ${esc(i.endereco_licenca)}</div>`:''}
@@ -1763,7 +1764,7 @@
           gerado em ${new Date().toLocaleString('pt-BR')} · ${lista.length} interessado(s)</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:10px">
-        <tr>${['Nome','Categoria','Tipo','Responsável','Contato','Boas práticas','Tempo c/ xis','Licenciamento','Status','Recebido em']
+        <tr>${['Nome','Categoria','Tipo','Responsável','Contato','Boas práticas','Tempo c/ xis','Equipe','Licenciamento','Status','Recebido em']
           .map(h=>`<th style="background:#662382;color:#fff;text-align:left;padding:5px 7px;font-size:9px;text-transform:uppercase">${h}</th>`).join('')}</tr>
         ${lista.map(i=>`<tr>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5"><b>${esc(i.nome)}</b>${i.historia?`<div style="font-style:italic;color:#8a7f95;font-size:9px">"${esc(i.historia)}"</div>`:''}</td>
@@ -1773,6 +1774,7 @@
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc([i.telefone,i.email].filter(Boolean).join(' · ')||'—')}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.boas_praticas===true?'Sim':i.boas_praticas===false?'Não':'—'}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.tempo_xis||'—')}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.qtd_equipe||'—')}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.endereco_licenca||'—')}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${INT26_ST[i.status]||i.status}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.criado_em?new Date(i.criado_em).toLocaleDateString('pt-BR'):'—'}</td>
@@ -1797,10 +1799,10 @@
   function csvInt26(){
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
-    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Boas praticas','Tempo com xis','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
+    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Boas praticas','Tempo com xis','Equipe','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
     const linha = i => [i.nome, INT26_CATS[i.categoria]||i.categoria, i.tipo_operacao?txLabel(i.tipo_operacao):'',
       i.responsavel, i.telefone, i.email, i.documento,
-      i.boas_praticas===true?'Sim':i.boas_praticas===false?'Nao':'', i.tempo_xis, i.historia,
+      i.boas_praticas===true?'Sim':i.boas_praticas===false?'Nao':'', i.tempo_xis, i.qtd_equipe, i.historia,
       i.endereco_licenca, i.foto_trailer, i.descricao, INT26_ST[i.status]||i.status,
       i.criado_em?new Date(i.criado_em).toLocaleString('pt-BR'):'']
       .map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(';');
@@ -1824,6 +1826,7 @@
     const tipo = i.categoria==='cervejaria' ? 'cervejaria' : (i.tipo_operacao||null);
     const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
       i.tempo_xis?('Trabalha com xis há: '+i.tempo_xis):null,
+      i.qtd_equipe?('Equipe: '+i.qtd_equipe+' pessoa(s)'):null,
       i.endereco_licenca?('Licenciado em: '+i.endereco_licenca):null,
       i.foto_trailer?('Foto do trailer: '+i.foto_trailer):null].filter(Boolean).join(' · ');
     const r = await SB.from('festival_participacoes').insert({

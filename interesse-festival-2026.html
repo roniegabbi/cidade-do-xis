@@ -85,6 +85,7 @@
         <div class="field"><label>Possui Certificado de Boas Práticas Alimentares? *</label>
           <select id="fBoas"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
         <div class="field"><label>Quanto tempo você trabalha com Xis?</label><input id="fTempoXis" placeholder="Ex.: 8 anos"></div>
+        <div class="field"><label>Quantas pessoas tem sua equipe? *</label><input id="fEquipe" placeholder="Ex.: 4" inputmode="numeric"></div>
         <div class="field full"><label>Em poucas palavras, conte tua história com o Xis</label><textarea id="fHistoria" rows="3" placeholder="Como o xis entrou na tua vida e na tua operação…"></textarea></div>
 
         <div class="divisor hide" id="divTrailer">Sobre o seu Trailer</div>
@@ -151,6 +152,7 @@
     const cat=g('fCat').value, tipoOp=g('fTipoOp').value;
     if(!nome || !resp || !tel){ cadMsg('Preencha os campos obrigatórios (*).','erro'); return; }
     if(!boas){ cadMsg('Informe se possui o Certificado de Boas Práticas Alimentares.','erro'); return; }
+    if(!g('fEquipe').value.trim()){ cadMsg('Informe quantas pessoas tem sua equipe.','erro'); return; }
     if(cat==='xis' && !tipoOp){ cadMsg('Informe se sua operação é Trailer ou Estação fixa.','erro'); return; }
     const ehTrailer = cat==='xis' && tipoOp==='trailer';
     const foto = g('fFoto').files && g('fFoto').files[0];
@@ -176,6 +178,7 @@
           descricao:g('fObs').value.trim(),
           boas_praticas: boas==='sim',
           tempo_xis: g('fTempoXis').value.trim(),
+          qtd_equipe: g('fEquipe').value.trim(),
           historia: g('fHistoria').value.trim(),
           tipo_operacao: cat==='xis' ? tipoOp : null,
           endereco_licenca: ehTrailer ? g('fEndLic').value.trim() : null,
