@@ -190,17 +190,19 @@
       <div class="kpis" id="kpis"></div>
       <div class="card">
         <h3>Manifestação de interesse — links por categoria</h3>
-        <div class="sub" style="margin-bottom:10px">Envie o link da categoria aos interessados — as manifestações caem direto na aba correspondente como "Interessado".</div>
+        <div class="sub" style="margin-bottom:10px">Envie o link da categoria aos interessados — as manifestações entram na área "Interessados 2026" para curadoria. Patrocinadores têm formulário próprio.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-g btn-sm" onclick="copiarInscricao('xis')">Operações de Xis</button>
-          <button class="btn btn-g btn-sm" onclick="copiarInscricao('cervejaria')">Cervejarias</button>
-          <button class="btn btn-g btn-sm" onclick="copiarInscricao('criativo')">Mercado Criativo</button>
-          <button class="btn btn-g btn-sm" onclick="copiarInscricao('ferromodelismo')">Ferromodelismo</button>
-          <button class="btn btn-g btn-sm" onclick="copiarInscricao('outros')">Outros expositores</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('xis')">Operações de Xis</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('cervejaria')">Cervejarias</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('criativo')">Mercado Criativo</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('comercial')">Expositores Comerciais</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('ferromodelismo')">Ferromodelismo</button>
+          <button class="btn btn-g btn-sm" onclick="copiarInt26('outros')">Outros expositores</button>
           <button class="btn btn-g btn-sm" onclick="copiarInscricao('patrocinador')">Patrocinadores</button>
-          <button class="btn btn-g btn-sm" onclick="copiarInscricao('')">Link geral (todas)</button>
+          <button class="btn btn-p btn-sm" onclick="copiarInt26('')">Link geral (todas)</button>
         </div>
       </div>
+      <div class="card"><h3>Termômetro de captação</h3><div id="termometro"></div></div>
       <div class="card"><h3>Vencimentos</h3><div id="alertas"></div></div>
       <div class="card"><h3>Ocupação por dimensão</h3><div id="ocupacaoDim"></div></div>
     </section>
@@ -355,6 +357,11 @@
       </div>
       <div class="filtros"><input id="fAtrBusca" placeholder="Filtrar…" oninput="renderAtracoes()"></div>
       <div class="lista" id="listaAtracoes"></div>
+      <div class="card" style="margin-top:14px">
+        <h3 style="display:flex;align-items:center;gap:10px">Cronograma de palco
+          <button class="btn btn-g btn-sm no-print" style="margin-left:auto" onclick="baixarCronoPDF()">Baixar PDF</button></h3>
+        <div id="cronoLista"></div>
+      </div>
     </section>
 
     <section class="pane hide" id="p-patroc">
@@ -424,6 +431,7 @@
         </div>
         <button class="btn btn-p" onclick="salvarMeta()">Salvar meta</button>
       </div>
+      <div id="orcAviso"></div>
       <div class="card"><h3>Venda de espaços</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcEsp"></table></div></div>
       <div class="card"><h3>Captação de patrocínios</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcPat"></table></div></div>
       <div class="card">
@@ -505,6 +513,7 @@
   </div>
 </div>
 
+<input type="file" id="contratoFile" accept="application/pdf,image/*" class="hide" onchange="enviarContrato(this)">
 <div id="toast"></div>
 
 <script>
@@ -668,6 +677,31 @@
       {n:fmtRS(soma(rec)-soma(pag)), l:'Resultado projetado'}
     ];
     g('kpis').innerHTML = kpis.map(k=>`<div class="kpi"><div class="n">${k.n}</div><div class="l">${k.l}</div></div>`).join('');
+    // Termômetro de captação — barras de progresso das receitas
+    if(g('termometro')){
+      const sv = a => a.reduce((s,x)=>s+Number(x.valor||0),0);
+      const barra = (rot, val, tot, cor) => {
+        const pct = tot>0 ? Math.min(100, Math.round(val/tot*100)) : 0;
+        return `<div style="margin-bottom:11px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:3px">
+            <span>${rot}</span><span>${fmtRS(val)} de ${fmtRS(tot)} · ${pct}%</span></div>
+          <div style="height:12px;background:var(--fundo);border-radius:99px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${cor};transition:width .4s"></div></div></div>`;
+      };
+      const espPot = sv(ESPACOS), espVen = sv(ESPACOS.filter(e=>espacoStatus(e.id)==='ocupado'));
+      const patsOk = PATROC.filter(p=>p.status!=='cancelado');
+      const patTot = sv(patsOk), patRec = sv(patsOk.filter(p=>p.status==='recebido'));
+      const convPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
+      const convRec = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      const metaRec = ORC.filter(m=>m.tipo==='receita').reduce((s,m)=>s+Number(m.valor_previsto||0),0);
+      const recebidoTotal = FIN.filter(l=>l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      g('termometro').innerHTML =
+        barra('Venda de espaços (vendido × potencial)', espVen, espPot, 'var(--verde)')
+        + barra('Patrocínios (recebido × captado)', patRec, patTot, 'var(--rosa)')
+        + (convPrev>0 ? barra('Convênios (recebido × previsto)', convRec, convPrev, 'var(--azul)') : '')
+        + (metaRec>0 ? barra('Meta geral de receitas (recebido × meta)', recebidoTotal, metaRec, 'var(--roxo)') : '')
+        + ((espPot+patTot+convPrev+metaRec)===0 ? '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Precifique os espaços e cadastre patrocínios/metas para acompanhar aqui.</div>' : '');
+    }
     const em7 = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
     const vencidos = FIN.filter(l=>statusFin(l)==='atrasado');
     const proximos = FIN.filter(l=>!l.realizado && l.vencimento && l.vencimento>=hoje() && l.vencimento<=em7);
@@ -957,7 +991,10 @@
     window.scrollTo({top:0,behavior:'smooth'});
   }
   async function excluirEspaco(id){
-    if(!confirm('Excluir este espaço?')) return;
+    const part = ocupanteDoEspaco(id), pat = patrocDoEspaco(id);
+    if(part && !confirm(`Este espaço está ocupado por "${nomePart(part)}". Excluir mesmo assim? (a participação fica sem espaço)`)) return;
+    if(pat && !confirm(`Este espaço tem ativação do patrocinador "${pat.nome}". Excluir mesmo assim?`)) return;
+    if(!part && !pat && !confirm('Excluir este espaço?')) return;
     const r = await SB.from('festival_espacos').delete().eq('id',id);
     if(r.error){ toast('Erro: '+r.error.message); return; }
     toast('Espaço excluído'); loadAll();
@@ -1040,6 +1077,8 @@
         ${p.status!=='cancelado'?`<button class="btn btn-g btn-sm" onclick="mudarStatusPart('${p.id}','cancelado')">Cancelar</button>`:''}
         ${dim!=='xis'?`<button class="btn btn-g btn-sm" onclick="editarExpositor('${p.id}')">Editar</button>`:''}
         <button class="btn btn-g btn-sm" onclick="definirSubsidio('${p.id}')" title="Composição do pagamento: parte subsidiada por convênio + recurso próprio">Subsídio</button>
+        ${p.contrato_url?`<a class="btn btn-g btn-sm" href="${esc(p.contrato_url)}" target="_blank" rel="noopener" style="text-decoration:none">Ver contrato</a>`:''}
+        <button class="btn btn-g btn-sm" onclick="anexarContrato('${p.id}')" title="Anexar o contrato assinado (PDF ou imagem)">${p.contrato_url?'Trocar':'Contrato'}</button>
         <button class="btn btn-g btn-sm" onclick="gerarCobranca('${p.id}')" title="Cria conta(s) a receber com a taxa">Cobrança</button>
         <button class="btn btn-r btn-sm" onclick="excluirPart('${p.id}')">Excluir</button>
       </div></div>`;
@@ -1166,6 +1205,7 @@
     toast('Conta a pagar criada'); loadAll();
   }
   function renderAtracoes(){
+    renderCrono();
     const q=norm(g('fAtrBusca').value);
     const lista = ATRACOES.filter(a=>!q || norm(a.nome+' '+(a.tipo||'')+' '+(a.palco||'')).includes(q));
     const stPill = s => s==='confirmada'?'<span class="pill ok">Confirmada</span>':s==='realizada'?'<span class="pill info">Realizada</span>':s==='cancelada'?'<span class="pill bad">Cancelada</span>':'<span class="pill warn">Prevista</span>';
@@ -1177,6 +1217,82 @@
         <button class="btn btn-g btn-sm" onclick="gerarCache('${a.id}')">Cachê</button>
         <button class="btn btn-r btn-sm" onclick="excluirAtracao('${a.id}')">Excluir</button>
       </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma atração.</div>';
+  }
+
+  // ===== CONTRATOS POR PARTICIPANTE =====
+  let CONTRATO_PART = null;
+  function anexarContrato(partId){ CONTRATO_PART = partId; g('contratoFile').value=''; g('contratoFile').click(); }
+  async function enviarContrato(inp){
+    const f = inp.files && inp.files[0];
+    if(!f || !CONTRATO_PART) return;
+    if(f.size > 15*1024*1024){ toast('Arquivo acima de 15 MB'); return; }
+    const p = PARTS.find(x=>x.id===CONTRATO_PART); if(!p) return;
+    toast('Enviando contrato…');
+    try{
+      const ext = (f.name.split('.').pop()||'pdf').toLowerCase().replace(/[^a-z0-9]/g,'')||'pdf';
+      const path = 'contratos-festival/'+CONTRATO_PART+'-'+Date.now()+'.'+ext;
+      const up = await SB.storage.from('estabelecimentos').upload(path, f, { contentType:f.type||'application/pdf', upsert:true });
+      if(up.error) throw up.error;
+      const url = SB.storage.from('estabelecimentos').getPublicUrl(path).data.publicUrl;
+      const r = await SB.from('festival_participacoes').update({contrato_url:url}).eq('id',CONTRATO_PART);
+      if(r.error) throw r.error;
+      toast('Contrato anexado a '+nomePart(p));
+      loadAll();
+    }catch(e){ toast('Erro ao anexar: '+(e.message||'falha')); }
+    CONTRATO_PART = null;
+  }
+
+  // ===== CRONOGRAMA DE PALCO =====
+  function renderCrono(){
+    const el = g('cronoLista'); if(!el) return;
+    const ativas = ATRACOES.filter(a=>a.status!=='cancelada' && a.dia)
+      .sort((x,y)=> (x.dia+' '+(x.horario||'')).localeCompare(y.dia+' '+(y.horario||''),'pt-BR',{numeric:true}));
+    if(!ativas.length){ el.innerHTML = '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Cadastre atrações com dia e horário para montar o cronograma.</div>'; return; }
+    const dias = {};
+    ativas.forEach(a=>{ (dias[a.dia] = dias[a.dia]||[]).push(a); });
+    el.innerHTML = Object.keys(dias).sort().map(d=>{
+      const rot = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+      return `<div style="font-weight:800;color:var(--roxo-esc);margin:12px 0 6px;text-transform:capitalize;border-bottom:2px solid rgba(102,35,130,.14);padding-bottom:4px">${esc(rot)}</div>`
+        + dias[d].map(a=>`<div style="display:flex;gap:12px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--fundo)">
+          <b style="color:var(--rosa);min-width:56px">${esc(a.horario||'—')}</b>
+          <span style="font-weight:700">${esc(a.nome)}</span>
+          <span style="color:var(--texto-suave);font-size:12.5px">${[a.tipo,a.palco].filter(Boolean).map(esc).join(' · ')}</span>
+          <span class="pill ${a.status==='confirmada'?'ok':a.status==='realizada'?'info':'warn'}" style="margin-left:auto">${a.status}</span>
+        </div>`).join('');
+    }).join('');
+  }
+  async function baixarCronoPDF(){
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Não foi possível carregar o gerador de PDF'); return; }
+    const ativas = ATRACOES.filter(a=>a.status!=='cancelada' && a.dia);
+    if(!ativas.length){ toast('Sem atrações com dia definido'); return; }
+    const dias = {};
+    ativas.sort((x,y)=>(x.dia+' '+(x.horario||'')).localeCompare(y.dia+' '+(y.horario||''),'pt-BR',{numeric:true}))
+      .forEach(a=>{ (dias[a.dia]=dias[a.dia]||[]).push(a); });
+    const doc = document.createElement('div');
+    doc.style.cssText = 'width:190mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
+    doc.innerHTML = `<div style="border-bottom:3px solid #e91e8c;padding-bottom:8px;margin-bottom:8px">
+        <div style="font-size:18px;font-weight:800;color:#4b1a60">Cronograma de Palco — Festival do Xis 2026</div>
+        <div style="font-size:10.5px;color:#8a7f95">13 a 15 de novembro · Largo da Gare · gerado em ${new Date().toLocaleString('pt-BR')}</div></div>`
+      + Object.keys(dias).sort().map(d=>{
+          const rot = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+          return `<div style="font-size:13px;font-weight:800;color:#662382;margin:12px 0 5px;text-transform:capitalize">${esc(rot)}</div>
+            <table style="width:100%;border-collapse:collapse;font-size:10.5px">
+            ${dias[d].map(a=>`<tr><td style="padding:4px 8px;border-bottom:1px solid #f0eaf5;width:60px"><b style="color:#e91e8c">${esc(a.horario||'—')}</b></td>
+              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5"><b>${esc(a.nome)}</b></td>
+              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5;color:#8a7f95">${[a.tipo,a.palco].filter(Boolean).map(esc).join(' · ')}</td>
+              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5">${a.status}</td></tr>`).join('')}
+            </table>`;
+        }).join('')
+      + `<div style="margin-top:10px;font-size:9px;color:#8a7f95;text-align:center">Programa Xis · Prefeitura Municipal de Santa Maria · cidadedoxis.com</div>`;
+    document.body.appendChild(doc);
+    try{
+      await html2pdf().set({ margin:[8,8,8,8], filename:'Cronograma-Palco-Festival-2026.pdf',
+        image:{type:'jpeg',quality:0.92}, html2canvas:{scale:2,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['css','legacy']} }).from(doc).save();
+      toast('Cronograma baixado');
+    }catch(e){ toast('Falha ao gerar o PDF'); }
+    doc.remove();
   }
 
   // ===== PATROCINADORES =====
@@ -1309,6 +1425,15 @@
     const vendido = soma(ESPACOS.filter(e=>stE(e)==='ocupado'));
     const reservado = soma(ESPACOS.filter(e=>stE(e)==='reservado'));
     const recEspaco = FIN.filter(l=>l.tipo==='receber'&&l.realizado&&l.participacao_id).reduce((s,l)=>s+Number(l.valor||0),0);
+    // Detector de duplicidade: mesmo nome como patrocinador E como participante/expositor
+    if(g('orcAviso')){
+      const nomesPart = new Set(PARTS.filter(p=>p.status!=='cancelado').map(p=>norm(nomePart(p))));
+      const dups = PATROC.filter(p=>p.status!=='cancelado' && Number(p.valor||0)>0 && nomesPart.has(norm(p.nome)));
+      g('orcAviso').innerHTML = dups.length ? `<div class="card" style="border:2px solid var(--amarelo);background:#fdf8ea;margin-bottom:14px">
+        <h3 style="color:#7d5600">Possível receita duplicada</h3>
+        <div style="font-size:13.5px">Estes nomes aparecem como <b>patrocinador</b> (captação) e também como <b>participante/expositor</b> (venda de espaço): ${dups.map(d=>'<b>'+esc(d.nome)+'</b>').join(', ')}.
+        Se a empresa migrou para expositor, vá em Patrocinadores e <b>exclua</b> o registro (ou zere o valor) para não somar a receita duas vezes.</div></div>` : '';
+    }
     // Grupos e SubGrupos — estrutura fiel ao mapa de espaços
     const linhaVals = (rot, lts, sub) => {
       const pot = soma(lts), ven = soma(lts.filter(e=>stE(e)==='ocupado')), res = soma(lts.filter(e=>stE(e)==='reservado'));
@@ -1824,13 +1949,25 @@
     if(!confirm(`Converter "${i.nome}" em participação na categoria ${INT26_CATS[i.categoria]||i.categoria}?`)) return;
     const dim = i.categoria==='cervejaria' ? 'xis' : i.categoria;
     const tipo = i.categoria==='cervejaria' ? 'cervejaria' : (i.tipo_operacao||null);
+    // Anti-duplicidade: tenta vincular ao cadastro oficial do Cidade do Xis
+    let estId = null;
+    if(dim === 'xis'){
+      try{
+        const {data} = await SB.from('estabelecimentos').select('id,nome,bairro')
+          .ilike('nome', '%'+i.nome+'%').limit(3);
+        const jaIds = new Set(PARTS.filter(p=>p.estabelecimento_id).map(p=>p.estabelecimento_id));
+        const cand = (data||[]).find(x=>!jaIds.has(x.id));
+        if(cand && confirm(`Encontrei no cadastro oficial: "${cand.nome}"${cand.bairro?' ('+cand.bairro+')':''}.\nVincular a participação a este estabelecimento? (evita duplicidade)`)) estId = cand.id;
+      }catch(e){}
+    }
     const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
       i.tempo_xis?('Trabalha com xis há: '+i.tempo_xis):null,
       i.qtd_equipe?('Equipe: '+i.qtd_equipe+' pessoa(s)'):null,
       i.endereco_licenca?('Licenciado em: '+i.endereco_licenca):null,
       i.foto_trailer?('Foto do trailer: '+i.foto_trailer):null].filter(Boolean).join(' · ');
     const r = await SB.from('festival_participacoes').insert({
-      evento_id:EV.id, dimensao:dim, tipo_xis:tipo, nome:i.nome, documento:i.documento,
+      evento_id:EV.id, dimensao:dim, tipo_xis:tipo,
+      estabelecimento_id:estId, nome: estId ? null : i.nome, documento:i.documento,
       responsavel:i.responsavel, telefone:i.telefone, email:i.email, obs:obsExtra||null, status:'interessado' });
     if(r.error){ toast('Erro: '+r.error.message); return; }
     await SB.from('festival_interessados').update({status:'convertido'}).eq('id',id);
