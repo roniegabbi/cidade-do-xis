@@ -1583,7 +1583,8 @@
   // ===== RELATÓRIO DE INTERESSADOS (PDF respeitando os filtros) =====
   const INT26_ST = {novo:'Novo', contatado:'Contatado', convertido:'Convertido', descartado:'Descartado'};
   async function baixarRelInt26(){
-    if(typeof html2pdf === 'undefined'){ toast('Gerador de PDF ainda carregando — tente de novo'); return; }
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Não foi possível carregar o gerador de PDF — verifique a conexão e tente de novo'); return; }
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
     const btn = g('btnRelInt26'); btn.disabled = true; btn.textContent = 'Gerando…';
@@ -1791,9 +1792,32 @@
     fecharLote(); loadAll();
   }
 
+  // Garante o gerador de PDF: se o script inicial não carregou, tenta 3 CDNs na hora
+  function garantirHtml2pdf(){
+    return new Promise((res, rej)=>{
+      if(typeof html2pdf !== 'undefined') return res();
+      const urls = [
+        'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+        'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js',
+        'https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'
+      ];
+      let i = 0;
+      const tenta = ()=>{
+        if(i >= urls.length) return rej(new Error('sem gerador'));
+        const s = document.createElement('script');
+        s.src = urls[i++];
+        s.onload = ()=> (typeof html2pdf !== 'undefined') ? res() : tenta();
+        s.onerror = tenta;
+        document.head.appendChild(s);
+      };
+      tenta();
+    });
+  }
+
   // ===== EXPORTAR MAPA EM PDF =====
   async function baixarMapaPDF(){
-    if(typeof html2pdf === 'undefined'){ toast('Gerador de PDF ainda carregando — tente de novo'); return; }
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Não foi possível carregar o gerador de PDF — verifique a conexão e tente de novo'); return; }
     const btn = g('btnMapaPdf');
     btn.disabled = true; btn.textContent = 'Gerando…';
     document.body.classList.add('exportando');
