@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Livro do Festival do Xis · 2026</title>
 <meta name="robots" content="noindex">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
@@ -258,19 +259,16 @@
   <h2>6. Plano Orçamentário</h2>
   <h3>6.1 Receitas previstas</h3>
   <table>
+    <tbody id="tbReceitas">
     <tr><th>Fonte</th><th>Base de cálculo</th><th>Valor previsto</th></tr>
-    <tr><td>Venda de espaços — Trailers (01–05)</td><td>5 espaços × R$ —</td><td>R$ —</td></tr>
-    <tr><td>Venda de espaços — Estações fixas (06–30)</td><td>25 espaços × R$ —</td><td>R$ —</td></tr>
-    <tr><td>Venda de espaços — Cervejarias (31–38)</td><td>8 espaços × R$ —</td><td>R$ —</td></tr>
-    <tr><td>Venda de espaços — Mercado Criativo (39–59)</td><td>21 espaços × R$ —</td><td>R$ —</td></tr>
-    <tr><td>Venda de espaços — Café &amp; Tortas (60–70)</td><td>11 espaços × R$ —</td><td>R$ —</td></tr>
-    <tr><td>Venda de espaços — Expositores Comerciais (71–80)</td><td>10 espaços × R$ —</td><td>R$ —</td></tr>
+    <tr><td>Venda de espaços (01–82)</td><td>82 espaços — potencial conforme Tabela de Preços da plataforma</td><td>R$ —</td></tr>
     <tr><td>Receitas de convênios</td><td>Subsídio de taxas de espaço (ex.: SEBRAE — 50% de operações selecionadas)</td><td>R$ —</td></tr>
-    <tr><td>Ativação Digital de Marcas (81–82)</td><td>Convênio com operadora de painéis digitais + venda de mídia para marcas locais</td><td>R$ —</td></tr>
     <tr><td>Patrocínio privado</td><td>Cotas e espaços de ativação</td><td>R$ —</td></tr>
     <tr><td>Recurso público</td><td>Emendas, convênios e dotações</td><td>R$ —</td></tr>
     <tr class="tot"><td colspan="2">Total de receitas previstas</td><td>R$ —</td></tr>
+    </tbody>
   </table>
+  <p style="font-size:10.5px;color:var(--texto-suave);margin-top:-6px" id="tbReceitasNota">Valores carregados em tempo real da plataforma de gestão; abra o Livro com internet para atualizar.</p>
   <h3>6.2 Despesas previstas</h3>
   <table>
     <tr><th>Categoria</th><th>Descrição</th><th>Valor previsto</th></tr>
@@ -331,6 +329,31 @@
     document.getElementById('qCafe').innerHTML = faixa(60,70,'qk');
     document.getElementById('qCom').innerHTML  = faixa(71,80,'qx');
     document.getElementById('qDig').innerHTML  = faixa(81,82,'qd');
+  })();
+
+  // Plano orçamentário ao vivo: potencial de cada grupo direto da plataforma
+  (async function(){
+    try{
+      const SB = window.supabase.createClient('https://hlstcndhxzhdzbecfrhp.supabase.co','sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr');
+      const {data,error} = await SB.from('livro_orcamento').select('*');
+      if(error || !data || !data.length) return;
+      const fmt = v => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+      const tx = t => t==='trailer'?' · Trailers':t==='estacao_fixa'?' · Estações fixas':t==='cervejaria'?' · Cervejarias':'';
+      let tot = 0, rows = '';
+      data.forEach(r=>{
+        tot += Number(r.potencial||0);
+        rows += `<tr><td>Venda de espaços — ${r.grupo}${tx(r.tipo_xis)}</td><td>${r.espacos} espaço(s)</td><td><b>${fmt(r.potencial)}</b></td></tr>`;
+      });
+      document.getElementById('tbReceitas').innerHTML =
+        `<tr><th>Fonte</th><th>Base de cálculo</th><th>Valor previsto</th></tr>` + rows
+        + `<tr class="tot"><td colspan="2">Subtotal — venda de espaços (potencial)</td><td>${fmt(tot)}</td></tr>`
+        + `<tr><td>Receitas de convênios</td><td>Subsídio de taxas de espaço (ex.: SEBRAE)</td><td>R$ —</td></tr>`
+        + `<tr><td>Patrocínio privado</td><td>Cotas e espaços de ativação</td><td>R$ —</td></tr>`
+        + `<tr><td>Recurso público</td><td>Emendas, convênios e dotações</td><td>R$ —</td></tr>`
+        + `<tr class="tot"><td colspan="2">Total de receitas previstas</td><td>${fmt(tot)} + patrocínios e convênios</td></tr>`;
+      document.getElementById('tbReceitasNota').textContent =
+        'Potencial de venda de espaços carregado da plataforma em '+new Date().toLocaleString('pt-BR')+'. Patrocínios e convênios são consolidados na Ficha Técnica Orçamentária do módulo de gestão.';
+    }catch(e){ /* offline: mantém os valores padrão */ }
   })();
 
   // Gera o PDF A4 e baixa o arquivo direto (sem passar pela impressão)
