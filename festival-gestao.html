@@ -495,9 +495,16 @@
         <button class="btn btn-p" onclick="salvarMeta()">Salvar previsão de despesa</button>
       </div>
       <div id="orcAviso"></div>
-      <div class="card" style="border:2px solid var(--roxo)"><h3>Resumo do Orçamento</h3><div style="overflow-x:auto"><table class="fin" id="tabResumoOrc"></table></div></div>
-      <div class="card"><h3>Venda de espaços</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcEsp"></table></div></div>
-      <div class="card"><h3>Captação de patrocínios</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcPat"></table></div></div>
+      <div class="card" style="border:2px solid var(--verde)">
+        <h3>Receitas — Planejado × Realizado</h3>
+        <div class="sub" style="margin-bottom:8px">De onde o dinheiro vem: espaços (pela Tabela de Preços), patrocínios e verbas públicas. "Realizado" = valores com baixa no financeiro.</div>
+        <div style="overflow-x:auto"><table class="fin" id="tabRecPR"></table></div>
+      </div>
+      <div class="card" style="border:2px solid var(--rosa)">
+        <h3>Despesas — Planejado × Realizado</h3>
+        <div class="sub" style="margin-bottom:8px">Para onde o dinheiro vai: cada previsão com categoria e fornecedor, comparada com o que já foi pago.</div>
+        <div style="overflow-x:auto"><table class="fin" id="tabDespPR"></table></div>
+      </div>
       <div class="card">
         <h3>Receitas de Convênios</h3>
         <div class="sub" style="margin-bottom:8px">Convênios que subsidiam taxas de espaço (ex.: SEBRAE cobre 50% de algumas operações). Defina o subsídio de cada participação na aba da categoria, pelo botão "Subsídio".</div>
@@ -508,7 +515,6 @@
         </div>
         <div style="overflow-x:auto"><table class="fin" id="tabConvenios"></table></div>
       </div>
-      <div class="card"><h3>Metas × contratado × realizado</h3><div style="overflow-x:auto"><table class="fin" id="tabOrcMetas"></table></div></div>
     </section>
 
     <section class="pane hide" id="p-fin">
@@ -759,14 +765,14 @@
       const patTot = sv(patsOk), patRec = sv(patsOk.filter(p=>p.status==='recebido'));
       const convPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
       const convRec = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-      const metaRec = ORC.filter(m=>m.tipo==='receita').reduce((s,m)=>s+Number(m.valor_previsto||0),0);
+      const recPlan = espPot+patTot;
       const recebidoTotal = FIN.filter(l=>l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
       g('termometro').innerHTML =
-        barra('Venda de espaços (vendido × potencial)', espVen, espPot, 'var(--verde)')
+        barra('Venda de espaços (confirmado × planejado)', espVen, espPot, 'var(--verde)')
         + barra('Patrocínios (recebido × captado)', patRec, patTot, 'var(--rosa)')
         + (convPrev>0 ? barra('Convênios (recebido × previsto)', convRec, convPrev, 'var(--azul)') : '')
-        + (metaRec>0 ? barra('Meta geral de receitas (recebido × meta)', recebidoTotal, metaRec, 'var(--roxo)') : '')
-        + ((espPot+patTot+convPrev+metaRec)===0 ? '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Precifique os espaços e cadastre patrocínios/metas para acompanhar aqui.</div>' : '');
+        + (recPlan>0 ? barra('Receita total (realizado × planejado)', recebidoTotal, recPlan, 'var(--roxo)') : '')
+        + ((espPot+patTot+convPrev)===0 ? '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Precifique os espaços e cadastre patrocínios para acompanhar aqui.</div>' : '');
     }
     const em7 = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
     const vencidos = FIN.filter(l=>statusFin(l)==='atrasado');
@@ -1494,167 +1500,109 @@
     if(cur && FORNEC.some(f=>f.id===cur)) sel.value = cur;
   }
   async function excluirMeta(id){
-    if(!confirm('Excluir esta meta?')) return;
+    if(!confirm('Excluir esta previsão de despesa?')) return;
     const r = await SB.from('festival_orcamento').delete().eq('id',id);
     if(r.error){ toast('Erro: '+r.error.message); return; }
-    toast('Meta excluída'); loadAll();
+    toast('Previsão excluída'); loadAll();
   }
   function renderOrcamento(){
-    if(!g('tabOrcEsp')) return;
-    const soma = a => a.reduce((s,x)=>s+Number(x.valor||x.taxa||0),0);
-    // Venda de espaços
-    const stE = e => espacoStatus(e.id);
-    const potencial = soma(ESPACOS);
-    const vendido = soma(ESPACOS.filter(e=>stE(e)==='ocupado'));
-    const reservado = soma(ESPACOS.filter(e=>stE(e)==='reservado'));
-    const recEspaco = FIN.filter(l=>l.tipo==='receber'&&l.realizado&&l.participacao_id).reduce((s,l)=>s+Number(l.valor||0),0);
-    // Detector de duplicidade: mesmo nome como patrocinador E como participante/expositor
-    if(g('orcAviso')){
-      const nomesPart = new Set(PARTS.filter(p=>p.status!=='cancelado').map(p=>norm(nomePart(p))));
-      const dups = PATROC.filter(p=>p.status!=='cancelado' && Number(p.valor||0)>0 && nomesPart.has(norm(p.nome)));
-      g('orcAviso').innerHTML = dups.length ? `<div class="card" style="border:2px solid var(--amarelo);background:#fdf8ea;margin-bottom:14px">
-        <h3 style="color:#7d5600">Possível receita duplicada</h3>
-        <div style="font-size:13.5px">Estes nomes aparecem como <b>patrocinador</b> (captação) e também como <b>participante/expositor</b> (venda de espaço): ${dups.map(d=>'<b>'+esc(d.nome)+'</b>').join(', ')}.
-        Se a empresa migrou para expositor, vá em Patrocinadores e <b>exclua</b> o registro (ou zere o valor) para não somar a receita duas vezes.</div></div>` : '';
-    }
-    // ===== RESUMO DO ORÇAMENTO =====
-    if(g('tabResumoOrc')){
-      const ehComercial = a => /comercia|digital|ativa/.test(norm(a.nome));
-      const idsCom = new Set(AREAS.filter(ehComercial).map(a=>a.id));
-      const espOper = ESPACOS.filter(e=>!idsCom.has(e.area_id));
-      const espCom  = ESPACOS.filter(e=> idsCom.has(e.area_id));
-      const comerc = ls => soma(ls.filter(e=>stE(e)!=='livre'));   // vendido + reservado
-      const vend   = ls => soma(ls.filter(e=>stE(e)==='ocupado'));
-      const patsR = PATROC.filter(p=>p.status!=='cancelado');
-      const priv = soma(patsR.filter(p=>(p.origem||'privado')==='privado'));
-      const pub  = soma(patsR.filter(p=>p.origem==='publico'));
-      const convPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
-      const reserv = ls => soma(ls.filter(e=>stE(e)==='reservado'));
-      // Patrocínios por coluna: Potencial = tudo cadastrado · Reservado = previsto+empenhado · Confirmado = recebido
-      const patsPriv = patsR.filter(p=>(p.origem||'privado')==='privado');
-      const patsPub  = patsR.filter(p=>p.origem==='publico');
-      const pRes = a => soma(a.filter(p=>p.status==='previsto'||p.status==='empenhado'));
-      const pConf = a => soma(a.filter(p=>p.status==='recebido'));
-      // Convênio (composição): comprometido nas participações e recebido no financeiro
-      const convComp = PARTS.filter(p=>p.convenio_id && p.status!=='cancelado').reduce((s,p)=>s+Number(p.valor_subsidio||0),0);
-      const convRec  = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-      // Despesas por grupo
-      const pag = FIN.filter(l=>l.tipo==='pagar');
-      const gAtr  = pag.filter(l=>l.atracao_id);
-      const gForn = pag.filter(l=>!l.atracao_id && l.fornecedor_id);
-      const gOut  = pag.filter(l=>!l.atracao_id && !l.fornecedor_id);
-      const tot = a => a.reduce((s,l)=>s+Number(l.valor||0),0);
-      const abertoDe = a => a.filter(l=>!l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-      const pagoDe = a => a.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-      const despTotal = tot(pag);
-      const v = (x,b) => `<td style="text-align:right${b?';font-weight:800':''}">${fmtRS(x)}</td>`;
-      const rL = (rot,pot,res,conf) => `<tr><td>${rot}</td>${v(pot)}${v(res)}<td style="text-align:right;color:var(--verde)"><b>${fmtRS(conf)}</b></td></tr>`;
-      const rH = (rot,c1='Potencial',c2='Reservado',c3='Confirmado') => `<tr><td style="background:var(--fundo);font-weight:800;color:var(--roxo-esc)">${rot}</td>
-        <th style="text-align:right">${c1}</th><th style="text-align:right">${c2}</th><th style="text-align:right">${c3}</th></tr>`;
-      const potRec = soma(espOper)+soma(espCom)+priv+pub;
-      const resRec = reserv(espOper)+reserv(espCom)+pRes(patsPriv)+pRes(patsPub);
-      const confRec = vend(espOper)+vend(espCom)+pConf(patsPriv)+pConf(patsPub);
-      g('tabResumoOrc').innerHTML =
-        rH('Receitas')
-        + rL('1. Vendas de Espaços — Operações', soma(espOper), reserv(espOper), vend(espOper))
-        + rL('2. Vendas de Espaços — Expositores Comerciais e Ativação de Marcas', soma(espCom), reserv(espCom), vend(espCom))
-        + rL('3. Patrocínios Privados ('+patsPriv.length+')', priv, pRes(patsPriv), pConf(patsPriv))
-        + rL('4. Verbas Públicas ('+patsPub.length+')', pub, pRes(patsPub), pConf(patsPub))
-        + (convPrev>0 ? `<tr style="color:var(--texto-suave)"><td style="padding-left:22px">↳ das vendas de espaços, subsidiado por Convênios (${CONV.map(c=>esc(c.nome)).join(', ')}) — já incluído acima, não soma</td>
-            <td style="text-align:right">${fmtRS(convPrev)}</td><td style="text-align:right">${fmtRS(convComp)}</td><td style="text-align:right">${fmtRS(convRec)}</td></tr>` : '')
-        + `<tr style="background:#efe7f4;font-weight:800"><td>RECEITA TOTAL</td>${v(potRec,1)}${v(resRec,1)}<td style="text-align:right;font-weight:800;color:var(--verde)">${fmtRS(confRec)}</td></tr>`
-        + rH('Despesas (lançamentos a pagar)','Comprometido','Em aberto','Pago')
-        + rL('Atrações culturais (cachês)', tot(gAtr), abertoDe(gAtr), pagoDe(gAtr))
-        + rL('Fornecedores (estrutura e serviços)', tot(gForn), abertoDe(gForn), pagoDe(gForn))
-        + rL('Outras despesas', tot(gOut), abertoDe(gOut), pagoDe(gOut))
-        + `<tr style="background:#efe7f4;font-weight:800"><td>DESPESA TOTAL</td>${v(despTotal,1)}${v(abertoDe(pag),1)}<td style="text-align:right;font-weight:800">${fmtRS(pagoDe(pag))}</td></tr>`
-        + `<tr style="background:var(--fundo)"><td style="font-weight:800;color:var(--roxo-esc)">RESULTADO PREVISTO (reservado + confirmado − despesas comprometidas)</td>
-            <td></td><td></td><td style="text-align:right;font-weight:800;color:${(resRec+confRec-despTotal)>=0?'var(--verde)':'var(--vermelho)'}">${fmtRS(resRec+confRec-despTotal)}</td></tr>`;
-    }
-
-    // Grupos e SubGrupos — estrutura fiel ao mapa de espaços
-    const linhaVals = (rot, lts, sub) => {
-      const pot = soma(lts), ven = soma(lts.filter(e=>stE(e)==='ocupado')), res = soma(lts.filter(e=>stE(e)==='reservado'));
-      return `<tr${sub?'':' style="background:var(--fundo)"'}>
-        <td style="${sub?'padding-left:26px':'font-weight:800;color:var(--roxo-esc)'}">${sub?'— ':''}${esc(rot)}</td>
-        <td${sub?'':' style="font-weight:800"'}>${lts.length}</td>
-        <td${sub?'':' style="font-weight:800"'}>${fmtRS(pot)}</td>
-        <td style="color:var(--verde)${sub?'':';font-weight:800'}">${fmtRS(ven)}</td>
-        <td${sub?'':' style="font-weight:800"'}>${fmtRS(res)}</td>
-        <td${sub?'':' style="font-weight:800"'}>${fmtRS(pot-ven-res)}</td></tr>`;
-    };
-    // Itens nomeados: cada espaço vendido/reservado com o ocupante (mesmo padrão da captação)
-    const ocupRows = (ls, pad) => ls.filter(e=>stE(e)!=='livre')
-      .sort((x,y)=>x.codigo.localeCompare(y.codigo,'pt-BR',{numeric:true}))
-      .map(e=>{
-        const s = stE(e), v = Number(e.valor||0);
-        return `<tr><td style="padding-left:${pad}px;color:var(--texto-suave)">· Espaço ${esc(e.codigo)} — ${esc(ocupLabel(e.id)||'—')}</td>
-          <td>1</td><td>${fmtRS(v)}</td>
-          <td style="color:var(--verde)">${s==='ocupado'?'<b>'+fmtRS(v)+'</b>':'—'}</td>
-          <td>${s==='reservado'?fmtRS(v):'—'}</td><td>—</td></tr>`;
-      }).join('');
-    const linhasArea = AREAS.map(a=>{
-      const lts = ESPACOS.filter(e=>e.area_id===a.id);
-      if(!lts.length) return '';
-      const subs = [['trailer','Trailer'],['estacao_fixa','Estação fixa'],['cervejaria','Cervejaria'],[null,'Sem tipo definido']]
-        .map(([t,rot])=>({t, rot, lts: lts.filter(e=>(e.tipo_xis||null)===t)}))
-        .filter(s=>s.lts.length);
-      // Grupo com SubGrupos (quando há tipos, ex.: Operações de Xis) ou grupo simples
-      if(subs.length>1 || (subs.length===1 && subs[0].t!==null && lts.some(e=>e.tipo_xis))){
-        return linhaVals(a.nome, lts, false) + subs.map(s=>linhaVals(s.rot, s.lts, true)+ocupRows(s.lts, 46)).join('');
+    // ===== PAINEL ESPELHADO: Planejado × Realizado =====
+    if(g('tabRecPR')){
+      const stE2 = e => espacoStatus(e.id);
+      const sv = a => a.reduce((s,x)=>s+Number(x.valor||0),0);
+      // Aviso de duplicidade patrocinador × participante
+      if(g('orcAviso')){
+        const nomesPart = new Set(PARTS.filter(p=>p.status!=='cancelado').map(p=>norm(nomePart(p))));
+        const dups = PATROC.filter(p=>p.status!=='cancelado' && Number(p.valor||0)>0 && nomesPart.has(norm(p.nome)));
+        g('orcAviso').innerHTML = dups.length ? `<div class="card" style="border:2px solid var(--amarelo);background:#fdf8ea;margin-bottom:14px">
+          <h3 style="color:#7d5600">Possível receita duplicada</h3>
+          <div style="font-size:13.5px">Nomes em patrocinadores E participantes: ${dups.map(d=>'<b>'+esc(d.nome)+'</b>').join(', ')}. Exclua ou zere o patrocinador migrado.</div></div>` : '';
       }
-      return linhaVals(a.nome, lts, false) + ocupRows(lts, 26);
-    }).join('');
-    g('tabOrcEsp').innerHTML = `<tr><th>Grupo / SubGrupo</th><th>Espaços</th><th>Potencial</th><th>Vendido</th><th>Reservado</th><th>Disponível</th></tr>`
-      + linhasArea
-      + `<tr class="tot" style="font-weight:800"><td>Total</td><td>${ESPACOS.length}</td><td>${fmtRS(potencial)}</td>
-          <td style="color:var(--verde)">${fmtRS(vendido)}</td><td>${fmtRS(reservado)}</td><td>${fmtRS(potencial-vendido-reservado)}</td></tr>`
-      + `<tr><td colspan="5">Taxas já recebidas (baixas no financeiro)</td><td style="color:var(--verde)"><b>${fmtRS(recEspaco)}</b></td></tr>`;
-    // Captação de patrocínio por origem e status
-    const pats = PATROC.filter(p=>p.status!=='cancelado');
-    const patLinha = p => {
-      const v = Number(p.valor||0);
-      return `<tr><td style="padding-left:26px">— ${esc(p.nome)}${p.cota?' <span style="color:var(--texto-suave)">('+esc(p.cota)+')</span>':''}</td>
-        <td>${p.status==='previsto'?fmtRS(v):'—'}</td><td>${p.status==='empenhado'?fmtRS(v):'—'}</td>
-        <td style="color:var(--verde)">${p.status==='recebido'?'<b>'+fmtRS(v)+'</b>':'—'}</td><td>${fmtRS(v)}</td></tr>`;
-    };
-    const linhaOrig = (rot, lista, comDetalhe) => {
-      const por = s => soma(lista.filter(p=>p.status===s));
-      return `<tr style="background:var(--fundo)"><td style="font-weight:800;color:var(--roxo-esc)">${rot}</td>
-        <td style="font-weight:800">${fmtRS(por('previsto'))}</td><td style="font-weight:800">${fmtRS(por('empenhado'))}</td>
-        <td style="color:var(--verde);font-weight:800">${fmtRS(por('recebido'))}</td><td style="font-weight:800">${fmtRS(soma(lista))}</td></tr>`
-        + (comDetalhe ? lista.map(patLinha).join('') : '');
-    };
-    g('tabOrcPat').innerHTML = `<tr><th>Origem / Empresa</th><th>Previsto</th><th>Empenhado</th><th>Recebido</th><th>Total</th></tr>`
-      + linhaOrig('Privado', pats.filter(p=>(p.origem||'privado')==='privado'), true)
-      + linhaOrig('Público', pats.filter(p=>p.origem==='publico'), true)
-      + linhaOrig('TOTAL GERAL', pats, false);
-    // Metas × contratado × realizado
-    const rec = FIN.filter(l=>l.tipo==='receber'), pag = FIN.filter(l=>l.tipo==='pagar');
-    const auto = {
-      'receita|Venda de espaços': {contr: vendido+reservado, real: recEspaco},
-      'receita|Patrocínio privado': {contr: soma(pats.filter(p=>(p.origem||'privado')==='privado'&&p.status!=='previsto')), real: soma(pats.filter(p=>(p.origem||'privado')==='privado'&&p.status==='recebido'))},
-      'receita|Patrocínio público': {contr: soma(pats.filter(p=>p.origem==='publico'&&p.status!=='previsto')), real: soma(pats.filter(p=>p.origem==='publico'&&p.status==='recebido'))}
-    };
-    const linhas = ORC.map(m=>{
-      const a = auto[m.tipo+'|'+m.categoria] || null;
-      const fornM = m.fornecedor_id ? (FORNEC.find(f=>f.id===m.fornecedor_id)||{}).razao_social : null;
-      const contr = a ? a.contr : (m.tipo==='despesa'
-        ? pag.reduce((s,l)=>s+((l.fornecedor_id && l.fornecedor_id===m.fornecedor_id) || norm(l.descricao).includes(norm(m.categoria)) ? Number(l.valor||0):0),0) : 0);
-      const real = a ? a.real : (m.tipo==='despesa'
-        ? pag.filter(l=>l.realizado).reduce((s,l)=>s+((l.fornecedor_id && l.fornecedor_id===m.fornecedor_id) || norm(l.descricao).includes(norm(m.categoria)) ? Number(l.valor||0):0),0)
-        : rec.filter(l=>l.realizado).reduce((s,l)=>s+(norm(l.descricao).includes(norm(m.categoria))?Number(l.valor||0):0),0));
-      const pct = m.valor_previsto>0 ? Math.round(real/m.valor_previsto*100) : 0;
-      return `<tr><td>${m.tipo==='receita'?'Receita':'Despesa'}</td>
-        <td>${esc(m.categoria)}${m.obs?` <span style="color:var(--texto-suave);font-size:12px">· ${esc(m.obs)}</span>`:''}${fornM?`<br><span style="color:var(--roxo);font-size:12px">Fornecedor: ${esc(fornM)}</span>`:''}</td>
-        <td><b>${fmtRS(m.valor_previsto)}</b></td><td>${fmtRS(contr)}</td>
-        <td style="color:var(--verde)"><b>${fmtRS(real)}</b></td><td>${pct}%</td>
-        <td class="no-print"><button class="btn btn-r btn-sm" onclick="excluirMeta('${m.id}')">Excluir</button></td></tr>`;
-    }).join('');
-    const totMeta = t => soma(ORC.filter(m=>m.tipo===t).map(m=>({valor:m.valor_previsto})));
-    g('tabOrcMetas').innerHTML = `<tr><th>Tipo</th><th>Categoria</th><th>Meta prevista</th><th>Contratado</th><th>Realizado</th><th>%</th><th class="no-print"></th></tr>`
-      + (ORC.length ? linhas + `<tr><td colspan="2"><b>Resultado previsto (receitas − despesas)</b></td><td colspan="5"><b>${fmtRS(totMeta('receita')-totMeta('despesa'))}</b></td></tr>`
-        : '<tr><td colspan="7" style="color:var(--texto-suave)">Nenhuma meta cadastrada. Dica: crie metas como "Venda de espaços", "Patrocínio privado" e "Patrocínio público" — essas três se comparam sozinhas com os cadastros.</td></tr>');
+      // Recebido por participação e por patrocinador (baixas do financeiro)
+      const recPart = {}, recPat = {};
+      FIN.filter(l=>l.tipo==='receber' && l.realizado).forEach(l=>{
+        if(l.participacao_id) recPart[l.participacao_id]=(recPart[l.participacao_id]||0)+Number(l.valor||0);
+        if(l.patrocinador_id) recPat[l.patrocinador_id]=(recPat[l.patrocinador_id]||0)+Number(l.valor||0);
+      });
+      const barra = (real, plan) => {
+        const pct = plan>0 ? Math.min(100, Math.round(real/plan*100)) : 0;
+        return `<div style="display:flex;align-items:center;gap:8px;min-width:130px">
+          <div style="flex:1;height:9px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${pct>=100?'var(--verde)':'var(--rosa)'}"></div></div>
+          <span style="font-size:11.5px;color:var(--texto-suave);min-width:34px;text-align:right">${pct}%</span></div>`;
+      };
+      const linha = (rot, plan, real, opts={}) => `<tr${opts.grupo?' style="background:var(--fundo)"':''}>
+        <td style="${opts.grupo?'font-weight:800;color:var(--roxo-esc)':opts.item?'padding-left:26px;color:var(--texto-suave)':''}">${rot}</td>
+        <td style="text-align:right${opts.grupo?';font-weight:800':''}">${fmtRS(plan)}</td>
+        <td style="text-align:right;color:var(--verde)${opts.grupo?';font-weight:800':''}">${real>0?fmtRS(real):'—'}</td>
+        <td>${barra(real, plan)}</td>
+        <td class="no-print">${opts.acao||''}</td></tr>`;
+      const cab = `<tr><th>Origem / Destino</th><th style="text-align:right">Planejado</th><th style="text-align:right">Realizado</th><th>Execução</th><th class="no-print"></th></tr>`;
+
+      // ---- RECEITAS ----
+      let rec = cab, recPlanT = 0, recRealT = 0;
+      AREAS.forEach(a=>{
+        const lts = ESPACOS.filter(e=>e.area_id===a.id);
+        if(!lts.length) return;
+        const plan = sv(lts);
+        const real = lts.reduce((s,e)=>{ const p=ocupanteDoEspaco(e.id); return s+(p?(recPart[p.id]||0):0); },0);
+        recPlanT += plan; recRealT += real;
+        const resv = sv(lts.filter(e=>stE2(e)==='reservado')), conf = sv(lts.filter(e=>stE2(e)==='ocupado'));
+        rec += linha(`Espaços — ${esc(a.nome)} <span style="font-weight:400;font-size:12px;color:var(--texto-suave)">(${lts.length} espaços · reservado ${fmtRS(resv)} · confirmado ${fmtRS(conf)})</span>`, plan, real, {grupo:true});
+        lts.filter(e=>stE2(e)!=='livre').sort((x,y)=>x.codigo.localeCompare(y.codigo,'pt-BR',{numeric:true})).forEach(e=>{
+          const p = ocupanteDoEspaco(e.id);
+          const rotI = `· ${esc(e.codigo)} — ${esc(ocupLabel(e.id)||'—')}${p&&p.valor_subsidio>0?` <span style="color:var(--roxo)">(subsídio ${esc(convNome(p.convenio_id))} ${fmtRS(p.valor_subsidio)})</span>`:''}`;
+          rec += linha(rotI, Number(e.valor||0), p?(recPart[p.id]||0):0, {item:true});
+        });
+      });
+      const patsA = PATROC.filter(p=>p.status!=='cancelado');
+      [['privado','Patrocínios Privados'],['publico','Verbas Públicas']].forEach(([o,rot])=>{
+        const lista = patsA.filter(p=>(p.origem||'privado')===o);
+        const plan = sv(lista);
+        const real = lista.reduce((s,p)=>s+(recPat[p.id]|| (p.status==='recebido'&&!recPat[p.id]?Number(p.valor||0):0)),0);
+        recPlanT += plan; recRealT += real;
+        rec += linha(`${rot} <span style="font-weight:400;font-size:12px;color:var(--texto-suave)">(${lista.length})</span>`, plan, real, {grupo:true});
+        lista.forEach(p=>{
+          rec += linha(`· ${esc(p.nome)}${p.cota?' ('+esc(p.cota)+')':''} — ${p.status}`, Number(p.valor||0), recPat[p.id]||(p.status==='recebido'?Number(p.valor||0):0), {item:true});
+        });
+      });
+      const convPrevPR = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
+      const convRecPR = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      if(convPrevPR>0) rec += `<tr style="color:var(--texto-suave)"><td style="padding-left:26px">↳ dos espaços acima, subsidiado por Convênios (${CONV.map(c=>esc(c.nome)).join(', ')}) — não soma</td>
+        <td style="text-align:right">${fmtRS(convPrevPR)}</td><td style="text-align:right">${convRecPR>0?fmtRS(convRecPR):'—'}</td><td>${barra(convRecPR, convPrevPR)}</td><td class="no-print"></td></tr>`;
+      rec += `<tr style="background:#efe7f4;font-weight:800"><td>RECEITA TOTAL</td><td style="text-align:right">${fmtRS(recPlanT)}</td><td style="text-align:right;color:var(--verde)">${fmtRS(recRealT)}</td><td>${barra(recRealT, recPlanT)}</td><td class="no-print"></td></tr>`;
+      g('tabRecPR').innerHTML = rec;
+
+      // ---- DESPESAS ----
+      const pagAll = FIN.filter(l=>l.tipo==='pagar');
+      const usados = new Set();
+      let desp = cab, despPlanT = 0, despRealT = 0;
+      ORC.filter(m=>m.tipo==='despesa').forEach(m=>{
+        const fornM = m.fornecedor_id ? (FORNEC.find(f=>f.id===m.fornecedor_id)||{}).razao_social : null;
+        const casados = pagAll.filter(l=> (m.fornecedor_id && l.fornecedor_id===m.fornecedor_id) || (!m.fornecedor_id && norm(l.descricao).includes(norm(m.categoria))));
+        casados.forEach(l=>usados.add(l.id));
+        const real = casados.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+        despPlanT += Number(m.valor_previsto||0); despRealT += real;
+        desp += linha(`${esc(m.categoria)}${m.obs?` <span style="font-weight:400;font-size:12px;color:var(--texto-suave)">· ${esc(m.obs)}</span>`:''}${fornM?` <span style="font-size:12px;color:var(--roxo)">→ ${esc(fornM)}</span>`:''}`,
+          Number(m.valor_previsto||0), real,
+          {grupo:false, acao:`<button class="btn btn-r btn-sm" onclick="excluirMeta('${m.id}')">Excluir</button>`});
+      });
+      const semPrev = pagAll.filter(l=>!usados.has(l.id));
+      if(semPrev.length){
+        const planSP = semPrev.reduce((s,l)=>s+Number(l.valor||0),0);
+        const realSP = semPrev.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+        despPlanT += planSP; despRealT += realSP;
+        desp += linha(`Despesas lançadas sem previsão <span style="font-weight:400;font-size:12px;color:var(--texto-suave)">(${semPrev.length} conta(s) — vale criar a previsão correspondente)</span>`, planSP, realSP, {grupo:true});
+        semPrev.forEach(l=>{ desp += linha(`· ${esc(l.descricao)}`, Number(l.valor||0), l.realizado?Number(l.valor||0):0, {item:true}); });
+      }
+      if(!ORC.filter(m=>m.tipo==='despesa').length && !semPrev.length){
+        desp += `<tr><td colspan="5" style="color:var(--texto-suave)">Nenhuma despesa planejada — use "Lançar previsão de despesa" acima.</td></tr>`;
+      } else {
+        desp += `<tr style="background:#efe7f4;font-weight:800"><td>DESPESA TOTAL</td><td style="text-align:right">${fmtRS(despPlanT)}</td><td style="text-align:right;color:var(--verde)">${fmtRS(despRealT)}</td><td>${barra(despRealT, despPlanT)}</td><td class="no-print"></td></tr>`;
+        desp += `<tr style="background:var(--fundo);font-weight:800"><td style="color:var(--roxo-esc)">RESULTADO — Planejado: ${fmtRS(recPlanT-despPlanT)} · Realizado: <span style="color:${recRealT-despRealT>=0?'var(--verde)':'var(--vermelho)'}">${fmtRS(recRealT-despRealT)}</span></td><td colspan="4"></td></tr>`;
+      }
+      g('tabDespPR').innerHTML = desp;
+      return;
+    }
   }
 
   // ===== CONVÊNIOS (Receitas de Convênios) =====
@@ -1738,41 +1686,65 @@
     const td = (t,extra='') => `<td style="padding:5px 8px;border-bottom:1px solid #f0eaf5;${extra}">${t}</td>`;
     const sec = t => `<div style="font-size:14px;font-weight:800;color:#4b1a60;border-bottom:2.5px solid #e91e8c;padding-bottom:4px;margin:14px 0 8px">${t}</div>`;
 
-    // 1. Venda de espaços — grupos e subgrupos (fiel ao mapa)
-    let espRows = '';
-    AREAS.forEach(a=>{
-      const lts = ESPACOS.filter(e=>e.area_id===a.id);
-      if(!lts.length) return;
-      const linha = (rot, ls, grupo) => {
-        const pot=soma(ls), ven=soma(ls.filter(e=>st(e)==='ocupado')), res=soma(ls.filter(e=>st(e)==='reservado'));
-        return `<tr>${td((grupo?'<b>':'&nbsp;&nbsp;— ')+esc(rot)+(grupo?'</b>':''), grupo?'background:#f6f1fa':'')}
-          ${td(ls.length, grupo?'background:#f6f1fa':'')}${td(fmtRS(pot), grupo?'background:#f6f1fa':'')}
-          ${td(fmtRS(ven),'color:#1d9e57'+(grupo?';background:#f6f1fa;font-weight:700':''))}
-          ${td(fmtRS(res), grupo?'background:#f6f1fa':'')}${td(fmtRS(pot-ven-res), grupo?'background:#f6f1fa':'')}</tr>`;
-      };
-      const ocupR = (ls, pad) => ls.filter(e=>st(e)!=='livre')
-        .sort((x,y)=>x.codigo.localeCompare(y.codigo,'pt-BR',{numeric:true}))
-        .map(e=>{ const s2=st(e), v=Number(e.valor||0);
-          return `<tr>${td('<span style="color:#8a7f95;padding-left:'+pad+'px;display:inline-block">· Espaço '+esc(e.codigo)+' — '+esc(ocupLabel(e.id)||'—')+'</span>')}
-            ${td('1')}${td(fmtRS(v))}${td(s2==='ocupado'?'<b>'+fmtRS(v)+'</b>':'—','color:#1d9e57')}
-            ${td(s2==='reservado'?fmtRS(v):'—')}${td('—')}</tr>`; }).join('');
-      const subs = [['trailer','Trailer'],['estacao_fixa','Estação fixa'],['cervejaria','Cervejaria'],[null,'Sem tipo']]
-        .map(([t,rot])=>({rot, ls: lts.filter(e=>(e.tipo_xis||null)===t)})).filter(s=>s.ls.length);
-      espRows += linha(a.nome, lts, true);
-      if(subs.length>1 || lts.some(e=>e.tipo_xis)) subs.forEach(s=>{ espRows += linha(s.rot, s.ls, false) + ocupR(s.ls, 26); });
-      else espRows += ocupR(lts, 14);
+    // Recebido por participação e por patrocinador (baixas do financeiro)
+    const recPart = {}, recPat = {};
+    FIN.filter(l=>l.tipo==='receber' && l.realizado).forEach(l=>{
+      if(l.participacao_id) recPart[l.participacao_id]=(recPart[l.participacao_id]||0)+Number(l.valor||0);
+      if(l.patrocinador_id) recPat[l.patrocinador_id]=(recPat[l.patrocinador_id]||0)+Number(l.valor||0);
     });
-    const potT=soma(ESPACOS), venT=soma(ESPACOS.filter(e=>st(e)==='ocupado')), resT=soma(ESPACOS.filter(e=>st(e)==='reservado'));
+    const pctF = (r,p)=> p>0? Math.min(100,Math.round(r/p*100)) : 0;
+    const barraF = (r,p)=>`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:7px;background:#efe7f4;border-radius:99px;overflow:hidden"><div style="width:${pctF(r,p)}%;height:100%;background:${pctF(r,p)>=100?'#1d9e57':'#e91e8c'}"></div></div><span style="font-size:8.5px;color:#8a7f95">${pctF(r,p)}%</span></div>`;
+    const linF = (rot,p,r,grupo,item)=>`<tr>${td((item?'<span style="color:#8a7f95;padding-left:14px;display:inline-block">':'')+(grupo?'<b>':'')+rot+(grupo?'</b>':'')+(item?'</span>':''), grupo?'background:#f6f1fa':'')}
+      ${td(fmtRS(p),'text-align:right;'+(grupo?'background:#f6f1fa;font-weight:700':''))}
+      ${td(r>0?fmtRS(r):'—','text-align:right;color:#1d9e57;'+(grupo?'background:#f6f1fa;font-weight:700':''))}
+      ${td(barraF(r,p),'width:110px;'+(grupo?'background:#f6f1fa':''))}</tr>`;
 
-    // 2. Patrocínios — aberto por empresa (transparência)
+    // 1. RECEITAS — Planejado × Realizado (origens)
+    let recRows='', recPlanT=0, recRealT=0;
+    AREAS.forEach(a=>{
+      const lts=ESPACOS.filter(e=>e.area_id===a.id); if(!lts.length) return;
+      const plan=soma(lts);
+      const real=lts.reduce((s,e)=>{const p=ocupanteDoEspaco(e.id); return s+(p?(recPart[p.id]||0):0);},0);
+      recPlanT+=plan; recRealT+=real;
+      const resv=soma(lts.filter(e=>st(e)==='reservado')), conf=soma(lts.filter(e=>st(e)==='ocupado'));
+      recRows+=linF('Espaços — '+esc(a.nome)+' <span style="font-weight:400;color:#8a7f95">('+lts.length+' esp. · reservado '+fmtRS(resv)+' · confirmado '+fmtRS(conf)+')</span>', plan, real, true, false);
+      lts.filter(e=>st(e)!=='livre').sort((x,y)=>x.codigo.localeCompare(y.codigo,'pt-BR',{numeric:true})).forEach(e=>{
+        const p=ocupanteDoEspaco(e.id);
+        recRows+=linF('· '+esc(e.codigo)+' — '+esc(ocupLabel(e.id)||'—'), Number(e.valor||0), p?(recPart[p.id]||0):0, false, true);
+      });
+    });
     const pats = PATROC.filter(p=>p.status!=='cancelado');
-    const pOr = (orig,s) => soma(pats.filter(p=>(p.origem||'privado')===orig && (!s || p.status===s)));
-    const patEmp = p => { const v=Number(p.valor||0);
-      return `<tr>${td('&nbsp;&nbsp;— '+esc(p.nome)+(p.cota?' <span style="color:#8a7f95">('+esc(p.cota)+')</span>':''))}
-        ${td(p.status==='previsto'?fmtRS(v):'—')}${td(p.status==='empenhado'?fmtRS(v):'—')}
-        ${td(p.status==='recebido'?'<b>'+fmtRS(v)+'</b>':'—','color:#1d9e57')}${td(fmtRS(v))}</tr>`; };
-    const patRow = (rot,o) => `<tr>${td('<b>'+rot+'</b>','background:#f6f1fa')}${td('<b>'+fmtRS(pOr(o,'previsto'))+'</b>','background:#f6f1fa')}${td('<b>'+fmtRS(pOr(o,'empenhado'))+'</b>','background:#f6f1fa')}${td('<b>'+fmtRS(pOr(o,'recebido'))+'</b>','background:#f6f1fa;color:#1d9e57')}${td('<b>'+fmtRS(pOr(o))+'</b>','background:#f6f1fa')}</tr>`
-      + pats.filter(p=>(p.origem||'privado')===o).map(patEmp).join('');
+    [['privado','Patrocínios Privados'],['publico','Verbas Públicas']].forEach(([o,rot])=>{
+      const ls=pats.filter(p=>(p.origem||'privado')===o);
+      const plan=soma(ls);
+      const real=ls.reduce((s,p)=>s+(recPat[p.id]||(p.status==='recebido'?Number(p.valor||0):0)),0);
+      recPlanT+=plan; recRealT+=real;
+      recRows+=linF(rot+' ('+ls.length+')', plan, real, true, false);
+      ls.forEach(p=>{ recRows+=linF('· '+esc(p.nome)+(p.cota?' ('+esc(p.cota)+')':'')+' — '+p.status, Number(p.valor||0), recPat[p.id]||(p.status==='recebido'?Number(p.valor||0):0), false, true); });
+    });
+    const cvPrevF=CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
+    const cvRecF=FIN.filter(l=>l.convenio_id&&l.tipo==='receber'&&l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+    if(cvPrevF>0) recRows+=linF('↳ dos espaços acima, subsidiado por Convênios ('+CONV.map(c=>esc(c.nome)).join(', ')+') — já incluído, não soma', cvPrevF, cvRecF, false, true);
+
+    // 2. DESPESAS — Planejado × Realizado (destinos)
+    const pagAllF=FIN.filter(l=>l.tipo==='pagar');
+    const usadosF=new Set();
+    let despRows='', despPlanT=0, despRealT=0;
+    ORC.filter(m=>m.tipo==='despesa').forEach(m=>{
+      const fornM=m.fornecedor_id?(FORNEC.find(f=>f.id===m.fornecedor_id)||{}).razao_social:null;
+      const casados=pagAllF.filter(l=>(m.fornecedor_id&&l.fornecedor_id===m.fornecedor_id)||(!m.fornecedor_id&&norm(l.descricao).includes(norm(m.categoria))));
+      casados.forEach(l=>usadosF.add(l.id));
+      const real=casados.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      despPlanT+=Number(m.valor_previsto||0); despRealT+=real;
+      despRows+=linF(esc(m.categoria)+(m.obs?' <span style="color:#8a7f95">· '+esc(m.obs)+'</span>':'')+(fornM?' <span style="color:#662382">→ '+esc(fornM)+'</span>':''), Number(m.valor_previsto||0), real, false, false);
+    });
+    const semPrevF=pagAllF.filter(l=>!usadosF.has(l.id));
+    if(semPrevF.length){
+      const pSP=semPrevF.reduce((s,l)=>s+Number(l.valor||0),0), rSP=semPrevF.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      despPlanT+=pSP; despRealT+=rSP;
+      despRows+=linF('Despesas lançadas sem previsão ('+semPrevF.length+')', pSP, rSP, true, false);
+      semPrevF.forEach(l=>{ despRows+=linF('· '+esc(l.descricao), Number(l.valor||0), l.realizado?Number(l.valor||0):0, false, true); });
+    }
 
     // 3. Convênios
     const convRows = CONV.length ? CONV.map(c=>{
@@ -1781,49 +1753,9 @@
       return `<tr>${td('<b>'+esc(c.nome)+'</b>')}${td(fmtRS(c.valor_previsto))}${td(fmtRS(comp))}${td(fmtRS(rec),'color:#1d9e57;font-weight:700')}${td(fmtRS((c.valor_previsto||0)-comp))}</tr>`;
     }).join('') : `<tr>${td('Nenhum convênio cadastrado','color:#8a7f95')}${td('—')}${td('—')}${td('—')}${td('—')}</tr>`;
 
-    // 4. Metas
-    const metaRows = ORC.length ? ORC.map(m=>`<tr>${td(m.tipo==='receita'?'Receita':'Despesa')}${td(esc(m.categoria))}${td('<b>'+fmtRS(m.valor_previsto)+'</b>')}</tr>`).join('')
-      : `<tr>${td('Nenhuma meta cadastrada','color:#8a7f95')}${td('—')}${td('—')}</tr>`;
-
-    // 5. Resumo financeiro
+    // Caixa do evento
     const fsum = (t,r) => FIN.filter(l=>l.tipo===t && l.realizado===r).reduce((s,l)=>s+Number(l.valor||0),0);
     const recAb=fsum('receber',false), recOk=fsum('receber',true), pagAb=fsum('pagar',false), pagOk=fsum('pagar',true);
-
-    // 0. Resumo executivo (Potencial · Reservado · Confirmado)
-    const ehCom = a => /comercia|digital|ativa/.test(norm(a.nome));
-    const idsComF = new Set(AREAS.filter(ehCom).map(a=>a.id));
-    const eOper = ESPACOS.filter(e=>!idsComF.has(e.area_id)), eCom = ESPACOS.filter(e=>idsComF.has(e.area_id));
-    const sPot = ls=>soma(ls), sRes = ls=>soma(ls.filter(e=>st(e)==='reservado')), sConf = ls=>soma(ls.filter(e=>st(e)==='ocupado'));
-    const pPriv = pats.filter(p=>(p.origem||'privado')==='privado'), pPub = pats.filter(p=>p.origem==='publico');
-    const pR = a=>soma(a.filter(p=>p.status==='previsto'||p.status==='empenhado')), pC = a=>soma(a.filter(p=>p.status==='recebido'));
-    const cvPrev = CONV.reduce((s,c)=>s+Number(c.valor_previsto||0),0);
-    const cvComp = PARTS.filter(p=>p.convenio_id && p.status!=='cancelado').reduce((s,p)=>s+Number(p.valor_subsidio||0),0);
-    const cvRec = FIN.filter(l=>l.convenio_id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-    const pagT = FIN.filter(l=>l.tipo==='pagar');
-    const gA = pagT.filter(l=>l.atracao_id), gF = pagT.filter(l=>!l.atracao_id && l.fornecedor_id), gO = pagT.filter(l=>!l.atracao_id && !l.fornecedor_id);
-    const tT = a=>a.reduce((s,l)=>s+Number(l.valor||0),0), tA = a=>a.filter(l=>!l.realizado).reduce((s,l)=>s+Number(l.valor||0),0), tP = a=>a.filter(l=>l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
-    const rPot = sPot(eOper)+sPot(eCom)+soma(pPriv)+soma(pPub);
-    const rRes = sRes(eOper)+sRes(eCom)+pR(pPriv)+pR(pPub);
-    const rConf = sConf(eOper)+sConf(eCom)+pC(pPriv)+pC(pPub);
-    const rexLinha = (rot,a,b,c,extra='') => `<tr>${td(rot,extra)}${td(fmtRS(a),'text-align:right;'+extra)}${td(fmtRS(b),'text-align:right;'+extra)}${td(fmtRS(c),'text-align:right;'+(extra||'color:#1d9e57;font-weight:700'))}</tr>`;
-    const resumoHTML = `
-      <table style="width:100%;border-collapse:collapse;font-size:10px">
-        <tr>${th('Receitas')}${th('Potencial')}${th('Reservado')}${th('Confirmado')}</tr>
-        ${rexLinha('1. Vendas de Espaços — Operações', sPot(eOper), sRes(eOper), sConf(eOper))}
-        ${rexLinha('2. Vendas de Espaços — Expositores Comerciais e Ativação de Marcas', sPot(eCom), sRes(eCom), sConf(eCom))}
-        ${rexLinha('3. Patrocínios Privados ('+pPriv.length+')', soma(pPriv), pR(pPriv), pC(pPriv))}
-        ${rexLinha('4. Verbas Públicas ('+pPub.length+')', soma(pPub), pR(pPub), pC(pPub))}
-        ${cvPrev>0 ? rexLinha('&nbsp;&nbsp;↳ das vendas de espaços, subsidiado por Convênios ('+CONV.map(c=>esc(c.nome)).join(', ')+') — já incluído, não soma', cvPrev, cvComp, cvRec, 'color:#8a7f95') : ''}
-        ${rexLinha('<b>RECEITA TOTAL</b>', rPot, rRes, rConf, 'background:#efe7f4;font-weight:800')}
-        <tr>${th('Despesas')}${th('Comprometido')}${th('Em aberto')}${th('Pago')}</tr>
-        ${rexLinha('Atrações culturais (cachês)', tT(gA), tA(gA), tP(gA))}
-        ${rexLinha('Fornecedores (estrutura e serviços)', tT(gF), tA(gF), tP(gF))}
-        ${rexLinha('Outras despesas', tT(gO), tA(gO), tP(gO))}
-        ${rexLinha('<b>DESPESA TOTAL</b>', tT(pagT), tA(pagT), tP(pagT), 'background:#efe7f4;font-weight:800')}
-        <tr>${td('<b>RESULTADO PREVISTO</b> (reservado + confirmado − despesas comprometidas)','background:#f6f1fa;font-weight:800')}
-          ${td('','background:#f6f1fa')}${td('','background:#f6f1fa')}
-          ${td('<b>'+fmtRS(rRes+rConf-tT(pagT))+'</b>','background:#f6f1fa;text-align:right;color:'+((rRes+rConf-tT(pagT))>=0?'#1d9e57':'#d63344'))}</tr>
-      </table>`;
 
     const doc = document.createElement('div');
     doc.style.cssText = 'width:190mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:10.5px;line-height:1.5';
@@ -1836,31 +1768,27 @@
           Documento gerado pela plataforma Cidade do Xis em ${new Date().toLocaleString('pt-BR')}</div>
         </div>
       </div>
-      ${sec('1. Resumo executivo — Potencial · Reservado · Confirmado')}
-      ${resumoHTML}
-      ${sec('2. Receita de espaços — por grupo e subgrupo (fiel ao mapa de espaços)')}
+      ${sec('1. Receitas — Planejado × Realizado (de onde o dinheiro vem)')}
+      <div style="font-size:9.5px;color:#8a7f95;margin-bottom:6px">Planejado = Tabela de Preços dos espaços + patrocínios e verbas cadastrados. Realizado = valores efetivamente recebidos (baixas no financeiro).</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px">
-        <tr>${th('Grupo / SubGrupo')}${th('Espaços')}${th('Potencial')}${th('Vendido')}${th('Reservado')}${th('Disponível')}</tr>
-        ${espRows}
-        <tr>${td('<b>TOTAL</b>','background:#efe7f4')}${td('<b>'+ESPACOS.length+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(potT)+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(venT)+'</b>','background:#efe7f4;color:#1d9e57')}${td('<b>'+fmtRS(resT)+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(potT-venT-resT)+'</b>','background:#efe7f4')}</tr>
+        <tr>${th('Origem da receita')}${th('Planejado')}${th('Realizado')}${th('Execução')}</tr>
+        ${recRows}
+        <tr>${td('<b>RECEITA TOTAL</b>','background:#efe7f4')}${td('<b>'+fmtRS(recPlanT)+'</b>','background:#efe7f4;text-align:right')}${td('<b>'+fmtRS(recRealT)+'</b>','background:#efe7f4;text-align:right;color:#1d9e57')}${td(barraF(recRealT,recPlanT),'background:#efe7f4;width:110px')}</tr>
       </table>
-      ${sec('3. Captação de patrocínios — por origem e status')}
+      ${sec('2. Despesas — Planejado × Realizado (para onde o dinheiro vai)')}
+      <div style="font-size:9.5px;color:#8a7f95;margin-bottom:6px">Planejado = previsões de despesa por categoria e fornecedor. Realizado = contas efetivamente pagas (baixas no financeiro).</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px">
-        <tr>${th('Origem')}${th('Previsto')}${th('Empenhado')}${th('Recebido')}${th('Total')}</tr>
-        ${patRow('Privado','privado')}${patRow('Público (emendas, convênios de patrocínio)','publico')}
-        <tr>${td('<b>TOTAL</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','previsto')+pOr('publico','previsto'))+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','empenhado')+pOr('publico','empenhado'))+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','recebido')+pOr('publico','recebido'))+'</b>','background:#efe7f4;color:#1d9e57')}${td('<b>'+fmtRS(soma(pats))+'</b>','background:#efe7f4')}</tr>
+        <tr>${th('Destino da despesa')}${th('Planejado')}${th('Realizado')}${th('Execução')}</tr>
+        ${despRows||`<tr>${td('Nenhuma despesa planejada','color:#8a7f95')}${td('—')}${td('—')}${td('')}</tr>`}
+        <tr>${td('<b>DESPESA TOTAL</b>','background:#efe7f4')}${td('<b>'+fmtRS(despPlanT)+'</b>','background:#efe7f4;text-align:right')}${td('<b>'+fmtRS(despRealT)+'</b>','background:#efe7f4;text-align:right')}${td(barraF(despRealT,despPlanT),'background:#efe7f4;width:110px')}</tr>
+        <tr>${td('<b>RESULTADO</b> (receitas − despesas)','background:#f6f1fa;font-weight:800')}${td('<b>'+fmtRS(recPlanT-despPlanT)+'</b>','background:#f6f1fa;text-align:right')}${td('<b>'+fmtRS(recRealT-despRealT)+'</b>','background:#f6f1fa;text-align:right;color:'+((recRealT-despRealT)>=0?'#1d9e57':'#d63344'))}${td('','background:#f6f1fa')}</tr>
       </table>
-      ${sec('4. Receitas de Convênios — subsídios de taxas de espaço (origem de pagamento, já contidas na venda de espaços)')}
+      ${sec('3. Receitas de Convênios — subsídios de taxas de espaço (origem de pagamento, já contidas nos espaços da seção 1)')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Convênio')}${th('Previsto')}${th('Comprometido')}${th('Recebido')}${th('Saldo do previsto')}</tr>
         ${convRows}
       </table>
-      ${sec('5. Metas orçamentárias')}
-      <table style="width:100%;border-collapse:collapse;font-size:10px">
-        <tr>${th('Tipo')}${th('Categoria')}${th('Valor previsto')}</tr>
-        ${metaRows}
-      </table>
-      ${sec('6. Resumo financeiro do evento (caixa)')}
+      ${sec('4. Caixa do evento (situação de hoje)')}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <tr>${th('Indicador')}${th('Valor')}</tr>
         <tr>${td('Receitas recebidas (baixadas)')}${td('<b>'+fmtRS(recOk)+'</b>','color:#1d9e57')}</tr>
