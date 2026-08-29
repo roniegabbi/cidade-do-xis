@@ -771,7 +771,7 @@
       if(lts.some(e=>e.tipo_xis)){
         [['trailer','Trailers'],['estacao_fixa','Estações fixas'],['cervejaria','Cervejarias']].forEach(([t,rot])=>{
           const sub = lts.filter(e=>e.tipo_xis===t);
-          if(sub.length) fx.push({area:a, tipo:t, rot:a.nome+' — '+rot, lts:sub});
+          if(sub.length) fx.push({area:a, tipo:t, rot: t==='cervejaria' ? 'Cervejarias' : a.nome+' — '+rot, lts:sub});
         });
         const semTipo = lts.filter(e=>!e.tipo_xis);
         if(semTipo.length) fx.push({area:a, tipo:null, rot:a.nome+' — sem tipo', lts:semTipo});
