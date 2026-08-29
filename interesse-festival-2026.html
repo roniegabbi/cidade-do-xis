@@ -65,6 +65,7 @@
             <option value="xis">Operação de Xis (trailer ou estação fixa)</option>
             <option value="cervejaria">Cervejaria artesanal</option>
             <option value="criativo">Mercado Criativo (artesanato/economia criativa)</option>
+            <option value="comercial">Expositor Comercial (marcas, produtos e serviços)</option>
             <option value="ferromodelismo">Ferromodelismo</option>
             <option value="outros">Outros expositores (bebidas e diversos)</option>
           </select>
@@ -142,7 +143,7 @@
   g('fCat').addEventListener('change', catToggle);
 
   const pre = new URLSearchParams(location.search).get('c') || '';
-  if(['xis','cervejaria','criativo','ferromodelismo','outros'].includes(pre)) g('fCat').value = pre;
+  if(['xis','cervejaria','criativo','comercial','ferromodelismo','outros'].includes(pre)) g('fCat').value = pre;
   catToggle();
 
   async function enviar(){

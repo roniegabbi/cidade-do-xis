@@ -57,6 +57,7 @@
   .q-esp .qm{background:#fbeaf0;border-color:#d4537e;color:#72243e}
   .q-esp .qk{background:#f2e9e2;border-color:#8a5a3b;color:#52351f}
   .q-esp .qx{background:#e0f4f7;border-color:#1994a8;color:#0b4c57}
+  .q-esp .qd{background:#efe9fb;border-color:#7f77dd;color:#3c3489}
   ul{margin:0 0 10px 18px}
   li{margin-bottom:4px}
   @media print{
@@ -193,6 +194,7 @@
     <span><i style="background:#d4537e"></i> Mercado Criativo (39–59)</span>
     <span><i style="background:#8a5a3b"></i> Café &amp; Tortas (60–70)</span>
     <span><i style="background:#1994a8"></i> Expositores Comerciais (71–80)</span>
+    <span><i style="background:#7f77dd"></i> Ativação Digital de Marcas (81–82)</span>
   </div>
   <table>
     <tr><th>Categoria</th><th>Espaços</th><th>Qtde</th><th>Caracterização</th></tr>
@@ -202,7 +204,8 @@
     <tr><td>Mercado Criativo</td><td>39 a 59</td><td>21</td><td>Feira criativa na Plataforma da Gare</td></tr>
     <tr><td>Café &amp; Tortas</td><td>60 a 70</td><td>11</td><td>Espaço interno de cafés e confeitarias</td></tr>
     <tr><td>Expositores Comerciais</td><td>71 a 80</td><td>10</td><td>Marcas e serviços em exposição comercial</td></tr>
-    <tr class="tot"><td>Total de espaços comercializáveis</td><td>01 a 80</td><td>80</td><td></td></tr>
+    <tr><td>Ativação Digital de Marcas</td><td>81 a 82</td><td>2</td><td>Painéis digitais com venda de mídia para marcas locais (convênio)</td></tr>
+    <tr class="tot"><td>Total de espaços comercializáveis</td><td>01 a 82</td><td>82</td><td></td></tr>
   </table>
   <p style="font-size:12px;color:var(--texto-suave)">A ocupação em tempo real (livre · reservado · ocupado), com valores e responsáveis por espaço, é controlada no módulo Gestão do Festival da plataforma Cidade do Xis.</p>
   <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Mapa do Evento</span></div>
@@ -211,7 +214,7 @@
 <!-- QUADRO DE ESPAÇOS -->
 <section class="pagina">
   <h2>4.1 Quadro de Espaços</h2>
-  <p>Distribuição dos 80 espaços comercializáveis do Festival, com numeração corrida e identificação visual por categoria — a mesma adotada no módulo de gestão da plataforma Cidade do Xis.</p>
+  <p>Distribuição dos 82 espaços comercializáveis do Festival, com numeração corrida e identificação visual por categoria — a mesma adotada no módulo de gestão da plataforma Cidade do Xis.</p>
   <div class="leg-cores" style="margin-bottom:14px">
     <span><i style="background:#5C2890"></i> Trailers</span>
     <span><i style="background:#1d9e57"></i> Estações fixas</span>
@@ -230,6 +233,8 @@
   <div class="q-esp" id="qCafe"></div>
   <h3>Expositores Comerciais (71–80)</h3>
   <div class="q-esp" id="qCom"></div>
+  <h3>Ativação Digital de Marcas (81–82)</h3>
+  <div class="q-esp" id="qDig"></div>
   <p style="font-size:11.5px;color:var(--texto-suave);margin-top:12px">A ocupação em tempo real (livre · reservado · ocupado), valores e responsáveis são mantidos no módulo Gestão do Festival, que também exporta este mapa atualizado em PDF.</p>
   <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Quadro de Espaços</span></div>
 </section>
@@ -261,6 +266,7 @@
     <tr><td>Venda de espaços — Café &amp; Tortas (60–70)</td><td>11 espaços × R$ —</td><td>R$ —</td></tr>
     <tr><td>Venda de espaços — Expositores Comerciais (71–80)</td><td>10 espaços × R$ —</td><td>R$ —</td></tr>
     <tr><td>Receitas de convênios</td><td>Subsídio de taxas de espaço (ex.: SEBRAE — 50% de operações selecionadas)</td><td>R$ —</td></tr>
+    <tr><td>Ativação Digital de Marcas (81–82)</td><td>Convênio com operadora de painéis digitais + venda de mídia para marcas locais</td><td>R$ —</td></tr>
     <tr><td>Patrocínio privado</td><td>Cotas e espaços de ativação</td><td>R$ —</td></tr>
     <tr><td>Recurso público</td><td>Emendas, convênios e dotações</td><td>R$ —</td></tr>
     <tr class="tot"><td colspan="2">Total de receitas previstas</td><td>R$ —</td></tr>
@@ -324,6 +330,7 @@
     document.getElementById('qCria').innerHTML = faixa(39,59,'qm');
     document.getElementById('qCafe').innerHTML = faixa(60,70,'qk');
     document.getElementById('qCom').innerHTML  = faixa(71,80,'qx');
+    document.getElementById('qDig').innerHTML  = faixa(81,82,'qd');
   })();
 
   // Gera o PDF A4 e baixa o arquivo direto (sem passar pela impressão)
