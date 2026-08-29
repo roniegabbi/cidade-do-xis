@@ -398,6 +398,9 @@
     <section class="pane hide" id="p-orc">
       <div class="h">Planejamento orçamentário</div>
       <div class="sub">Metas de receita e despesa comparadas com o contratado e o realizado.</div>
+      <div class="filtros no-print">
+        <button class="btn btn-p btn-sm" id="btnFichaOrc" onclick="baixarFichaOrc()">Ficha Técnica (PDF)</button>
+      </div>
       <div class="card no-print">
         <h3>Nova meta</h3>
         <div class="grid3">
@@ -1423,6 +1426,124 @@
     const r = await SB.from('festival_participacoes').update({convenio_id:null, valor_subsidio:0}).eq('id',partId);
     if(r.error){ toast('Erro: '+r.error.message); return; }
     toast('Subsídio removido'); loadAll();
+  }
+
+  // ===== FICHA TÉCNICA ORÇAMENTÁRIA (A4 PDF) =====
+  async function baixarFichaOrc(){
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Não foi possível carregar o gerador de PDF — verifique a conexão'); return; }
+    const btn = g('btnFichaOrc'); btn.disabled = true; btn.textContent = 'Gerando…';
+    const st = e => espacoStatus(e.id);
+    const soma = a => a.reduce((s,x)=>s+Number(x.valor||x.taxa||0),0);
+    const th = t => `<th style="background:#662382;color:#fff;text-align:left;padding:5px 8px;font-size:9px;text-transform:uppercase">${t}</th>`;
+    const td = (t,extra='') => `<td style="padding:5px 8px;border-bottom:1px solid #f0eaf5;${extra}">${t}</td>`;
+    const sec = t => `<div style="font-size:14px;font-weight:800;color:#4b1a60;border-bottom:2.5px solid #e91e8c;padding-bottom:4px;margin:14px 0 8px">${t}</div>`;
+
+    // 1. Venda de espaços — grupos e subgrupos (fiel ao mapa)
+    let espRows = '';
+    AREAS.forEach(a=>{
+      const lts = ESPACOS.filter(e=>e.area_id===a.id);
+      if(!lts.length) return;
+      const linha = (rot, ls, grupo) => {
+        const pot=soma(ls), ven=soma(ls.filter(e=>st(e)==='ocupado')), res=soma(ls.filter(e=>st(e)==='reservado'));
+        return `<tr>${td((grupo?'<b>':'&nbsp;&nbsp;— ')+esc(rot)+(grupo?'</b>':''), grupo?'background:#f6f1fa':'')}
+          ${td(ls.length, grupo?'background:#f6f1fa':'')}${td(fmtRS(pot), grupo?'background:#f6f1fa':'')}
+          ${td(fmtRS(ven),'color:#1d9e57'+(grupo?';background:#f6f1fa;font-weight:700':''))}
+          ${td(fmtRS(res), grupo?'background:#f6f1fa':'')}${td(fmtRS(pot-ven-res), grupo?'background:#f6f1fa':'')}</tr>`;
+      };
+      const subs = [['trailer','Trailer'],['estacao_fixa','Estação fixa'],['cervejaria','Cervejaria'],[null,'Sem tipo']]
+        .map(([t,rot])=>({rot, ls: lts.filter(e=>(e.tipo_xis||null)===t)})).filter(s=>s.ls.length);
+      espRows += linha(a.nome, lts, true);
+      if(subs.length>1 || lts.some(e=>e.tipo_xis)) subs.forEach(s=>{ espRows += linha(s.rot, s.ls, false); });
+    });
+    const potT=soma(ESPACOS), venT=soma(ESPACOS.filter(e=>st(e)==='ocupado')), resT=soma(ESPACOS.filter(e=>st(e)==='reservado'));
+
+    // 2. Patrocínios
+    const pats = PATROC.filter(p=>p.status!=='cancelado');
+    const pOr = (orig,s) => soma(pats.filter(p=>(p.origem||'privado')===orig && (!s || p.status===s)));
+    const patRow = (rot,o) => `<tr>${td('<b>'+rot+'</b>')}${td(fmtRS(pOr(o,'previsto')))}${td(fmtRS(pOr(o,'empenhado')))}${td(fmtRS(pOr(o,'recebido')),'color:#1d9e57;font-weight:700')}${td(fmtRS(pOr(o)))}</tr>`;
+
+    // 3. Convênios
+    const convRows = CONV.length ? CONV.map(c=>{
+      const comp = PARTS.filter(p=>p.convenio_id===c.id && p.status!=='cancelado').reduce((s,p)=>s+Number(p.valor_subsidio||0),0);
+      const rec = FIN.filter(l=>l.convenio_id===c.id && l.tipo==='receber' && l.realizado).reduce((s,l)=>s+Number(l.valor||0),0);
+      return `<tr>${td('<b>'+esc(c.nome)+'</b>')}${td(fmtRS(c.valor_previsto))}${td(fmtRS(comp))}${td(fmtRS(rec),'color:#1d9e57;font-weight:700')}${td(fmtRS((c.valor_previsto||0)-comp))}</tr>`;
+    }).join('') : `<tr>${td('Nenhum convênio cadastrado','color:#8a7f95')}${td('—')}${td('—')}${td('—')}${td('—')}</tr>`;
+
+    // 4. Metas
+    const metaRows = ORC.length ? ORC.map(m=>`<tr>${td(m.tipo==='receita'?'Receita':'Despesa')}${td(esc(m.categoria))}${td('<b>'+fmtRS(m.valor_previsto)+'</b>')}</tr>`).join('')
+      : `<tr>${td('Nenhuma meta cadastrada','color:#8a7f95')}${td('—')}${td('—')}</tr>`;
+
+    // 5. Resumo financeiro
+    const fsum = (t,r) => FIN.filter(l=>l.tipo===t && l.realizado===r).reduce((s,l)=>s+Number(l.valor||0),0);
+    const recAb=fsum('receber',false), recOk=fsum('receber',true), pagAb=fsum('pagar',false), pagOk=fsum('pagar',true);
+
+    const doc = document.createElement('div');
+    doc.style.cssText = 'width:190mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:10.5px;line-height:1.5';
+    doc.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #e91e8c;padding-bottom:10px">
+        <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" style="height:44px" crossorigin="anonymous">
+        <div>
+          <div style="font-size:17px;font-weight:800;color:#4b1a60">Ficha Técnica Orçamentária</div>
+          <div style="font-size:10.5px;color:#8a7f95">${EV?esc(EV.nome):''} · 13 a 15 de novembro de 2026 · Largo da Gare · Santa Maria/RS<br>
+          Documento gerado pela plataforma Cidade do Xis em ${new Date().toLocaleString('pt-BR')}</div>
+        </div>
+      </div>
+      ${sec('1. Receita de espaços — por grupo e subgrupo (fiel ao mapa de espaços)')}
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${th('Grupo / SubGrupo')}${th('Espaços')}${th('Potencial')}${th('Vendido')}${th('Reservado')}${th('Disponível')}</tr>
+        ${espRows}
+        <tr>${td('<b>TOTAL</b>','background:#efe7f4')}${td('<b>'+ESPACOS.length+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(potT)+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(venT)+'</b>','background:#efe7f4;color:#1d9e57')}${td('<b>'+fmtRS(resT)+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(potT-venT-resT)+'</b>','background:#efe7f4')}</tr>
+      </table>
+      ${sec('2. Captação de patrocínios — por origem e status')}
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${th('Origem')}${th('Previsto')}${th('Empenhado')}${th('Recebido')}${th('Total')}</tr>
+        ${patRow('Privado','privado')}${patRow('Público (emendas, convênios de patrocínio)','publico')}
+        <tr>${td('<b>TOTAL</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','previsto')+pOr('publico','previsto'))+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','empenhado')+pOr('publico','empenhado'))+'</b>','background:#efe7f4')}${td('<b>'+fmtRS(pOr('privado','recebido')+pOr('publico','recebido'))+'</b>','background:#efe7f4;color:#1d9e57')}${td('<b>'+fmtRS(soma(pats))+'</b>','background:#efe7f4')}</tr>
+      </table>
+      ${sec('3. Receitas de Convênios — subsídios de taxas de espaço')}
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${th('Convênio')}${th('Previsto')}${th('Comprometido')}${th('Recebido')}${th('Saldo do previsto')}</tr>
+        ${convRows}
+      </table>
+      ${sec('4. Metas orçamentárias')}
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${th('Tipo')}${th('Categoria')}${th('Valor previsto')}</tr>
+        ${metaRows}
+      </table>
+      ${sec('5. Resumo financeiro do evento')}
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${th('Indicador')}${th('Valor')}</tr>
+        <tr>${td('Receitas recebidas (baixadas)')}${td('<b>'+fmtRS(recOk)+'</b>','color:#1d9e57')}</tr>
+        <tr>${td('Receitas a receber (previstas)')}${td(fmtRS(recAb))}</tr>
+        <tr>${td('Despesas pagas (baixadas)')}${td('<b>'+fmtRS(pagOk)+'</b>')}</tr>
+        <tr>${td('Despesas a pagar (previstas)')}${td(fmtRS(pagAb))}</tr>
+        <tr>${td('<b>Resultado realizado (recebido − pago)</b>','background:#efe7f4')}${td('<b>'+fmtRS(recOk-pagOk)+'</b>','background:#efe7f4')}</tr>
+        <tr>${td('<b>Resultado projetado (todas as receitas − todas as despesas)</b>','background:#efe7f4')}${td('<b>'+fmtRS((recOk+recAb)-(pagOk+pagAb))+'</b>','background:#efe7f4')}</tr>
+      </table>
+      <div style="margin-top:10px;background:#f6f1fa;border-left:4px solid #e91e8c;padding:8px 12px;font-size:9.5px">
+        Transparência: os valores desta ficha são extraídos em tempo real do módulo Gestão do Festival (espaços, patrocinadores, convênios e financeiro).
+        Havendo recurso público, a relação analítica de pagamentos e recebimentos por período está disponível na aba Prestação de Contas (SELD · Decreto 159/2006).
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:34px;font-size:10px;text-align:center">
+        <div style="border-top:1.2px solid #3a2f42;padding-top:5px"><b>Coordenação do Festival</b></div>
+        <div style="border-top:1.2px solid #3a2f42;padding-top:5px"><b>Responsável Financeiro</b></div>
+      </div>
+      <div style="margin-top:10px;font-size:9px;color:#8a7f95;text-align:center">Programa Xis · Prefeitura Municipal de Santa Maria · cidadedoxis.com</div>`;
+    document.body.appendChild(doc);
+    try{
+      await html2pdf().set({
+        margin: [8,8,8,8],
+        filename: 'Ficha-Tecnica-Orcamentaria-Festival-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor:'#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'] }
+      }).from(doc).save();
+      toast('Ficha técnica baixada');
+    }catch(e){ toast('Falha ao gerar o PDF'); }
+    doc.remove();
+    btn.disabled = false; btn.textContent = 'Ficha Técnica (PDF)';
   }
 
   // ===== FINANCEIRO =====
