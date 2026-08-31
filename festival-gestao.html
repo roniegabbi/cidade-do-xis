@@ -1957,8 +1957,8 @@
     el.innerHTML = lista.length ? lista.map(i=>`<div class="row" style="align-items:flex-start">
       <div style="min-width:0;flex:1">
         <div class="nm">${esc(i.nome)} ${stPill(i.status)}
-          <span class="pill ${i.boas_praticas?'ok':'bad'}">${i.boas_praticas?'Boas práticas: sim':'Boas práticas: não'}</span>
-          ${i.tempo_xis?`<span class="pill info">Trabalha com xis há ${esc(i.tempo_xis)}</span>`:''}
+          ${i.boas_praticas!=null?`<span class="pill ${i.boas_praticas?'ok':'bad'}">Boas práticas: ${i.boas_praticas?'sim':'não'}</span>`:''}
+          ${i.tempo_xis?`<span class="pill info">Trabalha com ${i.categoria==='xis'?'xis':'eventos'} há ${esc(i.tempo_xis)}</span>`:''}
           ${i.qtd_equipe?`<span class="pill info">Equipe: ${esc(i.qtd_equipe)} pessoa(s)</span>`:''}
           ${i.usa_glp!=null?`<span class="pill ${i.usa_glp?'warn':'info'}">GLP: ${i.usa_glp?'sim':'não'}</span>`:''}
           ${i.ponto_agua!=null?`<span class="pill ${i.ponto_agua?'warn':'info'}">Água: ${i.ponto_agua?'sim':'não'}</span>`:''}
@@ -2040,7 +2040,7 @@
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
     const sn = v => v===true?'Sim':v===false?'Nao':'';
-    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Midias sociais','Boas praticas','Tempo com xis','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
+    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Midias sociais','Boas praticas','Tempo com xis/eventos','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
     const linha = i => [i.nome, INT26_CATS[i.categoria]||i.categoria, i.tipo_operacao?txLabel(i.tipo_operacao):'',
       i.responsavel, i.telefone, i.email, i.documento, i.midias_sociais,
       sn(i.boas_praticas), i.tempo_xis, i.qtd_equipe,
@@ -2079,7 +2079,7 @@
       }catch(e){}
     }
     const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
-      i.tempo_xis?('Trabalha com xis há: '+i.tempo_xis):null,
+      i.tempo_xis?('Trabalha com '+(i.categoria==='xis'?'xis':'eventos')+' há: '+i.tempo_xis):null,
       i.qtd_equipe?('Equipe: '+i.qtd_equipe+' pessoa(s)'):null,
       i.midias_sociais?('Mídias sociais: '+i.midias_sociais):null,
       i.participou_eventos!=null?('Participou de eventos: '+(i.participou_eventos?('sim'+(i.eventos_quais?' ('+i.eventos_quais+')':'')):'não')):null,
