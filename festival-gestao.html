@@ -1960,8 +1960,16 @@
           <span class="pill ${i.boas_praticas?'ok':'bad'}">${i.boas_praticas?'Boas práticas: sim':'Boas práticas: não'}</span>
           ${i.tempo_xis?`<span class="pill info">Trabalha com xis há ${esc(i.tempo_xis)}</span>`:''}
           ${i.qtd_equipe?`<span class="pill info">Equipe: ${esc(i.qtd_equipe)} pessoa(s)</span>`:''}
+          ${i.usa_glp!=null?`<span class="pill ${i.usa_glp?'warn':'info'}">GLP: ${i.usa_glp?'sim':'não'}</span>`:''}
+          ${i.ponto_agua!=null?`<span class="pill ${i.ponto_agua?'warn':'info'}">Água: ${i.ponto_agua?'sim':'não'}</span>`:''}
+          ${i.fabricacao_propria!=null?`<span class="pill info">Fabricação própria: ${i.fabricacao_propria?'sim':'não'}</span>`:''}
+          ${i.precisa_energia!=null?`<span class="pill ${i.precisa_energia?'warn':'info'}">Energia elétrica: ${i.precisa_energia?'sim':'não'}</span>`:''}
+          ${i.labcriativo!=null?`<span class="pill info">LabCriativo: ${i.labcriativo?'sim':'não'}</span>`:''}
           ${i.tipo_operacao?txBadge(i.tipo_operacao):''}</div>
         <div class="mt">${INT26_CATS[i.categoria]||i.categoria} · ${[i.responsavel,i.telefone,i.email,i.documento].filter(Boolean).map(esc).join(' · ')}</div>
+        ${i.midias_sociais?`<div class="mt" style="margin-top:4px">Mídias sociais: ${esc(i.midias_sociais)}</div>`:''}
+        ${i.participou_eventos!=null?`<div class="mt" style="margin-top:4px">Já participou de eventos públicos: ${i.participou_eventos?('sim'+(i.eventos_quais?' — '+esc(i.eventos_quais):'')):'não'}</div>`:''}
+        ${i.produtos?`<div class="mt" style="margin-top:4px">Produz/comercializa: ${esc(i.produtos)}</div>`:''}
         ${i.endereco_licenca?`<div class="mt" style="margin-top:4px">Licenciado em: ${esc(i.endereco_licenca)}</div>`:''}
         ${i.foto_trailer?`<div class="mt" style="margin-top:4px"><a href="${esc(i.foto_trailer)}" target="_blank" rel="noopener" style="color:var(--roxo);font-weight:700">Ver foto do trailer</a></div>`:''}
         ${i.descricao?`<div class="mt" style="margin-top:4px">${esc(i.descricao)}</div>`:''}
@@ -2031,10 +2039,13 @@
   function csvInt26(){
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
-    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Boas praticas','Tempo com xis','Equipe','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
+    const sn = v => v===true?'Sim':v===false?'Nao':'';
+    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Midias sociais','Boas praticas','Tempo com xis','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
     const linha = i => [i.nome, INT26_CATS[i.categoria]||i.categoria, i.tipo_operacao?txLabel(i.tipo_operacao):'',
-      i.responsavel, i.telefone, i.email, i.documento,
-      i.boas_praticas===true?'Sim':i.boas_praticas===false?'Nao':'', i.tempo_xis, i.qtd_equipe, i.historia,
+      i.responsavel, i.telefone, i.email, i.documento, i.midias_sociais,
+      sn(i.boas_praticas), i.tempo_xis, i.qtd_equipe,
+      sn(i.participou_eventos), i.eventos_quais, sn(i.usa_glp), sn(i.ponto_agua),
+      sn(i.fabricacao_propria), sn(i.precisa_energia), i.produtos, sn(i.labcriativo), i.historia,
       i.endereco_licenca, i.foto_trailer, i.descricao, INT26_ST[i.status]||i.status,
       i.criado_em?new Date(i.criado_em).toLocaleString('pt-BR'):'']
       .map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(';');
@@ -2070,6 +2081,14 @@
     const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
       i.tempo_xis?('Trabalha com xis há: '+i.tempo_xis):null,
       i.qtd_equipe?('Equipe: '+i.qtd_equipe+' pessoa(s)'):null,
+      i.midias_sociais?('Mídias sociais: '+i.midias_sociais):null,
+      i.participou_eventos!=null?('Participou de eventos: '+(i.participou_eventos?('sim'+(i.eventos_quais?' ('+i.eventos_quais+')':'')):'não')):null,
+      i.usa_glp!=null?('GLP: '+(i.usa_glp?'sim':'não')):null,
+      i.ponto_agua!=null?('Ponto de água: '+(i.ponto_agua?'sim':'não')):null,
+      i.fabricacao_propria!=null?('Fabricação própria: '+(i.fabricacao_propria?'sim':'não')):null,
+      i.precisa_energia!=null?('Energia elétrica: '+(i.precisa_energia?'sim':'não')):null,
+      i.produtos?('Produz/comercializa: '+i.produtos):null,
+      i.labcriativo!=null?('LabCriativo: '+(i.labcriativo?'sim':'não')):null,
       i.endereco_licenca?('Licenciado em: '+i.endereco_licenca):null,
       i.foto_trailer?('Foto do trailer: '+i.foto_trailer):null].filter(Boolean).join(' · ');
     const r = await SB.from('festival_participacoes').insert({

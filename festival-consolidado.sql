@@ -227,6 +227,15 @@ alter table public.festival_interessados add column if not exists tipo_operacao 
 alter table public.festival_interessados add column if not exists endereco_licenca text;
 alter table public.festival_interessados add column if not exists foto_trailer text;
 alter table public.festival_interessados add column if not exists qtd_equipe text;
+alter table public.festival_interessados add column if not exists midias_sociais text;
+alter table public.festival_interessados add column if not exists participou_eventos boolean;
+alter table public.festival_interessados add column if not exists eventos_quais text;
+alter table public.festival_interessados add column if not exists usa_glp boolean;
+alter table public.festival_interessados add column if not exists ponto_agua boolean;
+alter table public.festival_interessados add column if not exists fabricacao_propria boolean;
+alter table public.festival_interessados add column if not exists precisa_energia boolean;
+alter table public.festival_interessados add column if not exists produtos text;
+alter table public.festival_interessados add column if not exists labcriativo boolean;
 alter table public.festival_interessados drop constraint if exists festival_interessados_categoria_check;
 alter table public.festival_interessados add constraint festival_interessados_categoria_check
   check (categoria in ('xis','cervejaria','criativo','comercial','ferromodelismo','outros'));
@@ -316,6 +325,8 @@ begin
   insert into festival_interessados
     (evento_id, categoria, nome, documento, responsavel, telefone, email,
      descricao, boas_praticas, tempo_xis, qtd_equipe, historia,
+     midias_sociais, participou_eventos, eventos_quais, usa_glp, ponto_agua,
+     fabricacao_propria, precisa_energia, produtos, labcriativo,
      tipo_operacao, endereco_licenca, foto_trailer)
   values (v_ev, p_categoria, v_nome,
     left(p_dados->>'documento',40), left(p_dados->>'responsavel',200),
@@ -323,6 +334,11 @@ begin
     left(p_dados->>'descricao',600), (p_dados->>'boas_praticas')::boolean,
     left(p_dados->>'tempo_xis',60), left(p_dados->>'qtd_equipe',20),
     left(p_dados->>'historia',1000),
+    left(p_dados->>'midias_sociais',300),
+    (p_dados->>'participou_eventos')::boolean, left(p_dados->>'eventos_quais',400),
+    (p_dados->>'usa_glp')::boolean, (p_dados->>'ponto_agua')::boolean,
+    (p_dados->>'fabricacao_propria')::boolean, (p_dados->>'precisa_energia')::boolean,
+    left(p_dados->>'produtos',600), (p_dados->>'labcriativo')::boolean,
     nullif(p_dados->>'tipo_operacao',''), left(p_dados->>'endereco_licenca',300),
     left(p_dados->>'foto_trailer',500));
 end $$;
