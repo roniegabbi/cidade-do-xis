@@ -91,9 +91,9 @@
         <div class="field"><label>Sua operação já participou de feiras, festivais e outros eventos públicos? *</label>
           <select id="fPartEv" onchange="partEvToggle()"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
         <div class="field hide" id="partEvQuaisWrap"><label>Qual(is)?</label><input id="fPartEvQuais" placeholder="Ex.: Feira do Livro, Expofeira"></div>
-        <div class="field"><label>Sua operação utilizaria gás GLP na operação para o festival? *</label>
+        <div class="field hide xisOnly"><label>Sua operação utilizaria gás GLP na operação para o festival? *</label>
           <select id="fGlp"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
-        <div class="field"><label>Necessita de ponto de água? *</label>
+        <div class="field hide xisOnly"><label>Necessita de ponto de água? *</label>
           <select id="fAgua"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
 
         <div class="divisor hide" id="divCerv">Sobre a sua cervejaria</div>
@@ -158,6 +158,8 @@
     g('fTempoXis').placeholder = 'Ex.: 8 anos';
     g('lblHist').textContent = ehXis ? 'Em poucas palavras, conte tua história com o Xis' : 'Em poucas palavras, conte a história da sua operação';
     g('fHistoria').placeholder = ehXis ? 'Como o xis entrou na tua vida e na tua operação…' : 'Como a sua operação começou e o que ela oferece…';
+    document.querySelectorAll('.xisOnly').forEach(el=>el.classList.toggle('hide', !ehXis));
+    if(!ehXis){ g('fGlp').value=''; g('fAgua').value=''; }
     g('divCerv').classList.toggle('hide', cat!=='cervejaria');
     document.querySelectorAll('.cervOnly').forEach(el=>el.classList.toggle('hide', cat!=='cervejaria'));
     g('divCria').classList.toggle('hide', cat!=='criativo');
@@ -194,8 +196,8 @@
     if(ehAlimentacao && !boas){ cadMsg('Informe se possui o Certificado de Boas Práticas Alimentares.','erro'); return; }
     if(!g('fEquipe').value.trim()){ cadMsg('Informe quantas pessoas tem sua equipe.','erro'); return; }
     if(!g('fPartEv').value){ cadMsg('Informe se já participou de feiras, festivais e outros eventos públicos.','erro'); return; }
-    if(!g('fGlp').value){ cadMsg('Informe se utilizaria gás GLP na operação.','erro'); return; }
-    if(!g('fAgua').value){ cadMsg('Informe se necessita de ponto de água.','erro'); return; }
+    if(cat==='xis' && !g('fGlp').value){ cadMsg('Informe se utilizaria gás GLP na operação.','erro'); return; }
+    if(cat==='xis' && !g('fAgua').value){ cadMsg('Informe se necessita de ponto de água.','erro'); return; }
     if(cat==='cervejaria' && (!g('fFab').value || !g('fEnerg').value)){ cadMsg('Responda as perguntas sobre a sua cervejaria.','erro'); return; }
     if(cat==='criativo' && (!g('fProd').value.trim() || !g('fLab').value)){ cadMsg('Responda as perguntas sobre a sua produção criativa.','erro'); return; }
     if(cat==='xis' && !tipoOp){ cadMsg('Informe se sua operação é Trailer ou Estação fixa.','erro'); return; }
@@ -229,8 +231,8 @@
           midias_sociais: g('fMidias').value.trim(),
           participou_eventos: g('fPartEv').value==='sim',
           eventos_quais: g('fPartEv').value==='sim' ? g('fPartEvQuais').value.trim() : null,
-          usa_glp: g('fGlp').value==='sim',
-          ponto_agua: g('fAgua').value==='sim',
+          usa_glp: cat==='xis' ? g('fGlp').value==='sim' : null,
+          ponto_agua: cat==='xis' ? g('fAgua').value==='sim' : null,
           fabricacao_propria: cat==='cervejaria' ? g('fFab').value==='sim' : null,
           precisa_energia: cat==='cervejaria' ? g('fEnerg').value==='sim' : null,
           produtos: cat==='criativo' ? g('fProd').value.trim() : null,
