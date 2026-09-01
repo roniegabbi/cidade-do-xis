@@ -309,6 +309,12 @@ grant select, insert, update, delete on
 to authenticated;
 grant select, update, delete on public.festival_interessados to authenticated;
 
+-- Upload público da foto do trailer (formulário de interesse 2026)
+drop policy if exists storage_interessados_2026 on storage.objects;
+create policy storage_interessados_2026 on storage.objects
+  for insert to anon
+  with check (bucket_id = 'estabelecimentos' and (storage.foldername(name))[1] = 'interessados-2026');
+
 -- ---------------------------------------------------------------------------
 -- 11. FUNÇÕES PÚBLICAS (formulários por link)
 -- ---------------------------------------------------------------------------
