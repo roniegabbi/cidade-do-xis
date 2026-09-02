@@ -1956,12 +1956,22 @@
       <div class="kpi"><div class="n">${INT26.filter(i=>i.boas_praticas===true).length}</div><div class="l">Com boas práticas</div></div>`;
     if(g('catsInt26')){
       const catSel = g('fIntCat') ? g('fIntCat').value : '';
-      const cats26 = {xis:'Operações de Xis', cervejaria:'Cervejarias', criativo:'Mercado Criativo', comercial:'Expositores Comerciais', ferromodelismo:'Ferromodelismo', outros:'Outros'};
-      g('catsInt26').innerHTML = Object.entries(cats26).map(([c,rot])=>{
-        const n = INT26.filter(i=>i.categoria===c).length;
-        const ativo = catSel===c;
-        return `<span onclick="g('fIntCat').value='${ativo?'':c}';renderInt26()" style="display:inline-block;margin:3px 4px;padding:5px 12px;border-radius:99px;cursor:pointer;font-size:13px;font-weight:700;border:1.5px solid ${ativo?'var(--roxo)':'var(--borda)'};background:${ativo?'var(--roxo)':n?'var(--fundo)':'#fff'};color:${ativo?'#fff':n?'var(--roxo-esc)':'var(--texto-suave)'}">${rot} <b>(${n})</b></span>`;
-      }).join('');
+      const cats26 = [
+        ['xis','Operações de Xis','#662382'], ['cervejaria','Cervejarias','#f5a800'],
+        ['criativo','Mercado Criativo','#e91e8c'], ['comercial','Expositores Comerciais','#0ea5b7'],
+        ['ferromodelismo','Ferromodelismo','#8a7f95'], ['outros','Outros','#b4b2a9']
+      ].map(([c,rot,cor])=>({c, rot, cor, n: INT26.filter(i=>i.categoria===c).length}))
+       .sort((a,b)=>b.n-a.n);
+      const max26 = Math.max(1, ...cats26.map(x=>x.n));
+      g('catsInt26').innerHTML = `<div style="display:grid;grid-template-columns:190px minmax(0,1fr) 40px;gap:7px 12px;align-items:center;margin-top:8px">`
+        + cats26.map(x=>{
+          const ativo = catSel===x.c;
+          return `<span onclick="g('fIntCat').value='${ativo?'':x.c}';renderInt26()" style="cursor:pointer;font-size:13px;font-weight:${ativo?'800':'600'};color:${ativo?'var(--roxo)':'var(--texto)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.rot}</span>
+          <div onclick="g('fIntCat').value='${ativo?'':x.c}';renderInt26()" style="cursor:pointer;height:14px;background:var(--fundo);border-radius:99px;overflow:hidden${ativo?';outline:2px solid var(--roxo)':''}">
+            <div style="width:${Math.round(x.n/max26*100)}%;height:100%;background:${x.cor};border-radius:99px;transition:width .3s"></div></div>
+          <b style="font-size:13.5px;text-align:right;color:var(--roxo-esc)">${x.n}</b>`;
+        }).join('') + `</div>
+        <div style="font-size:11.5px;color:var(--texto-suave);margin-top:8px">Clique em uma categoria para filtrar a lista · clique de novo para ver todas.</div>`;
     }
     const stPill = s => s==='convertido'?'<span class="pill ok">Convertido</span>':s==='contatado'?'<span class="pill info">Contatado</span>':s==='descartado'?'<span class="pill bad">Descartado</span>':'<span class="pill warn">Novo</span>';
     el.innerHTML = lista.length ? lista.map(i=>`<div class="row" style="align-items:flex-start">
