@@ -241,6 +241,7 @@
         <select id="fIntCat" onchange="renderInt26()"><option value="">Todas as categorias</option><option value="xis">Operações de Xis</option><option value="cervejaria">Cervejarias</option><option value="criativo">Mercado Criativo</option><option value="comercial">Expositores Comerciais</option><option value="ferromodelismo">Ferromodelismo</option><option value="outros">Outros</option></select>
         <select id="fIntStatus" onchange="renderInt26()"><option value="">Todos os status</option><option value="novo">Novos</option><option value="contatado">Contatados</option><option value="convertido">Convertidos</option><option value="descartado">Descartados</option></select>
         <select id="fIntBoas" onchange="renderInt26()"><option value="">Boas práticas: todos</option><option value="sim">Com certificado</option><option value="nao">Sem certificado</option></select>
+        <select id="fIntBairro" onchange="renderInt26()"><option value="">Todos os bairros</option></select>
         <button class="btn btn-p btn-sm" id="btnRelInt26" onclick="baixarRelInt26()">Relatório PDF</button>
         <button class="btn btn-g btn-sm" onclick="csvInt26()">Exportar CSV</button>
       </div>
@@ -1937,11 +1938,20 @@
     try{ await navigator.clipboard.writeText(url); toast('Link de captação 2026 copiado'); }
     catch(e){ prompt('Copie o link:', url); }
   }
+  let BAIRROS26 = [];
+  function filtrarBairro26(ix){
+    const b = BAIRROS26[ix]; if(b==null) return;
+    if(g('fIntBairro').value===b){ g('fIntBairro').value=''; }
+    else { g('fIntBairro').value=b; g('fIntCat').value='xis'; }
+    renderInt26();
+  }
   function int26Filtrada(){
     const q=norm(g('fIntBusca').value), cat=g('fIntCat').value, st=g('fIntStatus').value, bp=g('fIntBoas').value;
+    const ba=g('fIntBairro')?g('fIntBairro').value:'';
     return INT26.filter(i=>
       (!q || norm([i.nome,i.responsavel,i.telefone,i.email,i.documento].join(' ')).includes(q))
       && (!cat || i.categoria===cat) && (!st || i.status===st)
+      && (!ba || i.bairro===ba)
       && (!bp || (bp==='sim')===(i.boas_praticas===true)));
   }
   function renderInt26(){
@@ -1972,6 +1982,31 @@
           <b style="font-size:13.5px;text-align:right;color:var(--roxo-esc)">${x.n}</b>`;
         }).join('') + `</div>
         <div style="font-size:11.5px;color:var(--texto-suave);margin-top:8px">Clique em uma categoria para filtrar a lista · clique de novo para ver todas.</div>`;
+
+      // Painel: Operações de Xis por bairro
+      const bairros26 = {};
+      INT26.filter(i=>i.categoria==='xis' && i.bairro).forEach(i=>{ bairros26[i.bairro]=(bairros26[i.bairro]||0)+1; });
+      const listaB = Object.entries(bairros26).sort((a,b)=>b[1]-a[1]);
+      const selB = g('fIntBairro');
+      if(selB){
+        const atual = selB.value;
+        selB.innerHTML = '<option value="">Todos os bairros</option>'
+          + Object.keys(bairros26).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(b=>`<option value="${esc(b)}"${b===atual?' selected':''}>${esc(b)}</option>`).join('');
+      }
+      if(listaB.length){
+        const maxB = listaB[0][1], selBai = selB?selB.value:'';
+        BAIRROS26 = listaB.map(([b])=>b);
+        g('catsInt26').innerHTML += `<div style="border-top:1.5px dashed var(--borda);margin-top:12px;padding-top:10px">
+          <b style="font-size:13px;color:var(--roxo-esc)">Operações de Xis por bairro:</b>
+          <div style="display:grid;grid-template-columns:190px minmax(0,1fr) 40px;gap:7px 12px;align-items:center;margin-top:8px">`
+          + listaB.map(([b,n],ix)=>{
+            const ativo = selBai===b;
+            return `<span onclick="filtrarBairro26(${ix})" style="cursor:pointer;font-size:13px;font-weight:${ativo?'800':'600'};color:${ativo?'var(--roxo)':'var(--texto)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b)}</span>
+            <div onclick="filtrarBairro26(${ix})" style="cursor:pointer;height:14px;background:var(--fundo);border-radius:99px;overflow:hidden${ativo?';outline:2px solid var(--roxo)':''}">
+              <div style="width:${Math.round(n/maxB*100)}%;height:100%;background:#662382;border-radius:99px"></div></div>
+            <b style="font-size:13.5px;text-align:right;color:var(--roxo-esc)">${n}</b>`;
+          }).join('') + `</div></div>`;
+      }
     }
     const stPill = s => s==='convertido'?'<span class="pill ok">Convertido</span>':s==='contatado'?'<span class="pill info">Contatado</span>':s==='descartado'?'<span class="pill bad">Descartado</span>':'<span class="pill warn">Novo</span>';
     el.innerHTML = lista.length ? lista.map(i=>`<div class="row" style="align-items:flex-start">
@@ -1980,6 +2015,7 @@
           ${i.boas_praticas!=null?`<span class="pill ${i.boas_praticas?'ok':'bad'}">Boas práticas: ${i.boas_praticas?'sim':'não'}</span>`:''}
           ${i.tempo_xis?`<span class="pill info">Trabalha com ${i.categoria==='xis'?'xis':'eventos'} há ${esc(i.tempo_xis)}</span>`:''}
           ${i.qtd_equipe?`<span class="pill info">Equipe: ${esc(i.qtd_equipe)} pessoa(s)</span>`:''}
+          ${i.bairro?`<span class="pill info">Bairro: ${esc(i.bairro)}</span>`:''}
           ${i.usa_glp!=null?`<span class="pill ${i.usa_glp?'warn':'info'}">GLP: ${i.usa_glp?'sim':'não'}</span>`:''}
           ${i.ponto_agua!=null?`<span class="pill ${i.ponto_agua?'warn':'info'}">Água: ${i.ponto_agua?'sim':'não'}</span>`:''}
           ${i.fabricacao_propria!=null?`<span class="pill info">Fabricação própria: ${i.fabricacao_propria?'sim':'não'}</span>`:''}
@@ -2003,6 +2039,7 @@
           <option value="descartado"${i.status==='descartado'?' selected':''}>Descartado</option>
         </select>
         ${i.status!=='convertido'?`<button class="btn btn-v btn-sm" onclick="converterInt26('${i.id}')">Converter em participação</button>`:''}
+        ${i.categoria==='xis'?`<button class="btn btn-g btn-sm" onclick="definirBairroInt26('${i.id}')">${i.bairro?'Trocar bairro':'Definir bairro'}</button>`:''}
         <button class="btn btn-r btn-sm" onclick="excluirInt26('${i.id}')">Excluir</button>
       </div></div>`).join('')
       : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma manifestação ainda. Copie o link acima e envie aos interessados.</div>';
@@ -2023,13 +2060,17 @@
         <div style="font-size:11px;color:#8a7f95">${EV?esc(EV.nome):''} · 13 a 15 de novembro · Largo da Gare ·
           gerado em ${new Date().toLocaleString('pt-BR')} · ${lista.length} interessado(s)</div>
       </div>
+      ${(()=>{ const bs={}; lista.filter(i=>i.categoria==='xis'&&i.bairro).forEach(i=>{bs[i.bairro]=(bs[i.bairro]||0)+1;});
+        const e2=Object.entries(bs).sort((a,b)=>b[1]-a[1]);
+        return e2.length?`<div style="margin:8px 0;padding:7px 10px;background:#f6f1fa;border-left:3px solid #662382;font-size:10px"><b style="color:#4b1a60">Operações de Xis por bairro:</b> ${e2.map(([b,n])=>esc(b)+' <b>('+n+')</b>').join(' · ')}</div>`:''; })()}
       <table style="width:100%;border-collapse:collapse;font-size:10px">
-        <tr>${['Nome','Categoria','Tipo','Responsável','Contato','Boas práticas','Tempo c/ xis','Equipe','Licenciamento','Status','Recebido em']
+        <tr>${['Nome','Categoria','Tipo','Bairro','Responsável','Contato','Boas práticas','Tempo c/ xis','Equipe','Licenciamento','Status','Recebido em']
           .map(h=>`<th style="background:#662382;color:#fff;text-align:left;padding:5px 7px;font-size:9px;text-transform:uppercase">${h}</th>`).join('')}</tr>
         ${lista.map(i=>`<tr>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5"><b>${esc(i.nome)}</b>${i.historia?`<div style="font-style:italic;color:#8a7f95;font-size:9px">"${esc(i.historia)}"</div>`:''}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${INT26_CATS[i.categoria]||i.categoria}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.tipo_operacao?txLabel(i.tipo_operacao):'—'}</td>
+          <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.bairro||'—')}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc(i.responsavel||'—')}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${esc([i.telefone,i.email].filter(Boolean).join(' · ')||'—')}</td>
           <td style="padding:5px 7px;border-bottom:1px solid #f0eaf5">${i.boas_praticas===true?'Sim':i.boas_praticas===false?'Não':'—'}</td>
@@ -2060,9 +2101,9 @@
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
     const sn = v => v===true?'Sim':v===false?'Nao':'';
-    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Midias sociais','Boas praticas','Tempo com xis/eventos','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
+    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Bairro','Midias sociais','Boas praticas','Tempo com xis/eventos','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
     const linha = i => [i.nome, INT26_CATS[i.categoria]||i.categoria, i.tipo_operacao?txLabel(i.tipo_operacao):'',
-      i.responsavel, i.telefone, i.email, i.documento, i.midias_sociais,
+      i.responsavel, i.telefone, i.email, i.documento, i.bairro, i.midias_sociais,
       sn(i.boas_praticas), i.tempo_xis, i.qtd_equipe,
       sn(i.participou_eventos), i.eventos_quais, sn(i.usa_glp), sn(i.ponto_agua),
       sn(i.fabricacao_propria), sn(i.precisa_energia), i.produtos, sn(i.labcriativo), i.historia,
@@ -2077,6 +2118,14 @@
     toast('CSV exportado');
   }
 
+  async function definirBairroInt26(id){
+    const i = INT26.find(x=>x.id===id); if(!i) return;
+    const b = prompt('Bairro de "'+i.nome+'":', i.bairro||'');
+    if(b==null) return;
+    const r = await SB.from('festival_interessados').update({bairro: b.trim()||null}).eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Bairro atualizado'); loadInt26();
+  }
   async function mudarStatusInt26(id, st){
     const r = await SB.from('festival_interessados').update({status:st}).eq('id',id);
     if(r.error){ toast('Erro: '+r.error.message); return; }
@@ -2101,6 +2150,7 @@
     const obsExtra = [i.descricao, i.boas_praticas!=null?('Boas práticas: '+(i.boas_praticas?'sim':'não')):null,
       i.tempo_xis?('Trabalha com '+(i.categoria==='xis'?'xis':'eventos')+' há: '+i.tempo_xis):null,
       i.qtd_equipe?('Equipe: '+i.qtd_equipe+' pessoa(s)'):null,
+      i.bairro?('Bairro: '+i.bairro):null,
       i.midias_sociais?('Mídias sociais: '+i.midias_sociais):null,
       i.participou_eventos!=null?('Participou de eventos: '+(i.participou_eventos?('sim'+(i.eventos_quais?' ('+i.eventos_quais+')':'')):'não')):null,
       i.usa_glp!=null?('GLP: '+(i.usa_glp?'sim':'não')):null,

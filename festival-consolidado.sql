@@ -236,6 +236,7 @@ alter table public.festival_interessados add column if not exists fabricacao_pro
 alter table public.festival_interessados add column if not exists precisa_energia boolean;
 alter table public.festival_interessados add column if not exists produtos text;
 alter table public.festival_interessados add column if not exists labcriativo boolean;
+alter table public.festival_interessados add column if not exists bairro text;
 alter table public.festival_interessados drop constraint if exists festival_interessados_categoria_check;
 alter table public.festival_interessados add constraint festival_interessados_categoria_check
   check (categoria in ('xis','cervejaria','criativo','comercial','ferromodelismo','outros'));
@@ -333,7 +334,7 @@ begin
      descricao, boas_praticas, tempo_xis, qtd_equipe, historia,
      midias_sociais, participou_eventos, eventos_quais, usa_glp, ponto_agua,
      fabricacao_propria, precisa_energia, produtos, labcriativo,
-     tipo_operacao, endereco_licenca, foto_trailer)
+     bairro, tipo_operacao, endereco_licenca, foto_trailer)
   values (v_ev, p_categoria, v_nome,
     left(p_dados->>'documento',40), left(p_dados->>'responsavel',200),
     left(p_dados->>'telefone',40), left(p_dados->>'email',200),
@@ -345,6 +346,7 @@ begin
     (p_dados->>'usa_glp')::boolean, (p_dados->>'ponto_agua')::boolean,
     (p_dados->>'fabricacao_propria')::boolean, (p_dados->>'precisa_energia')::boolean,
     left(p_dados->>'produtos',600), (p_dados->>'labcriativo')::boolean,
+    left(p_dados->>'bairro',120),
     nullif(p_dados->>'tipo_operacao',''), left(p_dados->>'endereco_licenca',300),
     left(p_dados->>'foto_trailer',500));
 end $$;
