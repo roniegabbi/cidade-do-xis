@@ -266,14 +266,14 @@
 <section class="slide">
   <h2>Investimento para participar</h2>
   <p style="font-size:14.5px;color:var(--texto-suave)">Valor de ocupação do espaço durante os três dias de Festival, por categoria.</p>
-  <div id="cardsCustos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8mm">
-    <div style="border:1.5px solid var(--borda);border-top:6px solid #662382;border-radius:14px;padding:18px 16px;text-align:center">
+  <div id="cardsCustos" style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:10mm">
+    <div style="width:78mm;border:1.5px solid var(--borda);border-top:6px solid #662382;border-radius:14px;padding:22px 18px;text-align:center">
       <div style="font-size:15px;font-weight:800;color:var(--roxo-esc)">Operações de Xis</div>
       <div style="font-size:11.5px;color:var(--texto-suave);margin-top:2px">30 espaços · trailers e estações</div>
       <div style="font-size:26px;font-weight:800;color:#662382;margin-top:8px">R$ 4.000</div>
       <div style="font-size:11px;color:var(--texto-suave)">por espaço</div>
     </div>
-    <div style="border:1.5px solid var(--borda);border-radius:14px;padding:18px 16px;text-align:center;color:var(--texto-suave)">Carregando Tabela de Preços…</div>
+    <div style="width:78mm;border:1.5px solid var(--borda);border-radius:14px;padding:22px 18px;text-align:center;color:var(--texto-suave)">Carregando Tabela de Preços…</div>
   </div>
   <div class="obs" id="obsConvenio" style="margin-top:9mm"><b>Apoio institucional:</b> havendo convênio ativo (ex.: SEBRAE), operações selecionadas têm parte da taxa subsidiada.</div>
   <p style="font-size:11.5px;color:var(--texto-suave)" id="notaCustos">Valores conforme a Tabela de Preços oficial da plataforma; abra a apresentação com internet para atualizar.</p>
@@ -363,7 +363,7 @@
       const xis = data.filter(ehXis);
       const nXis = xis.reduce((s,r)=>s+Number(r.espacos||0),0);
       const vXis = tipico(xis.reduce((s,r)=>s+Number(r.potencial||0),0), nXis) || 4000;
-      const ocultar = g => /comercia|caf|torta|digital|ativa/.test((g||'').toLowerCase());
+      const ocultar = g => /comercia|caf|torta|digital|ativa|criativo/.test((g||'').toLowerCase());
       const agr = {};
       data.filter(r=>!ehXis(r) && !ocultar(r.grupo)).forEach(r=>{
         const k = r.grupo||'—';
@@ -371,7 +371,7 @@
         agr[k].esp += Number(r.espacos||0); agr[k].pot += Number(r.potencial||0);
       });
       const card = (nome, det, corC, valor) => `
-        <div style="border:1.5px solid var(--borda);border-top:6px solid ${corC};border-radius:14px;padding:18px 16px;text-align:center">
+        <div style="width:78mm;border:1.5px solid var(--borda);border-top:6px solid ${corC};border-radius:14px;padding:22px 18px;text-align:center">
           <div style="font-size:15px;font-weight:800;color:var(--roxo-esc)">${nome}</div>
           <div style="font-size:11.5px;color:var(--texto-suave);margin-top:2px">${det}</div>
           <div style="font-size:26px;font-weight:800;color:${corC};margin-top:8px">${valor>0?fmt0(valor):'sob consulta'}</div>
