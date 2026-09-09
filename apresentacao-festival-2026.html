@@ -262,18 +262,21 @@
   </div>
 </section>
 
-<!-- SLIDE 6 · INVESTIMENTO POR ESPAÇO -->
+<!-- SLIDE 6 · INVESTIMENTO PARA PARTICIPAR -->
 <section class="slide">
-  <h2>Investimento por espaço</h2>
-  <table style="font-size:14px">
-    <tbody id="tbCustos">
-    <tr><th>Categoria</th><th style="text-align:right">Espaços</th><th style="text-align:right">Valor por espaço</th></tr>
-    <tr><td>Operações de Xis</td><td style="text-align:right">30</td><td style="text-align:right"><b>R$ 4.000,00</b></td></tr>
-    <tr><td>Demais categorias</td><td style="text-align:right">52</td><td style="text-align:right">Conforme Tabela de Preços da plataforma</td></tr>
-    </tbody>
-  </table>
-  <div class="obs" id="obsConvenio"><b>Forma de pagamento com subsídio:</b> havendo convênio ativo (ex.: SEBRAE), parte da taxa das operações selecionadas é subsidiada — a composição exata é controlada no módulo Gestão do Festival.</div>
-  <p style="font-size:12px;color:var(--texto-suave)" id="notaCustos">Valores carregados em tempo real da Tabela de Preços da plataforma; abra a apresentação com internet para atualizar.</p>
+  <h2>Investimento para participar</h2>
+  <p style="font-size:14.5px;color:var(--texto-suave)">Valor de ocupação do espaço durante os três dias de Festival, por categoria.</p>
+  <div id="cardsCustos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8mm">
+    <div style="border:1.5px solid var(--borda);border-top:6px solid #662382;border-radius:14px;padding:18px 16px;text-align:center">
+      <div style="font-size:15px;font-weight:800;color:var(--roxo-esc)">Operações de Xis</div>
+      <div style="font-size:11.5px;color:var(--texto-suave);margin-top:2px">30 espaços · trailers e estações</div>
+      <div style="font-size:26px;font-weight:800;color:#662382;margin-top:8px">R$ 4.000</div>
+      <div style="font-size:11px;color:var(--texto-suave)">por espaço</div>
+    </div>
+    <div style="border:1.5px solid var(--borda);border-radius:14px;padding:18px 16px;text-align:center;color:var(--texto-suave)">Carregando Tabela de Preços…</div>
+  </div>
+  <div class="obs" id="obsConvenio" style="margin-top:9mm"><b>Apoio institucional:</b> havendo convênio ativo (ex.: SEBRAE), operações selecionadas têm parte da taxa subsidiada.</div>
+  <p style="font-size:11.5px;color:var(--texto-suave)" id="notaCustos">Valores conforme a Tabela de Preços oficial da plataforma; abra a apresentação com internet para atualizar.</p>
   <div class="rodape"><span>Apresentação · Festival do Xis 2026</span><span>Investimento</span></div>
 </section>
 
@@ -342,34 +345,45 @@
       }
     }catch(e){}
 
-    // Investimento: Tabela de Preços viva (view pública livro_orcamento)
+    // Investimento: Tabela de Preços viva, em cartões elegantes por categoria
     try{
       const {data, error} = await SB.from('livro_orcamento').select('*');
       if(error || !data || !data.length) return;
+      const fmt0 = v => 'R$ '+Math.round(Number(v||0)).toLocaleString('pt-BR');
+      // valor típico: média arredondada à centena (absorve espaços ainda sem preço)
+      const tipico = (pot, esp) => { if(!(esp>0)) return 0; const m = pot/esp; return m%100===0 ? m : Math.round(m/500)*500; };
       const ehXis = r => /opera|xis/.test((r.grupo||'').toLowerCase()) && !/cerve/.test((r.grupo||'').toLowerCase());
+      const cor = g => { const n=(g||'').toLowerCase();
+        return /cerve/.test(n)?'#f5a800':/criativo/.test(n)?'#d4537e':/comercia/.test(n)?'#1994a8'
+          :/caf|torta/.test(n)?'#8a5a3b':/digital|ativa/.test(n)?'#7f77dd':'#662382'; };
+      const sub = g => { const n=(g||'').toLowerCase();
+        return /cerve/.test(n)?'chope e cerveja artesanal':/criativo/.test(n)?'artesanato e economia criativa'
+          :/comercia/.test(n)?'marcas, produtos e serviços':/caf|torta/.test(n)?'cafés e confeitarias'
+          :/digital|ativa/.test(n)?'painéis digitais para marcas':''; };
       const xis = data.filter(ehXis);
-      const outros = data.filter(r=>!ehXis(r));
       const nXis = xis.reduce((s,r)=>s+Number(r.espacos||0),0);
-      const potXis = xis.reduce((s,r)=>s+Number(r.potencial||0),0);
-      const vXis = nXis>0 ? potXis/nXis : 0;
-      let rows = `<tr><th>Categoria</th><th style="text-align:right">Espaços</th><th style="text-align:right">Valor por espaço</th><th style="text-align:right">Potencial da categoria</th></tr>`;
-      rows += `<tr><td><b>Operações de Xis</b></td><td style="text-align:right">${nXis}</td><td style="text-align:right"><b>${fmt(vXis)}</b></td><td style="text-align:right">${fmt(potXis)}</td></tr>`;
-      let totEsp = nXis, totPot = potXis;
+      const vXis = tipico(xis.reduce((s,r)=>s+Number(r.potencial||0),0), nXis) || 4000;
+      const ocultar = g => /comercia|caf|torta|digital|ativa/.test((g||'').toLowerCase());
       const agr = {};
-      outros.forEach(r=>{
+      data.filter(r=>!ehXis(r) && !ocultar(r.grupo)).forEach(r=>{
         const k = r.grupo||'—';
         if(!agr[k]) agr[k] = {esp:0, pot:0};
         agr[k].esp += Number(r.espacos||0); agr[k].pot += Number(r.potencial||0);
       });
+      const card = (nome, det, corC, valor) => `
+        <div style="border:1.5px solid var(--borda);border-top:6px solid ${corC};border-radius:14px;padding:18px 16px;text-align:center">
+          <div style="font-size:15px;font-weight:800;color:var(--roxo-esc)">${nome}</div>
+          <div style="font-size:11.5px;color:var(--texto-suave);margin-top:2px">${det}</div>
+          <div style="font-size:26px;font-weight:800;color:${corC};margin-top:8px">${valor>0?fmt0(valor):'sob consulta'}</div>
+          <div style="font-size:11px;color:var(--texto-suave)">${valor>0?'por espaço':''}</div>
+        </div>`;
+      let html = card('Operações de Xis', nXis+' espaços · trailers e estações', '#662382', vXis);
       Object.entries(agr).forEach(([g,v])=>{
-        totEsp += v.esp; totPot += v.pot;
-        const medio = v.esp>0 ? v.pot/v.esp : 0;
-        rows += `<tr><td>${g}</td><td style="text-align:right">${v.esp}</td><td style="text-align:right">${medio>0?fmt(medio)+' (médio)':'—'}</td><td style="text-align:right">${fmt(v.pot)}</td></tr>`;
+        html += card(g, v.esp+' espaço(s)'+(sub(g)?' · '+sub(g):''), cor(g), tipico(v.pot, v.esp));
       });
-      rows += `<tr class="tot"><td>Total</td><td style="text-align:right">${totEsp}</td><td></td><td style="text-align:right">${fmt(totPot)}</td></tr>`;
-      document.getElementById('tbCustos').innerHTML = rows;
+      document.getElementById('cardsCustos').innerHTML = html;
       document.getElementById('notaCustos').textContent =
-        'Valores carregados em tempo real da Tabela de Preços da plataforma em '+new Date().toLocaleString('pt-BR')+'.';
+        'Valores conforme a Tabela de Preços oficial da plataforma · atualizado em '+new Date().toLocaleString('pt-BR')+'.';
     }catch(e){}
 
     // Convênio (composição do pagamento)
