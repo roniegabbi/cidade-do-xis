@@ -229,17 +229,8 @@
 <!-- SLIDE 5 · MAPA DE ESPAÇOS -->
 <section class="slide">
   <h2>Mapa de Espaços — 82 espaços comercializáveis</h2>
-  <div class="leg-cores">
-    <span><i style="background:#5C2890"></i> Trailers (01–05)</span>
-    <span><i style="background:#1d9e57"></i> Estações fixas (06–30)</span>
-    <span><i style="background:#f5a800;border-radius:99px"></i> Cervejarias (31–38)</span>
-    <span><i style="background:#d4537e"></i> Mercado Criativo (39–59)</span>
-    <span><i style="background:#8a5a3b"></i> Café &amp; Tortas (60–70)</span>
-    <span><i style="background:#1994a8"></i> Expositores Comerciais (71–80)</span>
-    <span><i style="background:#7f77dd"></i> Ativação Digital (81–82)</span>
-  </div>
-  <div class="q-esp" id="quadro"></div>
-  <p style="font-size:12px;color:var(--texto-suave);margin-top:8px">Numeração corrida 01–82, a mesma do módulo Gestão do Festival. A ocupação em tempo real (livre · reservado · confirmado), valores e responsáveis por espaço são mantidos na plataforma.</p>
+  <div id="quadro" style="margin-top:6mm"></div>
+  <p style="font-size:12px;color:var(--texto-suave);margin-top:6mm">Numeração corrida 01–82, a mesma do módulo Gestão do Festival. A ocupação em tempo real (livre · reservado · confirmado), valores e responsáveis por espaço são mantidos na plataforma.</p>
   <div class="rodape"><span>Apresentação · Festival do Xis 2026</span><span>Mapa de Espaços</span></div>
 </section>
 
@@ -308,16 +299,26 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-  // Quadro de espaços 01–82
+  // Quadro de espaços 01–82, separado por categoria
   (function(){
-    const faixa = (ini, fim, cls) => {
-      let h='';
-      for(let n=ini; n<=fim; n++) h += `<span class="${cls}">${String(n).padStart(2,'0')}</span>`;
-      return h;
-    };
-    document.getElementById('quadro').innerHTML =
-      faixa(1,5,'qt') + faixa(6,30,'qf') + faixa(31,38,'qc') + faixa(39,59,'qm')
-      + faixa(60,70,'qk') + faixa(71,80,'qx') + faixa(81,82,'qd');
+    const cats = [
+      ['Trailers', '01–05', 1, 5, 'qt', '#5C2890'],
+      ['Estações fixas', '06–30', 6, 30, 'qf', '#1d9e57'],
+      ['Cervejarias', '31–38', 31, 38, 'qc', '#f5a800'],
+      ['Mercado Criativo', '39–59', 39, 59, 'qm', '#d4537e'],
+      ['Café & Tortas', '60–70', 60, 70, 'qk', '#8a5a3b'],
+      ['Expositores Comerciais', '71–80', 71, 80, 'qx', '#1994a8'],
+      ['Ativação Digital de Marcas', '81–82', 81, 82, 'qd', '#7f77dd']
+    ];
+    document.getElementById('quadro').innerHTML = cats.map(([nome, faixa, ini, fim, cls, cor])=>{
+      let cel = '';
+      for(let n=ini; n<=fim; n++) cel += `<span class="${cls}">${String(n).padStart(2,'0')}</span>`;
+      return `<div style="display:grid;grid-template-columns:52mm 1fr;gap:12px;align-items:center;background:var(--fundo);border-left:5px solid ${cor};border-radius:0 12px 12px 0;padding:7px 12px;margin-bottom:9px">
+        <div><div style="font-size:13.5px;font-weight:800;color:${cor}">${nome}</div>
+          <div style="font-size:10.5px;color:var(--texto-suave)">espaços ${faixa} · ${fim-ini+1} espaço(s)</div></div>
+        <div class="q-esp" style="grid-template-columns:repeat(13,1fr);margin:0">${cel}</div>
+      </div>`;
+    }).join('');
   })();
 
   // Dados vivos da plataforma
