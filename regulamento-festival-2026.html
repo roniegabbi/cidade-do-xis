@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regulamento Oficial · Festival do Xis 2026</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#d8cfe2;color:var(--texto);font-size:13px;line-height:1.6}
+  .pagina{width:210mm;min-height:297mm;margin:14px auto;background:#fff;padding:18mm 18mm;box-shadow:0 10px 30px rgba(75,26,96,.25);position:relative;overflow:hidden}
+  .toolbar{position:sticky;top:0;z-index:10;background:var(--roxo-esc);color:#fff;padding:12px 20px;display:flex;gap:14px;align-items:center}
+  .toolbar b{font-size:15px}
+  .toolbar button{margin-left:auto;padding:10px 22px;border:none;border-radius:99px;background:var(--rosa);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+  h2{font-size:20px;color:var(--roxo-esc);margin-bottom:10px;border-bottom:3px solid var(--rosa);padding-bottom:6px}
+  h3{font-size:14.5px;color:var(--roxo);margin:16px 0 6px}
+  p{margin-bottom:9px;text-align:justify}
+  .rodape{position:absolute;bottom:8mm;left:18mm;right:18mm;display:flex;justify-content:space-between;font-size:10.5px;color:var(--texto-suave);border-top:1px solid var(--borda);padding-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 12px}
+  th{background:var(--roxo);color:#fff;text-align:left;padding:6px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  td{padding:6px 10px;border-bottom:1px solid var(--fundo)}
+  tr:nth-child(even) td{background:#faf7fc}
+  .tot td{background:var(--fundo)!important;font-weight:800;color:var(--roxo-esc)}
+  .obs{background:var(--fundo);border-left:4px solid var(--rosa);padding:9px 13px;font-size:12px;margin:10px 0}
+  ul{margin:0 0 9px 18px}
+  li{margin-bottom:4px}
+  .par{color:var(--texto);margin-bottom:8px;text-align:justify}
+  .par b.pk{color:var(--roxo)}
+  .capa{position:relative;color:#fff;padding:0;background:#4b1a60}
+  .capa .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .capa .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.30) 0%,rgba(75,26,96,.60) 45%,rgba(75,26,96,.94) 80%,#4b1a60 100%)}
+  .capa .conteudo{position:relative;z-index:2;display:flex;flex-direction:column;min-height:297mm;padding:14mm 18mm 12mm}
+  .capa .eyebrow{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;opacity:.95;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .capa h1{font-size:40px;color:#fff;line-height:1.15;text-shadow:0 3px 14px rgba(0,0,0,.5)}
+  .capa .ano{font-size:80px;font-weight:800;color:var(--amarelo);line-height:1;letter-spacing:2px;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+  .capa .sub{font-size:16px;margin-top:12px;opacity:.98;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .capa .sec-list{margin-top:auto;border-top:1px solid rgba(255,255,255,.35);padding-top:12px;font-size:12px;line-height:1.7;opacity:.95;text-align:center}
+  .selo{display:inline-block;background:var(--amarelo);color:#4b1a60;font-weight:800;border-radius:99px;padding:8px 20px;margin-top:16px;font-size:14px}
+  @media print{
+    @page{size:A4;margin:0}
+    body{background:#fff}
+    .toolbar{display:none}
+    .pagina{margin:0;box-shadow:none;page-break-after:always;page-break-inside:avoid;width:210mm;height:297mm;min-height:297mm;overflow:hidden}
+    .pagina:last-child{page-break-after:auto}
+  }
+  body.exportando{background:#fff}
+  body.exportando .pagina{margin:0;box-shadow:none;height:297mm;overflow:hidden}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>Regulamento Oficial · Festival do Xis 2026</b>
+  <span style="font-size:12.5px;opacity:.85" id="tbMsg">Baixe o PDF pronto, ou use Imprimir para papel</span>
+  <button id="btnBaixar" onclick="baixarPDF()">⬇️ Baixar PDF</button>
+  <button style="background:transparent;border:1.5px solid #ffffff66" onclick="window.print()">🖨️ Imprimir</button>
+</div>
+<div id="docRegulamento">
+
+<!-- CAPA -->
+<section class="pagina capa">
+  <img class="bg" src="livro-fest-01.jpg" alt="Festival do Xis no Largo da Gare">
+  <div class="ov"></div>
+  <div class="conteudo">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="background:#fff;border-radius:16px;padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)">
+        <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png"
+             alt="Marca Cidade do Xis" style="height:58px;display:block">
+      </span>
+      <div class="eyebrow">Prefeitura de Santa Maria<br>Programa Xis · Cidade do Xis</div>
+    </div>
+    <div style="flex:1"></div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">Regulamento Oficial</div>
+      <h1>4º Festival<br>Nacional do Xis</h1>
+      <div class="ano">2026</div>
+      <div class="sub">13, 14 e 15 de novembro · Largo da Gare · Santa Maria/RS</div>
+      <span class="selo">Cidade do Xis</span>
+    </div>
+    <div class="sec-list">
+      <b>Realização:</b> Prefeitura Municipal de Santa Maria · RS &nbsp;e&nbsp; Sindhturr<br>
+      <b>Execução:</b> Secretaria de Desenvolvimento Econômico e Inovação · Secretaria de Cultura<br>
+      Secretaria de Turismo · Secretaria de Comunicação
+    </div>
+  </div>
+</section>
+
+<!-- PÁGINA 1 -->
+<section class="pagina">
+  <h2>Regulamento Oficial — Festival do Xis 2026</h2>
+  <p>O presente Regulamento estabelece as normas, diretrizes e condições para a realização do <b>4º Festival Nacional do Xis — Edição 2026</b>, evento oficial da Prefeitura Municipal de Santa Maria, realizado em conjunto com o Sindhturr, destinado a valorizar o patrimônio gastronômico local, fortalecer o empreendedorismo do setor de alimentação e consolidar Santa Maria como a <b>Cidade do Xis</b>.</p>
+
+  <h3>Art. 1º — Do Objetivo</h3>
+  <p class="par">O Festival do Xis tem por objetivo:</p>
+  <ul>
+    <li>Valorizar o xis como Patrimônio Cultural Gastronômico de Santa Maria;</li>
+    <li>Estimular a criatividade culinária e a inovação no setor de alimentação;</li>
+    <li>Promover o turismo gastronômico e cultural;</li>
+    <li>Fomentar o desenvolvimento econômico regional, o empreendedorismo e a cadeia produtiva do xis.</li>
+  </ul>
+
+  <h3>Art. 2º — Da Realização</h3>
+  <p class="par">O Festival será realizado nos dias <b>13, 14 e 15 de novembro de 2026</b> (sexta-feira a domingo), no <b>Largo da Gare da Viação Férrea de Santa Maria</b>, com entrada gratuita e infraestrutura adequada para atendimento ao público, participantes e atividades da programação oficial.</p>
+
+  <h3>Art. 3º — Da Participação</h3>
+  <p class="par">Poderão participar do Festival operações de xis (trailers e estações fixas), cervejarias artesanais, empreendedores do mercado criativo, cafés e confeitarias, expositores comerciais e demais categorias definidas pela organização, desde que:</p>
+  <ul>
+    <li>Estejam devidamente regularizados junto aos órgãos competentes;</li>
+    <li>Atendam integralmente às normas sanitárias, fiscais e de funcionamento vigentes.</li>
+  </ul>
+  <p class="par"><b class="pk">§ 1º</b> — O interesse em participar deverá ser registrado por meio da <b>Manifestação de Interesse</b>, formulário on-line disponibilizado na plataforma <b>cidadedoxis.com</b> pela Secretaria de Desenvolvimento Econômico e Inovação. A manifestação tem caráter exclusivamente preliminar e <b>não assegura vaga</b>.</p>
+  <p class="par"><b class="pk">§ 2º</b> — A participação se confirma com a seleção pela Comissão Organizadora, a assinatura do termo de participação e o pagamento da contribuição do espaço.</p>
+  <p class="par"><b class="pk">§ 3º</b> — Cada participante é responsável pela regularidade <b>sanitária, fiscal e trabalhista</b> de sua operação durante o evento.</p>
+
+  <h3>Art. 4º — Dos Espaços e da Contribuição de Participação</h3>
+  <p class="par">O Festival disponibilizará <b>82 espaços comercializáveis</b>, organizados em numeração corrida (01–82) conforme o mapa oficial do evento mantido na plataforma Cidade do Xis:</p>
+  <table>
+    <tr><th>Categoria</th><th>Espaços</th><th>Qtde</th><th>Contribuição</th></tr>
+    <tr><td>Operações de Xis (trailers e estações fixas)</td><td>01–30</td><td>30</td><td><b>R$ 4.000,00</b> por espaço</td></tr>
+    <tr><td>Cervejarias artesanais</td><td>31–38</td><td>8</td><td><b>R$ 4.000,00</b> por espaço</td></tr>
+    <tr><td>Mercado Criativo</td><td>39–59</td><td>21</td><td rowspan="4">Conforme Tabela de Preços oficial da plataforma</td></tr>
+    <tr><td>Café &amp; Tortas</td><td>60–70</td><td>11</td></tr>
+    <tr><td>Expositores Comerciais</td><td>71–80</td><td>10</td></tr>
+    <tr><td>Ativação Digital de Marcas</td><td>81–82</td><td>2</td></tr>
+  </table>
+  <p class="par"><b class="pk">§ 1º</b> — A contribuição corresponde à ocupação do espaço durante os três dias do evento e inclui a infraestrutura descrita no Art. 10.</p>
+  <p class="par"><b class="pk">§ 2º</b> — Os valores das operações contempladas por convênio de subsídio observarão o disposto no Art. 5º.</p>
+  <div class="rodape"><span>Regulamento Oficial · Festival do Xis 2026</span><span>Página 1</span></div>
+</section>
+
+<!-- PÁGINA 2 -->
+<section class="pagina">
+  <h3 style="margin-top:0">Art. 5º — Do Incentivo à Capacitação (Apoio do SEBRAE/RS)</h3>
+  <p class="par">Havendo convênio vigente com o SEBRAE/RS, as operações selecionadas que cumprirem os critérios estabelecidos e participarem das capacitações indicadas terão <b>subsídio sobre o valor do espaço contratado, no percentual definido no convênio da edição</b>.</p>
+  <p class="par"><b class="pk">Requisitos para obtenção do subsídio:</b></p>
+  <ul>
+    <li>Ser microempresa (ME) ou empresa de pequeno porte (EPP);</li>
+    <li>Possuir CNPJ ativo;</li>
+    <li>Estar adimplente junto ao SEBRAE/RS;</li>
+    <li>Realizar, no prazo divulgado pela organização, ao menos uma capacitação on-line indicada;</li>
+    <li>Responder à pesquisa de resultados disponibilizada pelo SEBRAE/RS.</li>
+  </ul>
+  <p class="par"><b class="pk">I</b> — A ausência de representante em qualquer atividade implicará perda imediata do subsídio.</p>
+  <p class="par"><b class="pk">II</b> — O representante deverá identificar-se à equipe organizadora no dia da atividade, informando CNPJ, nome e CPF.</p>
+  <p class="par"><b class="pk">III</b> — Caso o participante que tenha recebido o subsídio não participe das capacitações, será emitido boleto complementar referente ao valor subsidiado.</p>
+  <p class="par"><b class="pk">IV</b> — As operações contempladas com subsídio terão o pagamento da parcela subsidiada realizado diretamente ao SEBRAE/RS. As demais operações e parcelas deverão efetuar o pagamento mediante depósito ou transferência bancária para: <b>SINDHTURR — Banco Sicredi — Agência 0434 — Conta 33229-7</b>, com envio de comprovante para o WhatsApp <b>(55) 99631-0881</b> ou e-mail <b>sindhturrsm@gmail.com</b>.</p>
+
+  <h3>Art. 6º — Do Funcionamento do Festival</h3>
+  <table>
+    <tr><th>Dia</th><th>Funcionamento ao público</th><th>Limite de abastecimento e manutenção</th></tr>
+    <tr><td>Sexta-feira, 13/11</td><td>18h às 23h</td><td>até 16h30</td></tr>
+    <tr><td>Sábado, 14/11</td><td>16h às 00h</td><td>até 15h</td></tr>
+    <tr><td>Domingo, 15/11</td><td>16h às 22h</td><td>até 15h</td></tr>
+  </table>
+  <p class="par">Horários sujeitos a ajuste pela Comissão Organizadora, com divulgação prévia aos participantes.</p>
+
+  <h3>Art. 7º — Dos Sabores das Operações de Xis</h3>
+  <p class="par">Cada operação de Xis poderá comercializar <b>até 3 (três) sabores</b> de xis no Festival, informados previamente à Comissão Organizadora, sendo ao menos um deles o <b>Xis do Festival</b> (formato tradicional definido pela organização).</p>
+
+  <h3>Art. 8º — Da Venda de Bebidas pelas Operações de Xis</h3>
+  <p class="par">Será permitida às operações de Xis a venda de <b>água mineral e refrigerante</b>, exclusivamente das marcas do <b>patrocinador oficial de bebidas do evento</b>, divulgado pela organização. Fica proibida a comercialização de bebidas de outras marcas no Festival.</p>
+
+  <h3>Art. 9º — Do Copo Oficial</h3>
+  <p class="par">É obrigatória a comercialização do <b>Copo Oficial do Festival</b> para o serviço de chope e cerveja, no valor definido pela organização, cujo montante será integralmente repassado ao SINDHTURR. É proibido servir chope ou cerveja em outro recipiente. Em caso de falta do copo oficial, a organização fornecerá copos plásticos emergenciais.</p>
+  <div class="rodape"><span>Regulamento Oficial · Festival do Xis 2026</span><span>Página 2</span></div>
+</section>
+
+<!-- PÁGINA 3 -->
+<section class="pagina">
+  <h3 style="margin-top:0">Art. 10 — Da Estrutura, Insumos e Equipamentos</h3>
+  <p class="par"><b class="pk">§ 1º</b> — Para as estações fixas de Xis, a organização disponibiliza stands de octanorm 4m × 4m (16 m²) com tablado, divisórias e fundo. O Festival conta com segurança nos três dias, limpeza do local, sanitários para o público, energia para as operações e estação de higiene com pontos de água atrás das operações fixas.</p>
+  <p class="par"><b class="pk">§ 2º</b> — <b>Pão oficial:</b> será fornecido pela padaria patrocinadora do evento. Cada operação deverá realizar seu pedido antecipado diretamente com o fornecedor, que manterá ponto de reposição dentro do evento.</p>
+  <p class="par"><b class="pk">§ 3º</b> — <b>Uso de gás (GLP):</b> será permitida apenas <b>uma unidade de botijão P13 por espaço</b>, destinada exclusivamente à alimentação de um único equipamento, sem qualquer bifurcação na linha. Identificado excedente ou bifurcação, a organização solicitará a retirada imediata.</p>
+
+  <h3>Art. 11 — Da Montagem e Instalação</h3>
+  <p class="par">A montagem, instalação e ambientação dos stands, trailers, estruturas de participantes, expositores e patrocinadores deverão ser concluídas <b>impreterivelmente até as 12h (meio-dia) da sexta-feira, 13 de novembro de 2026</b>, data de abertura oficial do Festival.</p>
+  <p class="par"><b class="pk">§ 1º</b> — Após esse horário, fica vedada a entrada de veículos, caminhões, estruturas metálicas ou equipamentos de montagem na área do evento.</p>
+  <p class="par"><b class="pk">§ 2º</b> — Todos os materiais, equipamentos e insumos deverão estar instalados, testados e organizados, em condições adequadas de funcionamento, sinalização e segurança.</p>
+  <p class="par"><b class="pk">§ 3º</b> — O descumprimento do prazo poderá implicar advertência formal, multa e/ou impedimento de funcionamento no primeiro dia do evento, a critério da Comissão Organizadora.</p>
+  <p class="par"><b class="pk">§ 4º</b> — Recomenda-se concluir as montagens com antecedência, permitindo a vistoria técnica de energia elétrica, gás, sinalização e condições sanitárias antes da abertura.</p>
+
+  <h3>Art. 12 — Da Comercialização e da Política de Preços</h3>
+  <p class="par">A comercialização ocorrerá em formato híbrido: <b>venda presencial</b>, diretamente no balcão, e <b>venda digital</b> pelo aplicativo parceiro oficial do evento, quando houver.</p>
+  <p class="par"><b class="pk">§ 1º</b> — As vendas digitais são de responsabilidade individual de cada operador.</p>
+  <p class="par"><b class="pk">§ 2º</b> — A política de preços do Festival (Xis do Festival, xis do cardápio, refrigerante, água e copo oficial) será definida em reunião entre os operadores e a Comissão Organizadora e divulgada antes do evento, vinculando todos os participantes.</p>
+  <p class="par"><b class="pk">§ 3º</b> — O descumprimento da política de preços poderá implicar advertência ou sanções pela Comissão Organizadora.</p>
+  <div class="rodape"><span>Regulamento Oficial · Festival do Xis 2026</span><span>Página 3</span></div>
+</section>
+
+<!-- PÁGINA 4 -->
+<section class="pagina">
+  <h3 style="margin-top:0">Art. 13 — Do Concurso Gastronômico</h3>
+  <p class="par">O Festival contará com duas categorias oficiais:</p>
+  <p class="par"><b class="pk">I — Xis Tradicional:</b> preparado com ingredientes clássicos e características tradicionais. Todas as operações participantes concorrem automaticamente nesta modalidade.</p>
+  <p class="par"><b class="pk">II — Xis Inovador:</b> elaborado com proposta criativa, ingredientes diferenciados ou montagem inovadora, mediante inscrição específica.</p>
+
+  <h3>Art. 14 — Do Concurso "Xis Inovação"</h3>
+  <p class="par"><b class="pk">§ 1º</b> — <b>Inscrições:</b> até as 17h de 13/11/2026, por link digital fornecido pela Comissão Organizadora.</p>
+  <p class="par"><b class="pk">§ 2º</b> — <b>Avaliação:</b> cada operação disponibilizará uma unidade do lanche inscrito à Comissão Julgadora.</p>
+  <p class="par"><b class="pk">§ 3º</b> — <b>Comissão Julgadora:</b> profissionais das áreas de gastronomia, comunicação, inovação, Prefeitura e SEBRAE.</p>
+  <p class="par"><b class="pk">§ 4º</b> — <b>Critérios de avaliação</b> (pontuação máxima: 10 pontos):</p>
+  <table>
+    <tr><th>Critério</th><th>Descrição</th><th>Peso</th></tr>
+    <tr><td>Inovação e Criatividade</td><td>Originalidade e proposta criativa</td><td>2,5</td></tr>
+    <tr><td>Identidade Local</td><td>Representação cultural e regional</td><td>2,5</td></tr>
+    <tr><td>Sabor e Harmonia</td><td>Equilíbrio e qualidade do sabor</td><td>2,0</td></tr>
+    <tr><td>Sustentabilidade</td><td>Uso de produtos locais e práticas sustentáveis</td><td>1,5</td></tr>
+    <tr><td>Apresentação e Montagem</td><td>Estética e acabamento</td><td>1,5</td></tr>
+  </table>
+  <p class="par"><b>Desempate:</b> maior nota em "Inovação e Criatividade"; persistindo, maior nota em "Identidade Local"; persistindo, decide a Comissão Julgadora.</p>
+  <p class="par"><b class="pk">§ 5º</b> — <b>Premiação:</b> Troféu Xis Inovação 2026 e Selo Oficial "Xis Inovação — Festival do Xis 2026", utilizável até o Festival seguinte, com divulgação nos canais oficiais da Prefeitura.</p>
+
+  <h3>Art. 15 — Da Votação Popular</h3>
+  <p class="par">A votação do <b>Xis Destaque Tradicional</b> será digital, realizada pela plataforma <b>cidadedoxis.com</b> (QR Code no evento), limitada a um voto por CPF.</p>
+  <p class="par"><b class="pk">§ 1º</b> — Critérios de avaliação: sabor, textura, apresentação e atendimento.</p>
+  <p class="par"><b class="pk">§ 2º</b> — A contagem dos votos será auditada pela Comissão Organizadora.</p>
+  <p class="par"><b class="pk">§ 3º</b> — <b>Desempate:</b> prevalece a maior nota no critério sabor e textura; persistindo o empate, será realizada avaliação técnica suplementar.</p>
+
+  <h3>Art. 16 — Da Premiação Geral</h3>
+  <p class="par">Os vencedores de cada categoria receberão o Selo Oficial <b>"Xis Destaque do Festival 2026"</b>, troféu representativo e divulgação oficial nos canais institucionais da Prefeitura Municipal e parceiros.</p>
+  <div class="rodape"><span>Regulamento Oficial · Festival do Xis 2026</span><span>Página 4</span></div>
+</section>
+
+<!-- PÁGINA 5 -->
+<section class="pagina">
+  <h3 style="margin-top:0">Art. 17 — Das Disposições Gerais</h3>
+  <ul>
+    <li>O Festival será avaliado por meio da contagem de público (CIOSP) e do número de lanches comercializados, apurados pelo número de pães fornecidos pelo patrocinador oficial e pelas vendas do aplicativo parceiro;</li>
+    <li>Cada operação deverá informar à Comissão Organizadora o total de unidades vendidas;</li>
+    <li>A confirmação de participação implica a aceitação integral deste Regulamento;</li>
+    <li>Os casos omissos serão resolvidos pela Comissão Organizadora.</li>
+  </ul>
+
+  <div class="obs"><b>Gestão e transparência:</b> a ocupação dos espaços, os valores, os participantes e a prestação de contas do Festival são geridos em tempo real no módulo Gestão do Festival da plataforma <b>cidadedoxis.com</b>.</div>
+
+  <div style="text-align:center;margin:30px 0 8px">
+    <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" style="height:70px">
+  </div>
+  <p style="text-align:center;font-size:12.5px;margin-top:16px"><b>Santa Maria · RS, novembro de 2026</b><br>Comissão Organizadora do 4º Festival Nacional do Xis</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px 20px;margin-top:34px">
+    <div style="text-align:center;border-top:1.5px solid var(--texto);padding-top:8px;font-size:12px"><b>Prefeitura Municipal de Santa Maria</b><br><span style="color:var(--texto-suave);font-size:11px">Realização</span></div>
+    <div style="text-align:center;border-top:1.5px solid var(--texto);padding-top:8px;font-size:12px"><b>Sindhturr</b><br><span style="color:var(--texto-suave);font-size:11px">Realização</span></div>
+  </div>
+  <div class="rodape"><span>Regulamento Oficial · Festival do Xis 2026</span><span>Página 5</span></div>
+</section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  async function baixarPDF(){
+    const btn = document.getElementById('btnBaixar');
+    const msg = document.getElementById('tbMsg');
+    btn.disabled = true; btn.textContent = 'Gerando PDF…';
+    msg.textContent = 'Montando as páginas — pode levar alguns segundos';
+    document.body.classList.add('exportando');
+    try{
+      await html2pdf().set({
+        margin: 0,
+        filename: 'Regulamento-Festival-do-Xis-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'], after: '.pagina' }
+      }).from(document.getElementById('docRegulamento')).save();
+      msg.textContent = 'PDF baixado ✓ — confira na pasta Downloads';
+    }catch(e){
+      msg.textContent = 'Não foi possível gerar aqui — abrindo a impressão (escolha "Salvar como PDF")';
+      setTimeout(()=>window.print(), 800);
+    }
+    document.body.classList.remove('exportando');
+    btn.disabled = false; btn.textContent = '⬇️ Baixar PDF';
+  }
+</script>
+</body>
+</html>
