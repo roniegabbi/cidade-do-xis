@@ -1641,11 +1641,23 @@
     el.innerHTML = `<tr><th>Convênio</th><th>Previsto</th><th>Comprometido (subsídios)</th><th>Recebido</th><th>Saldo do previsto</th><th></th></tr>`
       + (CONV.length ? CONV.map(c=>{
           const comp = comprometido(c), rec = recebido(c);
-          return `<tr><td><b>${esc(c.nome)}</b></td><td>${fmtRS(c.valor_previsto)}</td><td>${fmtRS(comp)}</td>
+          return `<tr><td><b>${esc(c.nome)}</b></td>
+            <td>${fmtRS(c.valor_previsto)} <button class="btn btn-g btn-sm" style="margin-left:6px" onclick="editarConvenio('${c.id}')">Editar valor</button></td>
+            <td>${fmtRS(comp)}</td>
             <td style="color:var(--verde)"><b>${fmtRS(rec)}</b></td><td>${fmtRS((c.valor_previsto||0)-comp)}</td>
             <td><button class="btn btn-r btn-sm" onclick="excluirConvenio('${c.id}')">Excluir</button></td></tr>`;
         }).join('')
         : '<tr><td colspan="6" style="color:var(--texto-suave)">Nenhum convênio cadastrado.</td></tr>');
+  }
+  async function editarConvenio(id){
+    const c = CONV.find(x=>x.id===id); if(!c) return;
+    const v = prompt('Valor previsto do convênio "'+c.nome+'" (R$):\nEx.: 25 operações × R$ 2.000 de subsídio = 50000', String(Number(c.valor_previsto||0)));
+    if(v==null) return;
+    const val = parseFloat(String(v).replace(/\./g,'').replace(',','.'));
+    if(!(val>=0)){ toast('Valor inválido'); return; }
+    const r = await SB.from('festival_convenios').update({valor_previsto: val}).eq('id', id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Valor do convênio atualizado'); loadAll();
   }
   // Composição de pagamento da participação: parte subsidiada + parte recurso próprio
   async function definirSubsidio(partId){
