@@ -310,6 +310,20 @@ grant select, insert, update, delete on
 to authenticated;
 grant select, update, delete on public.festival_interessados to authenticated;
 
+-- Ajuste set/2026: 25 operações de Xis (5 trailers + 20 fixas) a R$4.000;
+-- espaços 26–30 viram reserva de Ampliação Futura (valor 0, fora das receitas)
+update festival_espacos e set valor=4000
+from festival_areas a where a.id=e.area_id and a.nome='Operações de Xis' and e.tipo_xis='trailer';
+insert into festival_areas (evento_id, nome)
+select evento_id, 'Ampliação Futura' from festival_areas where nome='Operações de Xis'
+and not exists (select 1 from festival_areas a2 where a2.nome='Ampliação Futura' and a2.evento_id=festival_areas.evento_id);
+update festival_espacos e set
+  area_id=(select a2.id from festival_areas a2 where a2.nome='Ampliação Futura'
+           and a2.evento_id=(select evento_id from festival_areas where nome='Operações de Xis' limit 1)),
+  valor=0, tipo_xis=null
+from festival_areas a
+where a.id=e.area_id and a.nome='Operações de Xis' and e.codigo::int between 26 and 30;
+
 -- Upload público da foto do trailer (formulário de interesse 2026)
 drop policy if exists storage_interessados_2026 on storage.objects;
 create policy storage_interessados_2026 on storage.objects

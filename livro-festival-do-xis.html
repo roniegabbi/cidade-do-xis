@@ -59,6 +59,7 @@
   .q-esp .qk{background:#f2e9e2;border-color:#8a5a3b;color:#52351f}
   .q-esp .qx{background:#e0f4f7;border-color:#1994a8;color:#0b4c57}
   .q-esp .qd{background:#efe9fb;border-color:#7f77dd;color:#3c3489}
+  .q-esp .qa{background:#f6f4f8;border-style:dashed;border-color:#b4b2a9;color:#8a7f95}
   ul{margin:0 0 10px 18px}
   li{margin-bottom:4px}
   @media print{
@@ -190,7 +191,8 @@
   <h3>Organização dos espaços</h3>
   <div class="leg-cores">
     <span><i style="background:#5C2890"></i> Trailers (01–05)</span>
-    <span><i style="background:#1d9e57"></i> Estações fixas (06–30)</span>
+    <span><i style="background:#1d9e57"></i> Estações fixas (06–25)</span>
+    <span><i style="background:#b4b2a9"></i> Ampliação futura (26–30)</span>
     <span><i style="background:#f5a800"></i> Cervejarias artesanais (31–38)</span>
     <span><i style="background:#d4537e"></i> Mercado Criativo (39–59)</span>
     <span><i style="background:#8a5a3b"></i> Café &amp; Tortas (60–70)</span>
@@ -200,13 +202,14 @@
   <table>
     <tr><th>Categoria</th><th>Espaços</th><th>Qtde</th><th>Caracterização</th></tr>
     <tr><td>Operações de Xis — Trailers</td><td>01 a 05</td><td>5</td><td>Trailers na área externa, junto ao percurso principal</td></tr>
-    <tr><td>Operações de Xis — Estações fixas</td><td>06 a 30</td><td>25</td><td>Operações fixas em módulos padronizados</td></tr>
+    <tr><td>Operações de Xis — Estações fixas</td><td>06 a 25</td><td>20</td><td>Operações fixas em módulos padronizados</td></tr>
+    <tr><td>Ampliação futura</td><td>26 a 30</td><td>5</td><td>Reserva para o crescimento do evento — fora do planejamento de receitas desta edição</td></tr>
     <tr><td>Cervejarias artesanais</td><td>31 a 38</td><td>8</td><td>Chope e cerveja artesanal local/regional</td></tr>
     <tr><td>Mercado Criativo</td><td>39 a 59</td><td>21</td><td>Feira criativa na Plataforma da Gare</td></tr>
     <tr><td>Café &amp; Tortas</td><td>60 a 70</td><td>11</td><td>Espaço interno de cafés e confeitarias</td></tr>
     <tr><td>Expositores Comerciais</td><td>71 a 80</td><td>10</td><td>Marcas e serviços em exposição comercial</td></tr>
     <tr><td>Ativação Digital de Marcas</td><td>81 a 82</td><td>2</td><td>Painéis digitais com venda de mídia para marcas locais (convênio)</td></tr>
-    <tr class="tot"><td>Total de espaços comercializáveis</td><td>01 a 82</td><td>82</td><td></td></tr>
+    <tr class="tot"><td>Total de espaços</td><td>01 a 82</td><td>82</td><td>77 comercializáveis nesta edição + 5 de reserva</td></tr>
   </table>
   <p style="font-size:12px;color:var(--texto-suave)">A ocupação em tempo real (livre · reservado · ocupado), com valores e responsáveis por espaço, é controlada no módulo Gestão do Festival da plataforma Cidade do Xis.</p>
   <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Mapa do Evento</span></div>
@@ -215,7 +218,7 @@
 <!-- QUADRO DE ESPAÇOS -->
 <section class="pagina">
   <h2>4.1 Quadro de Espaços</h2>
-  <p>Distribuição dos 82 espaços comercializáveis do Festival, com numeração corrida e identificação visual por categoria — a mesma adotada no módulo de gestão da plataforma Cidade do Xis.</p>
+  <p>Distribuição dos 82 espaços do Festival — 77 comercializáveis nesta edição e 5 reservados à ampliação futura (26–30) — com numeração corrida e identificação visual por categoria, a mesma adotada no módulo de gestão da plataforma Cidade do Xis.</p>
   <div class="leg-cores" style="margin-bottom:14px">
     <span><i style="background:#5C2890"></i> Trailers</span>
     <span><i style="background:#1d9e57"></i> Estações fixas</span>
@@ -224,7 +227,7 @@
     <span><i style="background:#d4537e"></i> Mercado Criativo</span>
     <span><i style="background:#8a5a3b"></i> Café &amp; Tortas</span>
   </div>
-  <h3>Operações de Xis — Trailers (01–05) e Estações fixas (06–30)</h3>
+  <h3>Operações de Xis — Trailers (01–05), Estações fixas (06–25) e Ampliação futura (26–30)</h3>
   <div class="q-esp" id="qXis"></div>
   <h3>Cervejarias artesanais (31–38)</h3>
   <div class="q-esp" id="qCerv"></div>
@@ -261,7 +264,7 @@
   <table>
     <tbody id="tbReceitas">
     <tr><th>Fonte</th><th>Base de cálculo</th><th>Valor previsto</th></tr>
-    <tr><td>Venda de espaços (01–82)</td><td>82 espaços — potencial conforme Tabela de Preços da plataforma</td><td>R$ —</td></tr>
+    <tr><td>Venda de espaços</td><td>77 espaços comercializáveis — potencial conforme Tabela de Preços da plataforma</td><td>R$ —</td></tr>
     <tr><td>Receitas de convênios</td><td>Subsídio de taxas de espaço (ex.: SEBRAE — 50% de operações selecionadas)</td><td>R$ —</td></tr>
     <tr><td>Patrocínio privado</td><td>Cotas e espaços de ativação</td><td>R$ —</td></tr>
     <tr><td>Recurso público</td><td>Emendas, convênios e dotações</td><td>R$ —</td></tr>
@@ -323,7 +326,7 @@
       for(let n=ini; n<=fim; n++) h += `<span class="${cls}">${String(n).padStart(2,'0')}</span>`;
       return h;
     };
-    document.getElementById('qXis').innerHTML  = faixa(1,5,'qt') + faixa(6,30,'qf');
+    document.getElementById('qXis').innerHTML  = faixa(1,5,'qt') + faixa(6,25,'qf') + faixa(26,30,'qa');
     document.getElementById('qCerv').innerHTML = faixa(31,38,'qc');
     document.getElementById('qCria').innerHTML = faixa(39,59,'qm');
     document.getElementById('qCafe').innerHTML = faixa(60,70,'qk');
@@ -346,6 +349,7 @@
       const tx = t => t==='trailer'?' · Trailers':t==='estacao_fixa'?' · Estações fixas':t==='cervejaria'?' · Cervejarias':'';
       let tot = 0, rows = '';
       data.forEach(r=>{
+        if(/amplia/.test((r.grupo||'').toLowerCase()) || !(Number(r.potencial||0)>0)) return; // reserva futura fora das receitas
         tot += Number(r.potencial||0);
         rows += `<tr><td>Venda de espaços — ${r.grupo}${tx(r.tipo_xis)}</td><td>${r.espacos} espaço(s)</td><td><b>${fmt(r.potencial)}</b></td></tr>`;
       });
