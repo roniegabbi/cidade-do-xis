@@ -184,6 +184,7 @@
     <a class="sub-item" onclick="window.open('apresentacao-festival-2026.html','_blank')">Apresentação do Projeto (PDF)</a>
     <a class="sub-item" onclick="window.open('regulamento-festival-2026.html','_blank')">Regulamento Oficial (PDF)</a>
     <a class="sub-item" onclick="window.open('croqui-festival-2026.html','_blank')">Croqui do Evento (PDF)</a>
+    <a class="sub-item" onclick="window.open('proposta-patrocinio-2026.html','_blank')">Proposta de Patrocínio (PDF)</a>
   </nav>
 
   <main class="main">
@@ -1482,9 +1483,12 @@
       .forEach(a=>{ (dias[a.dia]=dias[a.dia]||[]).push(a); });
     const doc = document.createElement('div');
     doc.style.cssText = 'width:190mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
-    doc.innerHTML = `<div style="border-bottom:3px solid #e91e8c;padding-bottom:8px;margin-bottom:8px">
-        <div style="font-size:18px;font-weight:800;color:#4b1a60">Programação Oficial — 4º Festival Nacional do Xis · 2026</div>
-        <div style="font-size:10.5px;color:#8a7f95">13, 14 e 15 de novembro · Largo da Gare · Santa Maria/RS · gerado em ${new Date().toLocaleString('pt-BR')}</div></div>`
+    doc.innerHTML = `<div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #e91e8c;padding-bottom:10px;margin-bottom:8px">
+        <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" style="height:44px" crossorigin="anonymous">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:#4b1a60">Programação Oficial — 4º Festival Nacional do Xis · 2026</div>
+          <div style="font-size:10.5px;color:#8a7f95">13, 14 e 15 de novembro · Largo da Gare · Santa Maria/RS · gerado em ${new Date().toLocaleString('pt-BR')}</div>
+        </div></div>`
       + Object.keys(dias).sort().map(d=>{
           const rot = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
           return `<div style="font-size:13px;font-weight:800;color:#662382;margin:12px 0 5px;text-transform:capitalize">${esc(rot)}</div>
