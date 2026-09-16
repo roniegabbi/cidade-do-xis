@@ -1499,7 +1499,7 @@
     document.body.appendChild(doc);
     try{
       await html2pdf().set({ margin:[8,8,8,8], filename:'Programacao-Oficial-Festival-do-Xis-2026.pdf',
-        image:{type:'jpeg',quality:0.92}, html2canvas:{scale:2,backgroundColor:'#ffffff'},
+        image:{type:'jpeg',quality:0.92}, html2canvas:{scale:2, useCORS:true, scrollY:0, backgroundColor:'#ffffff'},
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['css','legacy']} }).from(doc).save();
       toast('Cronograma baixado');
     }catch(e){ toast('Falha ao gerar o PDF'); }
@@ -1965,7 +1965,7 @@
         margin: [8,8,8,8],
         filename: 'Ficha-Tecnica-Orcamentaria-Festival-2026.pdf',
         image: { type:'jpeg', quality: 0.92 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor:'#ffffff' },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor:'#ffffff' },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
         pagebreak: { mode: ['css','legacy'] }
       }).from(doc).save();
@@ -2238,7 +2238,7 @@
         margin: [8,8,8,8],
         filename: 'Relatorio-Interessados-Festival-2026.pdf',
         image: { type:'jpeg', quality: 0.92 },
-        html2canvas: { scale: 2, backgroundColor:'#ffffff' },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor:'#ffffff' },
         jsPDF: { unit:'mm', format:'a4', orientation:'landscape' },
         pagebreak: { mode: ['css','legacy'] }
       }).from(doc).save();
