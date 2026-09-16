@@ -324,6 +324,28 @@ update festival_espacos e set
 from festival_areas a
 where a.id=e.area_id and a.nome='Operações de Xis' and e.codigo::int between 26 and 30;
 
+-- Programação: momentos oficiais (abertura, Mega Xis, encerramentos) × atrações culturais
+alter table public.festival_atracoes add column if not exists categoria text not null default 'cultural';
+alter table public.festival_atracoes drop constraint if exists festival_atracoes_categoria_check;
+alter table public.festival_atracoes add constraint festival_atracoes_categoria_check check (categoria in ('institucional','cultural'));
+
+-- Plano de Execução (BSC do Festival): ações com responsável, prazo e status
+create table if not exists public.festival_acoes (
+  id uuid primary key default gen_random_uuid(),
+  evento_id uuid not null references public.festival_eventos(id) on delete cascade,
+  dimensao text not null check (dimensao in ('modelagem','financas','infraestrutura','programacao')),
+  titulo text not null,
+  responsavel text,
+  prazo date,
+  status text not null default 'a_fazer' check (status in ('a_fazer','andamento','concluida')),
+  obs text,
+  criado_em timestamptz not null default now()
+);
+alter table public.festival_acoes enable row level security;
+drop policy if exists festac_all on public.festival_acoes;
+create policy festac_all on public.festival_acoes for all using (public.pode_festival()) with check (public.pode_festival());
+grant select, insert, update, delete on public.festival_acoes to authenticated;
+
 -- Upload público da foto do trailer (formulário de interesse 2026)
 drop policy if exists storage_interessados_2026 on storage.objects;
 create policy storage_interessados_2026 on storage.objects

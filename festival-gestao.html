@@ -157,6 +157,7 @@
   <nav class="side">
     <div class="cat">Painel</div>
     <a class="on" data-p="geral" onclick="tab('geral')">Visão geral</a>
+    <a data-p="plano" onclick="tab('plano')">Plano de Execução <span class="bdg hide" id="bdgPlano">0</span></a>
     <div class="cat">Captação</div>
     <a data-p="int26" onclick="tab('int26')">Manifestações de Interesse <span class="bdg hide" id="bdgInt26">0</span></a>
     <div class="cat">Espaços do evento</div>
@@ -168,7 +169,7 @@
     <a class="sub-item" data-p="exp" data-dim="comercial" onclick="abrirExp('comercial')">Expositores Comerciais</a>
     <a class="sub-item" data-p="exp" data-dim="ferromodelismo" onclick="abrirExp('ferromodelismo')">Ferromodelismo</a>
     <a class="sub-item" data-p="exp" data-dim="outros" onclick="abrirExp('outros')">Outros Expositores</a>
-    <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Atrações Culturais</a>
+    <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">agenda, atrações e momentos oficiais</span></a>
     <div class="cat">Parceiros</div>
     <a class="sub-item" data-p="patroc" onclick="tab('patroc')">Patrocinadores</a>
     <a class="sub-item" data-p="exp" data-dim="ativacao" onclick="abrirExp('ativacao')">Ativação Digital de Marcas</a>
@@ -224,6 +225,33 @@
       <div class="card"><h3>Termômetro de captação</h3><div id="termometro"></div></div>
       <div class="card"><h3>Vencimentos</h3><div id="alertas"></div></div>
       <div class="card"><h3>Ocupação por dimensão</h3><div id="ocupacaoDim"></div></div>
+    </section>
+
+    <section class="pane hide" id="p-plano">
+      <div class="h">Plano de Execução</div>
+      <div class="sub">Gestão das ações do Festival em 4 dimensões — cada ação com responsável, prazo e status. Ações com prazo vencido e não concluídas ficam em vermelho.</div>
+      <div class="kpis" id="kpisPlano"></div>
+      <div class="card">
+        <h3 id="tituloFormAcao">Nova ação</h3>
+        <div class="grid" style="display:grid;grid-template-columns:1.2fr 2fr 1.2fr 1fr;gap:10px">
+          <div class="field"><label>Dimensão *</label>
+            <select id="acDim">
+              <option value="modelagem">1 · Modelagem Administrativa</option>
+              <option value="financas">2 · Finanças</option>
+              <option value="infraestrutura">3 · Infraestrutura</option>
+              <option value="programacao">4 · Programação</option>
+            </select></div>
+          <div class="field"><label>Ação *</label><input id="acTitulo" placeholder="Ex.: Termo de Fomento com o Sindhturr"></div>
+          <div class="field"><label>Responsável</label><input id="acResp" placeholder="Ex.: Ronie — SMDEI"></div>
+          <div class="field"><label>Prazo</label><input id="acPrazo" type="date"></div>
+        </div>
+        <div class="field" style="margin-top:6px"><label>Observação</label><input id="acObs" placeholder="Detalhes, condições, dependências…"></div>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btn btn-p" onclick="salvarAcao()" id="btnSalvarAcao">Adicionar ação</button>
+          <button class="btn btn-g hide" id="btnCancelAcao" onclick="cancelarEdicaoAcao()">Cancelar edição</button>
+        </div>
+      </div>
+      <div id="planoDims"></div>
     </section>
 
     <section class="pane hide" id="p-int26">
@@ -358,13 +386,15 @@
     </section>
 
     <section class="pane hide" id="p-atracoes">
-      <div class="h">Atrações culturais</div>
-      <div class="sub">Shows e apresentações. O cachê pode virar conta a pagar com um clique.</div>
+      <div class="h">Programação do Festival</div>
+      <div class="sub">A agenda completa dos 3 dias: momentos oficiais (abertura, Mega Xis, encerramentos) e atrações culturais. O cachê das atrações pode virar conta a pagar com um clique.</div>
       <div class="card">
-        <h3 id="atrFormTit">Nova atração</h3>
+        <h3 id="atrFormTit">Novo item da programação</h3>
         <div class="grid3">
-          <div class="field"><label>Nome *</label><input id="aNome"></div>
-          <div class="field"><label>Tipo</label><input id="aTipo" placeholder="Show, dança, teatro…"></div>
+          <div class="field"><label>Categoria *</label>
+            <select id="aCat"><option value="cultural">Atração cultural</option><option value="institucional">Momento oficial (abertura, Mega Xis…)</option></select></div>
+          <div class="field"><label>Nome *</label><input id="aNome" placeholder="Ex.: Momento Mega Xis, Rock de Galpão"></div>
+          <div class="field"><label>Tipo</label><input id="aTipo" placeholder="Show, dança, momento oficial…"></div>
           <div class="field"><label>Dia</label><input id="aDia" type="date"></div>
           <div class="field"><label>Horário</label><input id="aHora" placeholder="20h"></div>
           <div class="field"><label>Palco/Espaço</label><input id="aPalco" placeholder="Palco principal"></div>
@@ -373,13 +403,13 @@
             <select id="aStatus"><option value="prevista">Prevista</option><option value="confirmada">Confirmada</option><option value="realizada">Realizada</option><option value="cancelada">Cancelada</option></select></div>
           <div class="field"><label>Observações</label><input id="aObs"></div>
         </div>
-        <button class="btn btn-p" onclick="salvarAtracao()">Salvar atração</button>
+        <button class="btn btn-p" onclick="salvarAtracao()">Salvar na programação</button>
         <button class="btn btn-g hide" id="aCancel" onclick="limparAtracao()">Cancelar edição</button>
       </div>
       <div class="filtros"><input id="fAtrBusca" placeholder="Filtrar…" oninput="renderAtracoes()"></div>
       <div class="lista" id="listaAtracoes"></div>
       <div class="card" style="margin-top:14px">
-        <h3 style="display:flex;align-items:center;gap:10px">Cronograma de palco
+        <h3 style="display:flex;align-items:center;gap:10px">Agenda do Festival — programação por dia
           <button class="btn btn-g btn-sm no-print" style="margin-left:auto" onclick="baixarCronoPDF()">Baixar PDF</button></h3>
         <div id="cronoLista"></div>
       </div>
@@ -676,6 +706,8 @@
     const ars = await SB.from('festival_areas').select('*').eq('evento_id',EV.id).order('ordem').order('nome');
     const cnv = await SB.from('festival_convenios').select('*').eq('evento_id',EV.id).order('nome');
     CONV = cnv.data||[];
+    const acs = await SB.from('festival_acoes').select('*').eq('evento_id',EV.id).order('prazo',{ascending:true,nullsFirst:false}).order('criado_em');
+    ACOES = acs.data||[];
     ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
     PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[]; AREAS = ars.data||[];
     RELED_CACHE = {};
@@ -686,7 +718,98 @@
     renderAreas(); renderPrecos(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
     renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); renderConvenios(); finFonteOpts(); preencherSelFornMeta();
-    preencherSelEspacos();
+    preencherSelEspacos(); renderPlano();
+  }
+
+  // ===== PLANO DE EXECUÇÃO (BSC do Festival) =====
+  let ACOES = [], editAcao = null;
+  const PLANO_DIMS = [
+    ['modelagem','1 · Modelagem Administrativa','#662382'],
+    ['financas','2 · Finanças','#1d9e57'],
+    ['infraestrutura','3 · Infraestrutura','#f5a800'],
+    ['programacao','4 · Programação','#e91e8c']
+  ];
+  const acaoAtrasada = a => a.status!=='concluida' && a.prazo && a.prazo < new Date().toISOString().slice(0,10);
+  function renderPlano(){
+    const wrap = g('planoDims'); if(!wrap) return;
+    const hoje = new Date().toISOString().slice(0,10);
+    const atras = ACOES.filter(acaoAtrasada).length;
+    const done = ACOES.filter(a=>a.status==='concluida').length;
+    if(g('bdgPlano')){ g('bdgPlano').textContent = atras; g('bdgPlano').classList.toggle('hide', !atras); }
+    if(g('kpisPlano')) g('kpisPlano').innerHTML = `
+      <div class="kpi"><div class="n">${ACOES.length}</div><div class="l">Ações no plano</div></div>
+      <div class="kpi"><div class="n" style="color:var(--verde)">${done}</div><div class="l">Concluídas</div></div>
+      <div class="kpi"><div class="n">${ACOES.filter(a=>a.status==='andamento').length}</div><div class="l">Em andamento</div></div>
+      <div class="kpi"><div class="n" style="color:${atras?'var(--vermelho)':'var(--verde)'}">${atras}</div><div class="l">Atrasadas</div></div>`;
+    const stSel = a => `<select onchange="statusAcao('${a.id}',this.value)" style="padding:6px 8px;border:1.5px solid var(--borda);border-radius:8px;font-size:12px;background:#fff">
+      <option value="a_fazer"${a.status==='a_fazer'?' selected':''}>A fazer</option>
+      <option value="andamento"${a.status==='andamento'?' selected':''}>Em andamento</option>
+      <option value="concluida"${a.status==='concluida'?' selected':''}>Concluída</option></select>`;
+    wrap.innerHTML = PLANO_DIMS.map(([dim,rot,cor])=>{
+      const lista = ACOES.filter(a=>a.dimensao===dim);
+      const ok = lista.filter(a=>a.status==='concluida').length;
+      const pct = lista.length ? Math.round(ok/lista.length*100) : 0;
+      const rows = lista.map(a=>{
+        const atr = acaoAtrasada(a);
+        const prazoTx = a.prazo ? new Date(a.prazo+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+        return `<div class="row" style="align-items:center${a.status==='concluida'?';opacity:.62':''}">
+          <div style="min-width:0;flex:1">
+            <div class="nm" style="${a.status==='concluida'?'text-decoration:line-through;':''}${atr?'color:var(--vermelho)':''}">${esc(a.titulo)}
+              ${atr?'<span class="pill bad">Atrasada</span>':''}</div>
+            <div class="mt">Responsável: <b>${esc(a.responsavel||'— definir —')}</b> · Prazo: <b style="${atr?'color:var(--vermelho)':''}">${prazoTx}</b>${a.obs?' · '+esc(a.obs):''}</div>
+          </div>
+          <div class="acts">${stSel(a)}
+            <button class="btn btn-g btn-sm" onclick="editarAcao('${a.id}')">Editar</button>
+            <button class="btn btn-r btn-sm" onclick="excluirAcao('${a.id}')">Excluir</button></div>
+        </div>`;
+      }).join('') || '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Nenhuma ação nesta dimensão.</div>';
+      return `<div class="card" style="border-left:5px solid ${cor}">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <h3 style="margin:0;color:${cor}">${rot}</h3>
+          <div style="flex:1;min-width:160px;height:11px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${cor}"></div></div>
+          <b style="font-size:13px;color:var(--roxo-esc)">${ok}/${lista.length} · ${pct}%</b>
+        </div>
+        <div class="lista" style="margin-top:10px">${rows}</div>
+      </div>`;
+    }).join('');
+  }
+  async function salvarAcao(){
+    const titulo = g('acTitulo').value.trim();
+    if(!titulo){ toast('Descreva a ação'); return; }
+    const dados = { dimensao:g('acDim').value, titulo,
+      responsavel:g('acResp').value.trim()||null, prazo:g('acPrazo').value||null, obs:g('acObs').value.trim()||null };
+    const r = editAcao
+      ? await SB.from('festival_acoes').update(dados).eq('id',editAcao)
+      : await SB.from('festival_acoes').insert({evento_id:EV.id, ...dados});
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast(editAcao?'Ação atualizada':'Ação adicionada'); cancelarEdicaoAcao(); loadAll();
+  }
+  function editarAcao(id){
+    const a = ACOES.find(x=>x.id===id); if(!a) return;
+    editAcao = id;
+    g('acDim').value=a.dimensao; g('acTitulo').value=a.titulo;
+    g('acResp').value=a.responsavel||''; g('acPrazo').value=a.prazo||''; g('acObs').value=a.obs||'';
+    g('tituloFormAcao').textContent='Editar ação'; g('btnSalvarAcao').textContent='Salvar alterações';
+    g('btnCancelAcao').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function cancelarEdicaoAcao(){
+    editAcao=null;
+    ['acTitulo','acResp','acPrazo','acObs'].forEach(i=>g(i).value='');
+    g('tituloFormAcao').textContent='Nova ação'; g('btnSalvarAcao').textContent='Adicionar ação';
+    g('btnCancelAcao').classList.add('hide');
+  }
+  async function statusAcao(id, st){
+    const r = await SB.from('festival_acoes').update({status:st}).eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast(st==='concluida'?'Ação concluída ✓':'Status atualizado'); loadAll();
+  }
+  async function excluirAcao(id){
+    const a = ACOES.find(x=>x.id===id);
+    if(!confirm('Excluir a ação "'+(a?a.titulo:'')+'"?')) return;
+    const r = await SB.from('festival_acoes').delete().eq('id',id);
+    if(r.error){ toast('Erro: '+r.error.message); return; }
+    toast('Ação excluída'); loadAll();
   }
 
   // ===== NAV =====
@@ -1252,7 +1375,7 @@
   async function salvarAtracao(){
     const nome = g('aNome').value.trim();
     if(!nome){ toast('Informe o nome da atração'); return; }
-    const reg = { evento_id:EV.id, nome, tipo:g('aTipo').value.trim()||null, dia:g('aDia').value||null,
+    const reg = { evento_id:EV.id, nome, categoria:g('aCat').value, tipo:g('aTipo').value.trim()||null, dia:g('aDia').value||null,
       horario:g('aHora').value.trim()||null, palco:g('aPalco').value.trim()||null,
       cache:parseFloat(g('aCache').value)||0, status:g('aStatus').value, obs:g('aObs').value.trim()||null };
     const r = editAtr
@@ -1262,10 +1385,10 @@
     toast(editAtr?'Atração atualizada':'Atração cadastrada'); limparAtracao(); loadAll();
   }
   function limparAtracao(){ editAtr=null; ['aNome','aTipo','aDia','aHora','aPalco','aCache','aObs'].forEach(i=>g(i).value='');
-    g('aStatus').value='prevista'; g('atrFormTit').textContent='Nova atração'; g('aCancel').classList.add('hide'); }
+    g('aStatus').value='prevista'; g('aCat').value='cultural'; g('atrFormTit').textContent='Novo item da programação'; g('aCancel').classList.add('hide'); }
   function editarAtracao(id){
     const a = ATRACOES.find(x=>x.id===id); if(!a) return;
-    editAtr=id; g('aNome').value=a.nome; g('aTipo').value=a.tipo||''; g('aDia').value=a.dia||'';
+    editAtr=id; g('aNome').value=a.nome; g('aCat').value=a.categoria||'cultural'; g('aTipo').value=a.tipo||''; g('aDia').value=a.dia||'';
     g('aHora').value=a.horario||''; g('aPalco').value=a.palco||''; g('aCache').value=a.cache||'';
     g('aStatus').value=a.status; g('aObs').value=a.obs||'';
     g('atrFormTit').textContent='Editar atração'; g('aCancel').classList.remove('hide');
@@ -1294,13 +1417,13 @@
     const lista = ATRACOES.filter(a=>!q || norm(a.nome+' '+(a.tipo||'')+' '+(a.palco||'')).includes(q));
     const stPill = s => s==='confirmada'?'<span class="pill ok">Confirmada</span>':s==='realizada'?'<span class="pill info">Realizada</span>':s==='cancelada'?'<span class="pill bad">Cancelada</span>':'<span class="pill warn">Prevista</span>';
     g('listaAtracoes').innerHTML = lista.length ? lista.map(a=>`<div class="row">
-      <div><div class="nm">${esc(a.nome)} ${stPill(a.status)}</div>
-        <div class="mt">${[a.tipo,fmtD(a.dia),a.horario,a.palco].filter(Boolean).map(esc).join(' · ')} · cachê ${fmtRS(a.cache)}</div></div>
+      <div><div class="nm">${esc(a.nome)} ${a.categoria==='institucional'?'<span class="pill" style="background:#efe7f4;color:var(--roxo-esc)">Momento oficial</span>':''} ${stPill(a.status)}</div>
+        <div class="mt">${[a.tipo,fmtD(a.dia),a.horario,a.palco].filter(Boolean).map(esc).join(' · ')}${a.categoria==='institucional'?'':' · cachê '+fmtRS(a.cache)}</div></div>
       <div class="acts">
         <button class="btn btn-g btn-sm" onclick="editarAtracao('${a.id}')">Editar</button>
-        <button class="btn btn-g btn-sm" onclick="gerarCache('${a.id}')">Cachê</button>
+        ${a.categoria==='institucional'?'':`<button class="btn btn-g btn-sm" onclick="gerarCache('${a.id}')">Cachê</button>`}
         <button class="btn btn-r btn-sm" onclick="excluirAtracao('${a.id}')">Excluir</button>
-      </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma atração.</div>';
+      </div></div>`).join('') : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum item na programação.</div>';
   }
 
   // ===== CONTRATOS POR PARTICIPANTE =====
@@ -1329,49 +1452,53 @@
   // ===== CRONOGRAMA DE PALCO =====
   function renderCrono(){
     const el = g('cronoLista'); if(!el) return;
+    const chaveH = a => (a.dia+' '+((a.horario||'').replace(/^00h/,'24h')||'zz'));
     const ativas = ATRACOES.filter(a=>a.status!=='cancelada' && a.dia)
-      .sort((x,y)=> (x.dia+' '+(x.horario||'')).localeCompare(y.dia+' '+(y.horario||''),'pt-BR',{numeric:true}));
-    if(!ativas.length){ el.innerHTML = '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Cadastre atrações com dia e horário para montar o cronograma.</div>'; return; }
+      .sort((x,y)=> chaveH(x).localeCompare(chaveH(y),'pt-BR',{numeric:true}));
+    if(!ativas.length){ el.innerHTML = '<div class="mt" style="font-size:13px;color:var(--texto-suave)">Cadastre itens com dia e horário para montar a agenda.</div>'; return; }
     const dias = {};
     ativas.forEach(a=>{ (dias[a.dia] = dias[a.dia]||[]).push(a); });
     el.innerHTML = Object.keys(dias).sort().map(d=>{
       const rot = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
       return `<div style="font-weight:800;color:var(--roxo-esc);margin:12px 0 6px;text-transform:capitalize;border-bottom:2px solid rgba(102,35,130,.14);padding-bottom:4px">${esc(rot)}</div>`
-        + dias[d].map(a=>`<div style="display:flex;gap:12px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--fundo)">
+        + dias[d].map(a=>{
+          const inst = a.categoria==='institucional';
+          return `<div style="display:flex;gap:12px;align-items:center;padding:7px 6px;border-bottom:1px solid var(--fundo)${inst?';background:#f6f1fa;border-radius:8px':''}">
           <b style="color:var(--rosa);min-width:56px">${esc(a.horario||'—')}</b>
-          <span style="font-weight:700">${esc(a.nome)}</span>
+          <span style="font-weight:${inst?'800':'700'};${inst?'color:var(--roxo-esc)':''}">${inst?'★ ':''}${esc(a.nome)}</span>
           <span style="color:var(--texto-suave);font-size:12.5px">${[a.tipo,a.palco].filter(Boolean).map(esc).join(' · ')}</span>
           <span class="pill ${a.status==='confirmada'?'ok':a.status==='realizada'?'info':'warn'}" style="margin-left:auto">${a.status}</span>
-        </div>`).join('');
+        </div>`;}).join('');
     }).join('');
   }
   async function baixarCronoPDF(){
     try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
     catch(e){ toast('Não foi possível carregar o gerador de PDF'); return; }
     const ativas = ATRACOES.filter(a=>a.status!=='cancelada' && a.dia);
-    if(!ativas.length){ toast('Sem atrações com dia definido'); return; }
+    if(!ativas.length){ toast('Sem itens com dia definido'); return; }
     const dias = {};
-    ativas.sort((x,y)=>(x.dia+' '+(x.horario||'')).localeCompare(y.dia+' '+(y.horario||''),'pt-BR',{numeric:true}))
+    const chaveH2 = a => (a.dia+' '+((a.horario||'').replace(/^00h/,'24h')||'zz'));
+    ativas.sort((x,y)=>chaveH2(x).localeCompare(chaveH2(y),'pt-BR',{numeric:true}))
       .forEach(a=>{ (dias[a.dia]=dias[a.dia]||[]).push(a); });
     const doc = document.createElement('div');
     doc.style.cssText = 'width:190mm;padding:10mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
     doc.innerHTML = `<div style="border-bottom:3px solid #e91e8c;padding-bottom:8px;margin-bottom:8px">
-        <div style="font-size:18px;font-weight:800;color:#4b1a60">Cronograma de Palco — Festival do Xis 2026</div>
-        <div style="font-size:10.5px;color:#8a7f95">13 a 15 de novembro · Largo da Gare · gerado em ${new Date().toLocaleString('pt-BR')}</div></div>`
+        <div style="font-size:18px;font-weight:800;color:#4b1a60">Programação Oficial — 4º Festival Nacional do Xis · 2026</div>
+        <div style="font-size:10.5px;color:#8a7f95">13, 14 e 15 de novembro · Largo da Gare · Santa Maria/RS · gerado em ${new Date().toLocaleString('pt-BR')}</div></div>`
       + Object.keys(dias).sort().map(d=>{
           const rot = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
           return `<div style="font-size:13px;font-weight:800;color:#662382;margin:12px 0 5px;text-transform:capitalize">${esc(rot)}</div>
             <table style="width:100%;border-collapse:collapse;font-size:10.5px">
-            ${dias[d].map(a=>`<tr><td style="padding:4px 8px;border-bottom:1px solid #f0eaf5;width:60px"><b style="color:#e91e8c">${esc(a.horario||'—')}</b></td>
-              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5"><b>${esc(a.nome)}</b></td>
+            ${dias[d].map(a=>{const inst=a.categoria==='institucional';return `<tr${inst?' style="background:#f6f1fa"':''}><td style="padding:4px 8px;border-bottom:1px solid #f0eaf5;width:60px"><b style="color:#e91e8c">${esc(a.horario||'—')}</b></td>
+              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5"><b${inst?' style="color:#4b1a60"':''}>${inst?'★ ':''}${esc(a.nome)}</b></td>
               <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5;color:#8a7f95">${[a.tipo,a.palco].filter(Boolean).map(esc).join(' · ')}</td>
-              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5">${a.status}</td></tr>`).join('')}
+              <td style="padding:4px 8px;border-bottom:1px solid #f0eaf5">${a.status}</td></tr>`;}).join('')}
             </table>`;
         }).join('')
       + `<div style="margin-top:10px;font-size:9px;color:#8a7f95;text-align:center">Programa Xis · Prefeitura Municipal de Santa Maria · cidadedoxis.com</div>`;
     document.body.appendChild(doc);
     try{
-      await html2pdf().set({ margin:[8,8,8,8], filename:'Cronograma-Palco-Festival-2026.pdf',
+      await html2pdf().set({ margin:[8,8,8,8], filename:'Programacao-Oficial-Festival-do-Xis-2026.pdf',
         image:{type:'jpeg',quality:0.92}, html2canvas:{scale:2,backgroundColor:'#ffffff'},
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['css','legacy']} }).from(doc).save();
       toast('Cronograma baixado');
