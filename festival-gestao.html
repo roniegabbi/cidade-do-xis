@@ -168,6 +168,7 @@
     <a class="sub-item" data-p="exp" data-dim="criativo" onclick="abrirExp('criativo')">Mercado Criativo</a>
     <a class="sub-item" data-p="exp" data-dim="comercial" onclick="abrirExp('comercial')">Expositores Comerciais</a>
     <a class="sub-item" data-p="exp" data-dim="ferromodelismo" onclick="abrirExp('ferromodelismo')">Ferromodelismo</a>
+    <a class="sub-item" data-p="exp" data-dim="rural" onclick="abrirExp('rural')">Pátio Rural<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">agricultura familiar e agroindústria</span></a>
     <a class="sub-item" data-p="exp" data-dim="outros" onclick="abrirExp('outros')">Outros Expositores</a>
     <div class="cat">Parceiros</div>
     <a class="sub-item" data-p="patroc" onclick="tab('patroc')">Patrocinadores</a>
@@ -630,7 +631,7 @@
   const SB = (window.supabase && window.supabase.createClient)
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-  const DIMS = {xis:'Operações de Xis', criativo:'Mercado Criativo', comercial:'Expositores Comerciais', ferromodelismo:'Ferromodelismo', outros:'Outros Expositores', ativacao:'Ativação Digital de Marcas', cultural:'Cultural'};
+  const DIMS = {xis:'Operações de Xis', criativo:'Mercado Criativo', comercial:'Expositores Comerciais', ferromodelismo:'Ferromodelismo', outros:'Outros Expositores', ativacao:'Ativação Digital de Marcas', rural:'Pátio Rural', cultural:'Cultural'};
   const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   const fmtRS = v => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -656,6 +657,7 @@
   function areaCor(aid){
     const n = norm(areaNome(aid));
     if(/amplia/.test(n))         return {bg:'#f6f4f8',bd:'#b4b2a9',tx:'#8a7f95'}; // cinza — reserva futura
+    if(/rural|patio|agric/.test(n)) return {bg:'#eef4dc',bd:'#639922',tx:'#27500a'}; // verde-oliva — Pátio Rural
     if(/criativ/.test(n))        return {bg:'#fbeaf0',bd:'#d4537e',tx:'#72243e'}; // rosa
     if(/caf|torta/.test(n))      return {bg:'#f2e9e2',bd:'#8a5a3b',tx:'#52351f'}; // marrom café
     if(/infantil/.test(n))       return {bg:'#faece7',bd:'#d85a30',tx:'#712b13'};

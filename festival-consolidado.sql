@@ -324,6 +324,19 @@ update festival_espacos e set
 from festival_areas a
 where a.id=e.area_id and a.nome='Operações de Xis' and e.codigo::int between 26 and 30;
 
+-- Pátio Rural (set/2026): agricultura familiar e agroindústria — 15 espaços (83–97) a R$500, dentro da Gare
+alter table festival_participacoes drop constraint if exists festival_participacoes_dimensao_check;
+alter table festival_participacoes add constraint festival_participacoes_dimensao_check
+  check (dimensao in ('xis','criativo','ferromodelismo','outros','comercial','ativacao','rural'));
+insert into festival_areas (evento_id, nome)
+select evento_id, 'Pátio Rural' from festival_areas where nome='Operações de Xis'
+and not exists (select 1 from festival_areas a2 where a2.nome='Pátio Rural' and a2.evento_id=festival_areas.evento_id);
+insert into festival_espacos (evento_id, area_id, codigo, valor)
+select a.evento_id, a.id, lpad(n::text,2,'0'), 500
+from festival_areas a, generate_series(83,97) n
+where a.nome='Pátio Rural'
+and not exists (select 1 from festival_espacos e where e.evento_id=a.evento_id and e.codigo=lpad(n::text,2,'0'));
+
 -- Programação: momentos oficiais (abertura, Mega Xis, encerramentos) × atrações culturais
 alter table public.festival_atracoes add column if not exists categoria text not null default 'cultural';
 alter table public.festival_atracoes drop constraint if exists festival_atracoes_categoria_check;
