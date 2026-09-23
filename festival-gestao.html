@@ -901,8 +901,11 @@
   async function baixarCardapioPDF(){
     try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
     catch(e){ toast('Não foi possível carregar o gerador de PDF'); return; }
-    const ops = opsCardapio().filter(o=>o.code!=null);
-    if(!ops.length){ toast('Vincule as operações aos espaços no Mapa primeiro'); return; }
+    const lots = ESPACOS.filter(e=>{const n=parseInt(e.codigo,10); return n>=1 && n<=25;})
+      .map(e=>{ const occ = ocupanteDoEspaco(e.id); return {code: parseInt(e.codigo,10), p: occ||null}; })
+      .sort((a,b)=>a.code-b.code);
+    if(!lots.length){ toast('Cadastre os espaços 01–25 no Mapa primeiro'); return; }
+    const ops = lots;
     const BG_SITE = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png";
     const LOGO = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png";
     const chip = (cod, letra, nome, desc, destaque) => `
@@ -920,7 +923,7 @@
     const comanda = (o) => {
       const cod = String(o.code).padStart(2,'0');
       const trailer = o.code<=5;
-      const sab = l => saborDe(o.p.id, l);
+      const sab = l => o.p ? saborDe(o.p.id, l) : null;
       let chips = chip(cod,'A','Xis do Festival', XIS_FESTIVAL_DESC, true);
       for(const l of ['B','C','D']){
         const sb = sab(l);
@@ -929,7 +932,7 @@
       return `<div style="background:#fff;border-radius:14px;padding:9px 12px;margin-bottom:7px;page-break-inside:avoid">
         <div style="display:flex;align-items:center;gap:11px;border-bottom:2.5px dashed #e4dced;padding-bottom:7px">
           <div style="min-width:44px;height:44px;border-radius:50%;background:${trailer?'#f5a800':'#1d9e57'};display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:${trailer?'#4b1a60':'#fff'};transform:rotate(${trailer?'-6':'5'}deg)">${cod}</div>
-          <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;color:#4b1a60;text-transform:uppercase">${esc(nomePart(o.p))} ${trailer?'🚚':'🏪'}</div>
+          <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;color:${o.p?'#4b1a60':'#a695b5'};text-transform:uppercase">${o.p?esc(nomePart(o.p)):'Operação a confirmar'} ${trailer?'🚚':'🏪'}</div>
           <div style="font-size:9.5px;color:${trailer?'#e91e8c':'#1d9e57'};font-weight:800">${trailer?'TRAILER · ÁREA 1':'ESTAÇÃO FIXA · ÁREA 2'}</div></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px">${chips}</div>
@@ -938,8 +941,8 @@
     const trailers = ops.filter(o=>o.code<=5), fixas = ops.filter(o=>o.code>5);
     const secao = t => `<div style="text-align:center;color:#fff;font-size:15px;font-weight:800;letter-spacing:1px;margin:9px 0 7px;text-shadow:0 2px 6px rgba(0,0,0,.5)">${t}</div>`;
     const doc = document.createElement('div');
-    doc.style.cssText = 'width:190mm;background:#662382;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42';
-    doc.innerHTML = `<div style="background:linear-gradient(180deg,rgba(102,35,130,.86),rgba(75,26,96,.92)),url('${BG_SITE}') center top/190mm auto repeat;padding:7mm 8mm 8mm">
+    doc.style.cssText = 'width:210mm;background:#662382;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42';
+    doc.innerHTML = `<div style="background:linear-gradient(180deg,rgba(102,35,130,.86),rgba(75,26,96,.92)),url('${BG_SITE}') center top/210mm auto repeat;padding:7mm 8mm 8mm">
       <div style="position:relative;border-radius:14px;overflow:hidden;margin-bottom:6mm">
         <img src="${BG_SITE}" crossorigin="anonymous" style="width:100%;height:58mm;object-fit:cover;object-position:center 30%;display:block">
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(102,35,130,.18) 0%,rgba(102,35,130,.45) 55%,rgba(75,26,96,.85) 100%)"></div>
@@ -960,6 +963,15 @@
       <div style="text-align:center;color:#d9c3e8;font-size:9px;margin-top:4mm">4º Festival Nacional do Xis · 13, 14 e 15 de novembro · Largo da Gare · Programa Xis · Prefeitura de Santa Maria · cidadedoxis.com</div>
     </div>`;
     document.body.appendChild(doc);
+    // completa a última página para o fundo ir até o fim da folha
+    const wrapCard = doc.firstElementChild;
+    const phCard = doc.offsetWidth * (297/210);
+    const restoCard = doc.offsetHeight % phCard;
+    if(restoCard > 4){
+      const spacer = document.createElement('div');
+      spacer.style.height = (phCard - restoCard) + 'px';
+      wrapCard.appendChild(spacer);
+    }
     try{
       await html2pdf().set({ margin:0, filename:'Cardapio-Festival-do-Xis-2026.pdf',
         image:{type:'jpeg',quality:0.92}, html2canvas:{scale:2, useCORS:true, scrollY:0, backgroundColor:'#662382'},
