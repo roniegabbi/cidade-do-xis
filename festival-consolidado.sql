@@ -342,6 +342,21 @@ alter table public.festival_atracoes add column if not exists categoria text not
 alter table public.festival_atracoes drop constraint if exists festival_atracoes_categoria_check;
 alter table public.festival_atracoes add constraint festival_atracoes_categoria_check check (categoria in ('institucional','cultural'));
 
+-- Cardápio do Festival: sabores B/C/D por operação (A = Xis do Festival, fixo)
+create table if not exists public.festival_sabores (
+  id uuid primary key default gen_random_uuid(),
+  participacao_id uuid not null references public.festival_participacoes(id) on delete cascade,
+  letra text not null check (letra in ('B','C','D')),
+  nome text not null,
+  descricao text,
+  criado_em timestamptz not null default now(),
+  unique (participacao_id, letra)
+);
+alter table public.festival_sabores enable row level security;
+drop policy if exists festsab_all on public.festival_sabores;
+create policy festsab_all on public.festival_sabores for all using (public.pode_festival()) with check (public.pode_festival());
+grant select, insert, update, delete on public.festival_sabores to authenticated;
+
 -- Plano de Execução (BSC do Festival): ações com responsável, prazo e status
 create table if not exists public.festival_acoes (
   id uuid primary key default gen_random_uuid(),

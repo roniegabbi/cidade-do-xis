@@ -180,6 +180,7 @@
     <a class="sub-item" data-p="prest" onclick="tab('prest')">Prestação de Contas</a>
     <div class="cat">Relatórios</div>
     <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">agenda, atrações e momentos oficiais</span></a>
+    <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">sabores por operação · pedido por código</span></a>
     <a class="sub-item" data-p="reled" onclick="tab('reled');renderRelEd()">Participantes por Edição</a>
     <a class="sub-item" onclick="window.open('livro-festival-do-xis.html','_blank')">Livro do Festival (PDF)</a>
     <a class="sub-item" onclick="window.open('apresentacao-festival-2026.html','_blank')">Apresentação do Projeto (PDF)</a>
@@ -418,6 +419,16 @@
           <button class="btn btn-g btn-sm no-print" style="margin-left:auto" onclick="baixarCronoPDF()">Baixar PDF</button></h3>
         <div id="cronoLista"></div>
       </div>
+    </section>
+
+    <section class="pane hide" id="p-cardapio">
+      <div class="h">Cardápio do Festival</div>
+      <div class="sub">Cada operação de Xis tem 4 sabores: o <b>A</b> é sempre o <b>Xis do Festival</b> (Xis Completo: pão de 11 cm, bife, maionese, queijo, ovo, milho, ervilha, tomate, alface, catchup e mostarda) e <b>B, C e D</b> são escolhas da operação. O pedido usa o código <b>espaço + letra</b> (ex.: 12-C) — por isso, vincule cada operação ao seu espaço no Mapa para gerar a numeração.</div>
+      <div class="filtros no-print">
+        <input id="fCardBusca" placeholder="Filtrar operação…" oninput="renderCardapio()">
+        <button class="btn btn-p btn-sm" id="btnCardPDF" onclick="baixarCardapioPDF()">Baixar Cardápio (PDF)</button>
+      </div>
+      <div id="listaCardapio"></div>
     </section>
 
     <section class="pane hide" id="p-patroc">
@@ -714,6 +725,8 @@
     CONV = cnv.data||[];
     const acs = await SB.from('festival_acoes').select('*').eq('evento_id',EV.id).order('prazo',{ascending:true,nullsFirst:false}).order('criado_em');
     ACOES = acs.data||[];
+    const sab = await SB.from('festival_sabores').select('*');
+    SABORES = sab.data||[];
     ESPACOS = esp.data||[]; PARTS = par.data||[]; ATRACOES = atr.data||[];
     PATROC = pat.data||[]; FORNEC = forn.data||[]; FIN = fin.data||[]; ORC = orc.data||[]; AREAS = ars.data||[];
     RELED_CACHE = {};
@@ -724,7 +737,7 @@
     renderAreas(); renderPrecos(); renderGeral(); renderMapa(); renderEspacos(); renderXis(); renderExp();
     renderAtracoes(); renderPatrocinadores(); renderFornecedores();
     renderFin(); renderFluxo(); renderPrestacao(); renderOrcamento(); renderConvenios(); finFonteOpts(); preencherSelFornMeta();
-    preencherSelEspacos(); renderPlano();
+    preencherSelEspacos(); renderPlano(); renderCardapio();
   }
 
   // ===== PLANO DE EXECUÇÃO (BSC do Festival) =====
@@ -816,6 +829,142 @@
     const r = await SB.from('festival_acoes').delete().eq('id',id);
     if(r.error){ toast('Erro: '+r.error.message); return; }
     toast('Ação excluída'); loadAll();
+  }
+
+  // ===== CARDÁPIO DO FESTIVAL =====
+  let SABORES = [];
+  const XIS_FESTIVAL_DESC = 'Xis Completo: pão de 11 cm, bife, maionese, queijo, ovo, milho, ervilha, tomate, alface, catchup e mostarda';
+  function opsCardapio(){
+    const code = p => { const e = ESPACOS.find(x=>x.id===p.espaco_id); return e ? parseInt(e.codigo,10) : null; };
+    return PARTS.filter(p=>p.dimensao==='xis' && p.status!=='cancelado')
+      .map(p=>({p, code: code(p)}))
+      .sort((a,b)=>(a.code??999)-(b.code??999) || nomePart(a.p).localeCompare(nomePart(b.p),'pt-BR'));
+  }
+  const saborDe = (pid, letra) => SABORES.find(s=>s.participacao_id===pid && s.letra===letra);
+  function renderCardapio(){
+    const el = g('listaCardapio'); if(!el) return;
+    const q = norm(g('fCardBusca')?g('fCardBusca').value:'');
+    const ops = opsCardapio().filter(o=>!q || norm(nomePart(o.p)).includes(q));
+    const linha = (o) => {
+      const pid = o.p.id, cod = o.code!=null ? String(o.code).padStart(2,'0') : '—';
+      const inp = (letra) => {
+        const sb = saborDe(pid, letra);
+        return `<div style="display:grid;grid-template-columns:44px 1fr 1.4fr;gap:8px;align-items:center;margin-top:6px">
+          <b style="color:var(--roxo)">${cod}·${letra}</b>
+          <input id="sbN-${letra}-${pid}" placeholder="Nome do sabor ${letra}" value="${sb?esc(sb.nome).replace(/"/g,'&quot;'):''}" style="padding:8px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px">
+          <input id="sbD-${letra}-${pid}" placeholder="Ingredientes / descrição" value="${sb&&sb.descricao?esc(sb.descricao).replace(/"/g,'&quot;'):''}" style="padding:8px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px">
+        </div>`;
+      };
+      return `<div class="card" style="border-left:5px solid ${o.code!=null&&o.code<=5?'#5C2890':'#1d9e57'}">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="min-width:44px;height:44px;border-radius:12px;background:${o.code!=null?(o.code<=5?'#f1e7fb':'#e2f6ea'):'#fdf8ea'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:var(--roxo-esc)">${cod}</span>
+          <div style="min-width:0;flex:1"><div class="nm">${esc(nomePart(o.p))}</div>
+            <div class="mt">${o.code!=null?(o.code<=5?'Trailer · espaço '+cod:'Estação fixa · espaço '+cod):'⚠ sem espaço no mapa — vincule para gerar o código'}</div></div>
+          <button class="btn btn-p btn-sm" onclick="salvarSabores('${pid}')">Salvar sabores</button>
+        </div>
+        <div style="display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:center;margin-top:10px;background:var(--fundo);border-radius:8px;padding:6px 8px">
+          <b style="color:var(--rosa)">${cod}·A</b><span style="font-size:13px"><b>Xis do Festival</b> — ${XIS_FESTIVAL_DESC}</span>
+        </div>
+        ${inp('B')}${inp('C')}${inp('D')}
+      </div>`;
+    };
+    const trailers = ops.filter(o=>o.code!=null && o.code<=5);
+    const fixas = ops.filter(o=>o.code!=null && o.code>5);
+    const semEsp = ops.filter(o=>o.code==null);
+    el.innerHTML =
+      `<h3 style="color:#5C2890;margin:6px 0 8px">Área 1 — Trailers (espaços 01–05) · ${trailers.length} operação(ões)</h3>`
+      + (trailers.map(linha).join('') || '<div class="mt" style="color:var(--texto-suave);font-size:13px;margin-bottom:10px">Nenhum trailer vinculado a espaço ainda.</div>')
+      + `<h3 style="color:#1d9e57;margin:16px 0 8px">Área 2 — Estações fixas (espaços 06–25) · ${fixas.length} operação(ões)</h3>`
+      + (fixas.map(linha).join('') || '<div class="mt" style="color:var(--texto-suave);font-size:13px;margin-bottom:10px">Nenhuma estação vinculada a espaço ainda.</div>')
+      + (semEsp.length ? `<h3 style="color:#7d5600;margin:16px 0 8px">Sem espaço definido · ${semEsp.length}</h3>` + semEsp.map(linha).join('') : '');
+  }
+  async function salvarSabores(pid){
+    const regs = [], vazias = [];
+    for(const letra of ['B','C','D']){
+      const nome = g('sbN-'+letra+'-'+pid).value.trim();
+      const desc = g('sbD-'+letra+'-'+pid).value.trim();
+      if(nome) regs.push({participacao_id:pid, letra, nome, descricao:desc||null});
+      else vazias.push(letra);
+    }
+    if(regs.length){
+      const r = await SB.from('festival_sabores').upsert(regs, {onConflict:'participacao_id,letra'});
+      if(r.error){ toast('Erro: '+r.error.message); return; }
+    }
+    if(vazias.length){
+      await SB.from('festival_sabores').delete().eq('participacao_id',pid).in('letra',vazias);
+    }
+    toast('Sabores salvos');
+    const sab = await SB.from('festival_sabores').select('*');
+    SABORES = sab.data||[];
+    renderCardapio();
+  }
+  async function baixarCardapioPDF(){
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Não foi possível carregar o gerador de PDF'); return; }
+    const ops = opsCardapio().filter(o=>o.code!=null);
+    if(!ops.length){ toast('Vincule as operações aos espaços no Mapa primeiro'); return; }
+    const BG_SITE = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png";
+    const FOTO_XIS = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579647979.jpeg";
+    const chip = (cod, letra, nome, desc, destaque) => `
+      <div style="background:${destaque?'#fdeef7':'#f6f1fa'};border-radius:10px;padding:6px 9px;page-break-inside:avoid">
+        <span style="background:${destaque?'#e91e8c':'#662382'};color:#fff;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 8px">${cod}·${letra}</span>
+        <div style="font-size:11.5px;font-weight:800;color:#4b1a60;margin-top:3px">${destaque?'⭐ ':''}${esc(nome)}</div>
+        <div style="font-size:9px;color:#8a7f95;line-height:1.35">${desc?esc(desc):''}</div>
+      </div>`;
+    const chipVazio = (cod, letra) => `
+      <div style="background:rgba(246,241,250,.6);border:1.5px dashed #d9c8e8;border-radius:10px;padding:6px 9px">
+        <span style="background:#c9b3d8;color:#fff;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 8px">${cod}·${letra}</span>
+        <div style="font-size:11.5px;color:#c9b3d8;margin-top:3px">sabor a definir</div>
+        <div style="font-size:9px;color:#c9b3d8">&nbsp;</div>
+      </div>`;
+    const comanda = (o) => {
+      const cod = String(o.code).padStart(2,'0');
+      const trailer = o.code<=5;
+      const sab = l => saborDe(o.p.id, l);
+      let chips = chip(cod,'A','Xis do Festival', XIS_FESTIVAL_DESC, true);
+      for(const l of ['B','C','D']){
+        const sb = sab(l);
+        chips += sb ? chip(cod,l,sb.nome,sb.descricao,false) : chipVazio(cod,l);
+      }
+      return `<div style="background:#fff;border-radius:14px;padding:9px 12px;margin-bottom:7px;page-break-inside:avoid">
+        <div style="display:flex;align-items:center;gap:11px;border-bottom:2.5px dashed #e4dced;padding-bottom:7px">
+          <div style="min-width:44px;height:44px;border-radius:50%;background:${trailer?'#f5a800':'#1d9e57'};display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:${trailer?'#4b1a60':'#fff'};transform:rotate(${trailer?'-6':'5'}deg)">${cod}</div>
+          <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;color:#4b1a60;text-transform:uppercase">${esc(nomePart(o.p))} ${trailer?'🚚':'🏪'}</div>
+          <div style="font-size:9.5px;color:${trailer?'#e91e8c':'#1d9e57'};font-weight:800">${trailer?'TRAILER · ÁREA 1':'ESTAÇÃO FIXA · ÁREA 2'}</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px">${chips}</div>
+      </div>`;
+    };
+    const trailers = ops.filter(o=>o.code<=5), fixas = ops.filter(o=>o.code>5);
+    const secao = t => `<div style="text-align:center;color:#fff;font-size:15px;font-weight:800;letter-spacing:1px;margin:9px 0 7px;text-shadow:0 2px 6px rgba(0,0,0,.5)">${t}</div>`;
+    const doc = document.createElement('div');
+    doc.style.cssText = 'width:190mm;background:#662382;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42';
+    doc.innerHTML = `<div style="background:linear-gradient(180deg,rgba(102,35,130,.86),rgba(75,26,96,.92)),url('${BG_SITE}') center top/190mm auto repeat;padding:7mm 8mm 8mm">
+      <div style="position:relative;border-radius:14px;overflow:hidden;margin-bottom:6mm">
+        <img src="${FOTO_XIS}" crossorigin="anonymous" style="width:100%;height:38mm;object-fit:cover;display:block">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(102,35,130,.15),rgba(102,35,130,.88))"></div>
+        <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center">
+          <div style="color:#fff;font-size:21px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.6)">🍔 CARDÁPIO OFICIAL DO FESTIVAL 🍔</div>
+          <div style="color:#f5a800;font-size:11px;font-weight:800;letter-spacing:1px;text-shadow:0 2px 6px rgba(0,0,0,.6)">GRITA O CÓDIGO QUE O XIS CHEGA! · EX.: "12-C!"</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.95);border-radius:10px;padding:6px 12px;font-size:10px;text-align:center;margin-bottom:5mm">
+        <b style="color:#e91e8c">⭐ Sabor A em todas as operações:</b> <b>Xis do Festival</b> — ${XIS_FESTIVAL_DESC} · bebidas do patrocinador oficial em todos os balcões
+      </div>
+      ${secao('🚚 ÁREA 1 · TRAILERS — ESPAÇOS 01 A 05')}
+      ${trailers.map(comanda).join('')}
+      ${secao('🏪 ÁREA 2 · ESTAÇÕES FIXAS — ESPAÇOS 06 A 25')}
+      ${fixas.map(comanda).join('')}
+      <div style="text-align:center;color:#d9c3e8;font-size:9px;margin-top:4mm">4º Festival Nacional do Xis · 13, 14 e 15 de novembro · Largo da Gare · Programa Xis · Prefeitura de Santa Maria · cidadedoxis.com</div>
+    </div>`;
+    document.body.appendChild(doc);
+    try{
+      await html2pdf().set({ margin:0, filename:'Cardapio-Festival-do-Xis-2026.pdf',
+        image:{type:'jpeg',quality:0.92}, html2canvas:{scale:2, useCORS:true, scrollY:0, backgroundColor:'#662382'},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:['css','legacy']} }).from(doc).save();
+      toast('Cardápio baixado');
+    }catch(e){ toast('Falha ao gerar o PDF'); }
+    doc.remove();
   }
 
   // ===== NAV =====
