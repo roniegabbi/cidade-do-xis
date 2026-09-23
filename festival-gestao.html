@@ -904,7 +904,7 @@
     const ops = opsCardapio().filter(o=>o.code!=null);
     if(!ops.length){ toast('Vincule as operações aos espaços no Mapa primeiro'); return; }
     const BG_SITE = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png";
-    const FOTO_XIS = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579647979.jpeg";
+    const LOGO = "https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png";
     const chip = (cod, letra, nome, desc, destaque) => `
       <div style="background:${destaque?'#fdeef7':'#f6f1fa'};border-radius:10px;padding:6px 9px;page-break-inside:avoid">
         <span style="background:${destaque?'#e91e8c':'#662382'};color:#fff;font-size:9.5px;font-weight:800;border-radius:99px;padding:2px 8px">${cod}·${letra}</span>
@@ -941,12 +941,13 @@
     doc.style.cssText = 'width:190mm;background:#662382;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42';
     doc.innerHTML = `<div style="background:linear-gradient(180deg,rgba(102,35,130,.86),rgba(75,26,96,.92)),url('${BG_SITE}') center top/190mm auto repeat;padding:7mm 8mm 8mm">
       <div style="position:relative;border-radius:14px;overflow:hidden;margin-bottom:6mm">
-        <img src="${FOTO_XIS}" crossorigin="anonymous" style="width:100%;height:38mm;object-fit:cover;display:block">
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(102,35,130,.15),rgba(102,35,130,.88))"></div>
-        <div style="position:absolute;top:8px;left:10px;background:#fff;border-radius:12px;padding:6px 10px"><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" crossorigin="anonymous" style="height:34px;display:block"></div>
-        <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center">
-          <div style="color:#fff;font-size:21px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.6)">🍔 CARDÁPIO OFICIAL DO FESTIVAL 🍔</div>
-          <div style="color:#f5a800;font-size:11px;font-weight:800;letter-spacing:1px;text-shadow:0 2px 6px rgba(0,0,0,.6)">GRITA O CÓDIGO QUE O XIS CHEGA! · EX.: "12-C!"</div>
+        <img src="${BG_SITE}" crossorigin="anonymous" style="width:100%;height:58mm;object-fit:cover;object-position:center 30%;display:block">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(102,35,130,.18) 0%,rgba(102,35,130,.45) 55%,rgba(75,26,96,.85) 100%)"></div>
+        <img src="${LOGO}" crossorigin="anonymous" style="position:absolute;top:9px;left:14px;height:78px">
+        <div style="position:absolute;top:92px;left:14px;color:#fff;font-size:8.5px;font-weight:700;text-shadow:0 1px 5px rgba(0,0,0,.7)">Patrimônio Gastronômico de Santa Maria</div>
+        <div style="position:absolute;left:14px;right:14px;bottom:8px">
+          <div style="color:#fff;font-size:23px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.65)">Você está na cidade do <span style="color:#f5a800">XIS</span></div>
+          <div style="color:#f5a800;font-size:11px;font-weight:800;letter-spacing:1px;text-shadow:0 2px 6px rgba(0,0,0,.65)">🍔 CARDÁPIO OFICIAL DO FESTIVAL — GRITA O CÓDIGO QUE O XIS CHEGA! · EX.: "12-C!"</div>
         </div>
       </div>
       <div style="background:rgba(255,255,255,.95);border-radius:10px;padding:6px 12px;font-size:10px;text-align:center;margin-bottom:5mm">
