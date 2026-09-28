@@ -26,7 +26,10 @@
   .side a{display:block;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--roxo-esc);cursor:pointer;margin-bottom:2px}
   .side a:hover{background:var(--fundo)}
   .side a.on{background:var(--roxo);color:#fff}
-  .side .cat{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto-suave);margin:14px 12px 4px}
+  .side .cat{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto-suave);margin:14px 12px 4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;-webkit-user-select:none;user-select:none}
+  .side .cat::after{content:'▾';font-size:9px;transition:transform .15s;color:var(--texto-suave)}
+  .side .cat.fechado::after{transform:rotate(-90deg)}
+  .side .cat:hover{color:var(--roxo)}
   .side .cat:first-child{margin-top:2px}
   .side .sub-item{padding-left:22px;font-size:13.5px}
   .side .bdg{background:var(--rosa);color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px;margin-left:4px}
@@ -155,44 +158,70 @@
 
 <div class="layout hide" id="app">
   <nav class="side">
-    <div class="cat">Painel</div>
-    <a class="on" data-p="geral" onclick="tab('geral')">Visão geral</a>
-    <a data-p="plano" onclick="tab('plano')">Plano de Execução <span class="bdg hide" id="bdgPlano">0</span></a>
-    <div class="cat">Captação</div>
-    <a data-p="int26" onclick="tab('int26')">Manifestações de Interesse <span class="bdg hide" id="bdgInt26">0</span></a>
-    <div class="cat">Espaços do evento</div>
-    <a data-p="mapa" onclick="tab('mapa')">Mapa de espaços</a>
-    <a data-p="espacos" onclick="tab('espacos')">Espaços e categorias</a>
-    <div class="cat">Participantes</div>
-    <a class="sub-item" data-p="xis" onclick="tab('xis')">Operações de Xis</a>
-    <a class="sub-item" data-p="exp" data-dim="criativo" onclick="abrirExp('criativo')">Mercado Criativo</a>
-    <a class="sub-item" data-p="exp" data-dim="comercial" onclick="abrirExp('comercial')">Expositores Comerciais</a>
-    <a class="sub-item" data-p="exp" data-dim="ferromodelismo" onclick="abrirExp('ferromodelismo')">Ferromodelismo</a>
-    <a class="sub-item" data-p="exp" data-dim="rural" onclick="abrirExp('rural')">Pátio Rural<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">agricultura familiar e agroindústria</span></a>
-    <a class="sub-item" data-p="exp" data-dim="outros" onclick="abrirExp('outros')">Outros Expositores</a>
-    <div class="cat">Parceiros</div>
-    <a class="sub-item" data-p="patroc" onclick="tab('patroc')">Patrocinadores</a>
-    <a class="sub-item" data-p="exp" data-dim="ativacao" onclick="abrirExp('ativacao')">Ativação Digital de Marcas</a>
-    <div class="cat">Dinheiro do evento</div>
-    <a class="sub-item" data-p="orc" onclick="tab('orc')">Planejamento Orçamentário<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">previsões de receitas e despesas</span></a>
-    <a class="sub-item" data-p="fin" onclick="tab('fin')">Contas a Pagar e Receber <span class="bdg hide" id="bdgVenc">0</span><br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">lançamentos reais, com vencimento</span></a>
-    <a class="sub-item" data-p="fornec" onclick="tab('fornec')">Fornecedores</a>
-    <a class="sub-item" data-p="prest" onclick="tab('prest')">Prestação de Contas</a>
-    <div class="cat">Relatórios</div>
-    <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">agenda, atrações e momentos oficiais</span></a>
-    <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">sabores por operação · pedido por código</span></a>
-    <a class="sub-item" data-p="reled" onclick="tab('reled');renderRelEd()">Participantes por Edição</a>
-    <a class="sub-item" onclick="window.open('livro-festival-do-xis.html','_blank')">Livro do Festival (PDF)</a>
-    <a class="sub-item" onclick="window.open('apresentacao-festival-2026.html','_blank')">Apresentação do Projeto (PDF)</a>
-    <a class="sub-item" onclick="window.open('protocolo-lancamento-2026.html','_blank')">Protocolo do Lançamento (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">painel Cidade do Xis · 07/10 · Vila Belga</span></a>
-    <a class="sub-item" data-p="rsvp" onclick="tab('rsvp');renderRsvp()">Presenças no Lançamento<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">confirmações do link público</span></a>
-    <a class="sub-item" onclick="window.open('convite-lancamento-2026.html','_blank')">Convite do Lançamento (imagem)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">card com QR Code para WhatsApp</span></a>
-    <a class="sub-item" onclick="window.open('regulamento-festival-2026.html','_blank')">Regulamento Oficial (PDF)</a>
-    <a class="sub-item" onclick="window.open('regulamento-master-xis-2026.html','_blank')">Regulamento Master Xis (PDF)</a>
-    <a class="sub-item" onclick="window.open('croqui-festival-2026.html','_blank')">Croqui do Evento (PDF)</a>
-    <a class="sub-item" onclick="window.open('proposta-patrocinio-2026.html','_blank')">Proposta de Patrocínio (PDF)</a>
-    <a class="sub-item" onclick="window.open('proposta-patrocinio-2026-mallet.html','_blank')">Proposta · Mallet (PDF)</a>
-    <a class="sub-item" onclick="window.open('proposta-patrocinio-2026-sicredi.html','_blank')">Proposta · Sicredi (PDF)</a>
+    <div class="cat" onclick="grpToggle(this)">Painel</div>
+    <div class="grp">
+      <a class="on" data-p="geral" onclick="tab('geral')">Visão geral</a>
+      <a data-p="plano" onclick="tab('plano')">Plano de Execução <span class="bdg hide" id="bdgPlano">0</span></a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Captação</div>
+    <div class="grp">
+      <a data-p="int26" onclick="tab('int26')">Manifestações de Interesse <span class="bdg hide" id="bdgInt26">0</span></a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Espaços do evento</div>
+    <div class="grp">
+      <a data-p="mapa" onclick="tab('mapa')">Mapa de espaços</a>
+      <a data-p="espacos" onclick="tab('espacos')">Espaços e categorias</a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Participantes</div>
+    <div class="grp">
+      <a class="sub-item" data-p="xis" onclick="tab('xis')">Operações de Xis</a>
+      <a class="sub-item" data-p="exp" data-dim="criativo" onclick="abrirExp('criativo')">Mercado Criativo</a>
+      <a class="sub-item" data-p="exp" data-dim="comercial" onclick="abrirExp('comercial')">Expositores Comerciais</a>
+      <a class="sub-item" data-p="exp" data-dim="ferromodelismo" onclick="abrirExp('ferromodelismo')">Ferromodelismo</a>
+      <a class="sub-item" data-p="exp" data-dim="rural" onclick="abrirExp('rural')">Pátio Rural</a>
+      <a class="sub-item" data-p="exp" data-dim="outros" onclick="abrirExp('outros')">Outros Expositores</a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Parceiros</div>
+    <div class="grp">
+      <a class="sub-item" data-p="patroc" onclick="tab('patroc')">Patrocinadores</a>
+      <a class="sub-item" data-p="exp" data-dim="ativacao" onclick="abrirExp('ativacao')">Ativação Digital de Marcas</a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Dinheiro do evento</div>
+    <div class="grp">
+      <a class="sub-item" data-p="orc" onclick="tab('orc')">Planejamento Orçamentário</a>
+      <a class="sub-item" data-p="fin" onclick="tab('fin')">Contas a Pagar e Receber <span class="bdg hide" id="bdgVenc">0</span></a>
+      <a class="sub-item" data-p="fornec" onclick="tab('fornec')">Fornecedores</a>
+      <a class="sub-item" data-p="prest" onclick="tab('prest')">Prestação de Contas</a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Operação do Festival</div>
+    <div class="grp">
+      <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival</a>
+      <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival</a>
+    </div>
+    <div class="cat" onclick="grpToggle(this)">Lançamento · 07/10</div>
+    <div class="grp">
+      <a class="sub-item" onclick="window.open('protocolo-lancamento-2026.html','_blank')">Protocolo do Lançamento (PDF)</a>
+      <a class="sub-item" data-p="rsvp" onclick="tab('rsvp');renderRsvp()">Presenças confirmadas</a>
+      <a class="sub-item" onclick="window.open('convite-lancamento-2026.html','_blank')">Convite com QR Code (imagem)</a>
+    </div>
+    <div class="cat fechado" onclick="grpToggle(this)">Documentos do Festival</div>
+    <div class="grp hide">
+      <a class="sub-item" onclick="window.open('livro-festival-do-xis.html','_blank')">Livro do Festival (PDF)</a>
+      <a class="sub-item" onclick="window.open('apresentacao-festival-2026.html','_blank')">Apresentação do Projeto (PDF)</a>
+      <a class="sub-item" onclick="window.open('regulamento-festival-2026.html','_blank')">Regulamento Oficial (PDF)</a>
+      <a class="sub-item" onclick="window.open('regulamento-master-xis-2026.html','_blank')">Regulamento Master Xis (PDF)</a>
+      <a class="sub-item" onclick="window.open('croqui-festival-2026.html','_blank')">Croqui do Evento (PDF)</a>
+    </div>
+    <div class="cat fechado" onclick="grpToggle(this)">Propostas de Patrocínio</div>
+    <div class="grp hide">
+      <a class="sub-item" onclick="window.open('proposta-patrocinio-2026.html','_blank')">Proposta Geral (PDF)</a>
+      <a class="sub-item" onclick="window.open('proposta-patrocinio-2026-mallet.html','_blank')">Proposta · Mallet (PDF)</a>
+      <a class="sub-item" onclick="window.open('proposta-patrocinio-2026-sicredi.html','_blank')">Proposta · Sicredi (PDF)</a>
+    </div>
+    <div class="cat fechado" onclick="grpToggle(this)">Histórico</div>
+    <div class="grp hide">
+      <a class="sub-item" data-p="reled" onclick="tab('reled');renderRelEd()">Participantes por Edição</a>
+    </div>
   </nav>
 
   <main class="main">
@@ -999,6 +1028,11 @@
   }
 
   // ===== NAV =====
+  function grpToggle(el){
+    el.classList.toggle('fechado');
+    const grp = el.nextElementSibling;
+    if(grp && grp.classList.contains('grp')) grp.classList.toggle('hide', el.classList.contains('fechado'));
+  }
   function tab(p){
     document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('hide', x.id!=='p-'+p));
     document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on', a.dataset.p===p && (p!=='exp' || a.dataset.dim===EXP_DIM)));
