@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protocolo do Lançamento · Festival do Xis 2026</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#d8cfe2;color:var(--texto);font-size:13px;line-height:1.6}
+  .pagina{width:210mm;min-height:297mm;margin:14px auto;background:#fff;padding:16mm 18mm;box-shadow:0 10px 30px rgba(75,26,96,.25);position:relative;overflow:hidden}
+  .toolbar{position:sticky;top:0;z-index:10;background:var(--roxo-esc);color:#fff;padding:12px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .toolbar b{font-size:15px}
+  .toolbar button{padding:10px 22px;border:none;border-radius:99px;background:var(--rosa);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+  .toolbar .sp{margin-left:auto}
+  h2{font-size:20px;color:var(--roxo-esc);margin-bottom:10px;border-bottom:3px solid var(--rosa);padding-bottom:6px}
+  .rodape{position:absolute;bottom:8mm;left:18mm;right:18mm;display:flex;justify-content:space-between;font-size:10.5px;color:var(--texto-suave);border-top:1px solid var(--borda);padding-top:6px}
+
+  /* Cabeçalho do documento */
+  .cab{position:relative;border-radius:16px;overflow:hidden;margin-bottom:14px;background:var(--roxo-esc);color:#fff}
+  .cab .foto{width:100%;height:52mm;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png') center 30%/cover no-repeat}
+  .cab .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.25) 0%,rgba(75,26,96,.55) 55%,rgba(75,26,96,.95) 100%)}
+  .cab .cont{position:absolute;inset:0;padding:16px 20px;display:flex;flex-direction:column}
+  .cab .logo{background:#fff;border-radius:12px;padding:7px 10px;display:inline-flex;box-shadow:0 5px 16px rgba(0,0,0,.35);align-self:flex-start}
+  .cab .logo img{height:44px;display:block}
+  .cab h1{font-size:26px;line-height:1.15;margin-top:auto;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .cab .eyebrow{font-size:11px;letter-spacing:2.2px;text-transform:uppercase;font-weight:700;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .cab .sub{font-size:13.5px;font-weight:600;opacity:.98;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+
+  /* Ficha do evento */
+  .ficha{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .ficha .fx{background:var(--fundo);border:1px solid var(--borda);border-radius:12px;padding:8px 12px}
+  .ficha .fx b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--roxo);margin-bottom:2px}
+  .ficha .fx span{font-size:12.5px;font-weight:700;color:var(--roxo-esc)}
+
+  .bloco-t{display:flex;align-items:center;gap:10px;margin:14px 0 8px}
+  .bloco-t .num{width:30px;height:30px;border-radius:50%;background:var(--rosa);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+  .bloco-t h3{font-size:15px;color:var(--roxo-esc)}
+  .bloco-t small{color:var(--texto-suave);font-weight:600}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{background:var(--roxo);color:#fff;text-align:left;padding:6px 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+  td{padding:7px 10px;border-bottom:1px solid var(--fundo);vertical-align:top}
+  tr:nth-child(even) td{background:#faf7fc}
+  td.hora{font-weight:800;color:var(--roxo);white-space:nowrap;width:64px}
+  td.dur{color:var(--texto-suave);white-space:nowrap;width:58px;font-size:11.5px}
+  .resp{color:var(--roxo-esc);font-weight:700}
+  .cargo{color:var(--texto-suave);font-size:11.5px;font-weight:600}
+  .mom{display:inline-block;background:var(--amarelo);color:#4b1a60;font-weight:800;border-radius:99px;padding:1px 9px;font-size:10px;letter-spacing:.4px;margin-left:6px}
+
+  .obs{background:var(--fundo);border-left:4px solid var(--rosa);padding:9px 13px;font-size:12px;margin:12px 0}
+  .medbox{background:linear-gradient(90deg,var(--roxo) 0%,var(--rosa) 100%);color:#fff;border-radius:12px;padding:10px 16px;margin:0 0 12px;font-size:13px}
+  .medbox b{font-size:14px}
+
+  /* Edição */
+  [contenteditable]{outline:none;border-radius:4px}
+  body.editando [contenteditable]{background:#fff8e6;box-shadow:inset 0 0 0 1px #f0d48a}
+  body.editando td.hora[contenteditable]{background:#fdeef6;box-shadow:inset 0 0 0 1px #eeaacd}
+
+  @media print{
+    @page{size:A4;margin:0}
+    body{background:#fff}
+    .toolbar{display:none}
+    .pagina{margin:0;box-shadow:none;page-break-after:always;page-break-inside:avoid;width:210mm;height:297mm;min-height:297mm;overflow:hidden}
+    .pagina:last-child{page-break-after:auto}
+    body.editando [contenteditable]{background:transparent;box-shadow:none}
+  }
+  body.exportando{background:#fff}
+  body.exportando .pagina{margin:0;box-shadow:none;height:297mm;overflow:hidden}
+  body.exportando [contenteditable]{background:transparent!important;box-shadow:none!important}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>Protocolo do Lançamento · Festival do Xis 2026</b>
+  <span style="font-size:12.5px;opacity:.85" id="tbMsg">Clique em ✏️ Editar para ajustar horários, nomes e textos</span>
+  <span class="sp"></span>
+  <button style="background:transparent;border:1.5px solid #ffffff66" id="btnEditar" onclick="alternarEdicao()">✏️ Editar</button>
+  <button id="btnBaixar" onclick="baixarPDF()">⬇️ Baixar PDF</button>
+  <button style="background:transparent;border:1.5px solid #ffffff66" onclick="window.print()">🖨️ Imprimir</button>
+</div>
+
+<div id="docProtocolo">
+
+<!-- PÁGINA 1 -->
+<section class="pagina">
+  <div class="cab">
+    <div class="foto"></div>
+    <div class="ov"></div>
+    <div class="cont">
+      <div class="logo"><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" crossorigin="anonymous"></div>
+      <h1 contenteditable="true">Protocolo do Lançamento Oficial<br>4º Festival Nacional do Xis 2026</h1>
+      <div class="sub" contenteditable="true">Painel temático "Cidade do Xis"</div>
+    </div>
+  </div>
+
+  <div class="ficha">
+    <div class="fx"><b>Data</b><span contenteditable="true">07/10/2026 (terça)</span></div>
+    <div class="fx"><b>Horário</b><span contenteditable="true">10h às 11h40</span></div>
+    <div class="fx"><b>Local</b><span contenteditable="true">Lab Criativo · Vila Belga</span></div>
+    <div class="fx"><b>Formato</b><span contenteditable="true">Painel + apresentação</span></div>
+    <div class="fx" style="grid-column:1/-1"><b>Público-alvo</b><span contenteditable="true" style="font-weight:600">Operações de Xis · Patrocinadores do Festival · Expositores comerciais do Festival · Lideranças · Entidades de classe · Imprensa</span></div>
+  </div>
+
+  <div class="medbox">🎙️ <b>Mediação de todo o Painel:</b> <span contenteditable="true">Ramiro Guimarães — Secretário de Comunicação</span></div>
+
+  <div class="bloco-t"><div class="num">0</div><h3 contenteditable="true">Recepção</h3></div>
+  <table>
+    <tr><th>Hora</th><th>Momento</th><th>Responsável</th><th>Duração</th></tr>
+    <tr>
+      <td class="hora" contenteditable="true">09h30</td>
+      <td contenteditable="true">Recepção dos convidados e imprensa · coffee de boas-vindas com <b>Mini Xis</b> — patrocínio <b>Panifício Mallet</b></td>
+      <td contenteditable="true"><span class="resp">Equipe SMDEI / Cerimonial</span></td>
+      <td class="dur" contenteditable="true">30 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">09h55</td>
+      <td contenteditable="true">Acomodação dos convidados e abertura do Painel</td>
+      <td contenteditable="true"><span class="resp">Cerimonial</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+  </table>
+
+  <div class="bloco-t"><div class="num">1</div><h3 contenteditable="true">Painel "Cidade do Xis"</h3><small contenteditable="true">falas institucionais e estratégicas</small></div>
+  <table>
+    <tr><th>Hora</th><th>Fala / Pauta</th><th>Responsável</th><th>Duração</th></tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h00</td>
+      <td contenteditable="true">Abertura do Painel, saudações e apresentação da mesa</td>
+      <td contenteditable="true"><span class="resp">Ramiro Guimarães</span><br><span class="cargo">Secretário de Comunicação · mediador</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h05</td>
+      <td contenteditable="true">Fala institucional de abertura <span class="mom">ABERTURA</span></td>
+      <td contenteditable="true"><span class="resp">Rodrigo Decimo</span><br><span class="cargo">Prefeito de Santa Maria</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h15</td>
+      <td contenteditable="true">Fala institucional</td>
+      <td contenteditable="true"><span class="resp">João Provensi</span><br><span class="cargo">Presidente do Sindhturr</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h25</td>
+      <td contenteditable="true">Posicionamento estratégico: Santa Maria, a Cidade do Xis</td>
+      <td contenteditable="true"><span class="resp">Ronie Gabbi</span><br><span class="cargo">Secretário de Desenvolvimento Econômico e Inovação</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h35</td>
+      <td contenteditable="true">O Xis como Patrimônio Cultural</td>
+      <td contenteditable="true"><span class="resp">Rose Carneiro</span><br><span class="cargo">Secretária de Cultura</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h45</td>
+      <td contenteditable="true">Xis é Economia — apresentação dos números da cidade</td>
+      <td contenteditable="true"><span class="resp">Ronie Gabbi</span><br><span class="cargo">Secretário de Desenvolvimento Econômico e Inovação</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+  </table>
+
+  <div class="rodape"><span>Protocolo do Lançamento · Festival do Xis 2026 · cidadedoxis.com</span><span>Página 1</span></div>
+</section>
+
+<!-- PÁGINA 2 -->
+<section class="pagina">
+  <div class="bloco-t" style="margin-top:0"><div class="num">2</div><h3 contenteditable="true">Apresentação da Programação do Festival</h3><small contenteditable="true">segunda parte do Painel</small></div>
+  <table>
+    <tr><th>Hora</th><th>Pauta</th><th>Responsável</th><th>Duração</th></tr>
+    <tr>
+      <td class="hora" contenteditable="true">10h55</td>
+      <td contenteditable="true">Estrutura e layout do evento — croqui do Largo da Gare, mapa dos 97 espaços e Pátio Rural</td>
+      <td contenteditable="true"><span class="resp">A definir</span><br><span class="cargo">Comissão Organizadora</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">11h05</td>
+      <td contenteditable="true">Ação Mega Xis</td>
+      <td contenteditable="true"><span class="resp">A definir</span><br><span class="cargo">Comissão Organizadora</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">11h10</td>
+      <td contenteditable="true">Apresentação da Comissão Organizadora</td>
+      <td contenteditable="true"><span class="resp">A definir</span><br><span class="cargo">Comissão Organizadora</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">11h15</td>
+      <td contenteditable="true">Concurso Master Xis — duplas Pátio Rural + operações, o Xis Colono</td>
+      <td contenteditable="true"><span class="resp">A definir</span><br><span class="cargo">Comissão Organizadora</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">11h20</td>
+      <td contenteditable="true">Concurso "Come Xis"</td>
+      <td contenteditable="true"><span class="resp">A definir</span><br><span class="cargo">Comissão Organizadora</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+  </table>
+
+  <div class="bloco-t"><div class="num">3</div><h3 contenteditable="true">Encerramento</h3></div>
+  <table>
+    <tr><th>Hora</th><th>Momento</th><th>Responsável</th><th>Duração</th></tr>
+    <tr>
+      <td class="hora" contenteditable="true">11h25</td>
+      <td contenteditable="true">Espaço para perguntas da imprensa e considerações finais</td>
+      <td contenteditable="true"><span class="resp">Ramiro Guimarães</span><br><span class="cargo">mediador</span></td>
+      <td class="dur" contenteditable="true">10 min</td>
+    </tr>
+    <tr>
+      <td class="hora" contenteditable="true">11h35</td>
+      <td contenteditable="true">Encerramento e foto oficial com autoridades e Comissão Organizadora</td>
+      <td contenteditable="true"><span class="resp">Cerimonial</span></td>
+      <td class="dur" contenteditable="true">5 min</td>
+    </tr>
+  </table>
+
+  <div class="obs" contenteditable="true"><b>Orientações do cerimonial:</b> falas do Painel limitadas ao tempo indicado, com sinalização do mediador a 2 minutos do fim; projeção (números da cidade, croqui e concursos) operada pela equipe da SMDEI; imprensa acomodada em área reservada com captação de áudio da mesa.</div>
+
+  <div style="text-align:center;margin:26px 0 8px">
+    <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" crossorigin="anonymous" style="height:64px">
+  </div>
+  <p style="text-align:center;font-size:12.5px" contenteditable="true"><b>Lançamento Oficial do 4º Festival Nacional do Xis</b><br>Prefeitura Municipal de Santa Maria · Sindhturr · Secretaria de Desenvolvimento Econômico e Inovação<br>Secretaria de Cultura · Secretaria de Comunicação</p>
+
+  <div class="rodape"><span>Protocolo do Lançamento · Festival do Xis 2026 · cidadedoxis.com</span><span>Página 2</span></div>
+</section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  function alternarEdicao(){
+    const on = document.body.classList.toggle('editando');
+    document.getElementById('btnEditar').textContent = on ? '✅ Concluir edição' : '✏️ Editar';
+    document.getElementById('tbMsg').textContent = on
+      ? 'Modo edição ativo — clique em qualquer horário, nome ou texto e digite'
+      : 'Edição concluída — baixe o PDF ou imprima';
+  }
+  async function baixarPDF(){
+    const btn = document.getElementById('btnBaixar');
+    const msg = document.getElementById('tbMsg');
+    btn.disabled = true; btn.textContent = 'Gerando PDF…';
+    msg.textContent = 'Montando as páginas — pode levar alguns segundos';
+    document.body.classList.add('exportando');
+    try{
+      await html2pdf().set({
+        margin: 0,
+        filename: 'Protocolo-Lancamento-Festival-do-Xis-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'], after: '.pagina' }
+      }).from(document.getElementById('docProtocolo')).save();
+      msg.textContent = 'PDF baixado ✓ — confira na pasta Downloads';
+    }catch(e){
+      msg.textContent = 'Não foi possível gerar aqui — abrindo a impressão (escolha "Salvar como PDF")';
+      setTimeout(()=>window.print(), 800);
+    }
+    document.body.classList.remove('exportando');
+    btn.disabled = false; btn.textContent = '⬇️ Baixar PDF';
+  }
+</script>
+</body>
+</html>
