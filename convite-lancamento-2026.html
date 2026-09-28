@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Convite · Lançamento do Festival do Xis 2026</title>
 <meta name="robots" content="noindex">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="libs/html-to-image.min.js"></script>
+<script src="libs/qrcode.min.js"></script>
 <style>
   :root{
     --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
@@ -54,7 +54,7 @@
   <span style="font-size:12.5px;opacity:.85">Baixe a imagem e envie no WhatsApp junto com o link</span>
   <span class="sp"></span>
   <button style="background:transparent;border:1.5px solid #ffffff66" onclick="copiarLink()">🔗 Copiar link</button>
-  <button id="btnPng" onclick="baixarPNG()">⬇️ Baixar imagem (PNG)</button>
+  <button id="btnPng" onclick="baixarPNG()">⬇️ Baixar imagem (JPEG)</button>
 </div>
 
 <div class="msg" id="msg" style="margin-top:10px"></div>
@@ -109,13 +109,13 @@
       clone.style.transform = 'none';
       palco.appendChild(clone);
       document.body.appendChild(palco);
-      const canvas = await html2canvas(clone, {
-        scale: 1, useCORS: true, scrollY: 0, backgroundColor: '#4b1a60',
-        width: 1080, height: 1350
+      const dataUrl = await htmlToImage.toJpeg(clone, {
+        quality: 0.92, pixelRatio: 1, backgroundColor: '#4b1a60',
+        canvasWidth: 1080, canvasHeight: 1350, width: 1080, height: 1350, skipFonts: true
       });
       const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'Convite-Lancamento-Festival-do-Xis-2026.png';
+      a.href = dataUrl;
+      a.download = 'Convite-Lancamento-Festival-do-Xis-2026.jpg';
       a.click();
       aviso('Imagem baixada ✓ — confira na pasta Downloads');
     }catch(e){
@@ -123,7 +123,7 @@
       aviso('Não foi possível gerar a imagem — tente recarregar a página.');
     }
     if(palco) palco.remove();
-    btn.disabled = false; btn.textContent = '⬇️ Baixar imagem (PNG)';
+    btn.disabled = false; btn.textContent = '⬇️ Baixar imagem (JPEG)';
   }
 </script>
 </body>
