@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmação de Presença · Lançamento do Festival do Xis 2026</title>
+<meta name="description" content="Confirme sua presença no Lançamento Oficial do 4º Festival Nacional do Xis — 07/10, 10h, Lab Criativo da Vila Belga, Santa Maria/RS.">
+<meta property="og:title" content="Lançamento do Festival do Xis 2026 · Confirme sua presença">
+<meta property="og:description" content="Painel Cidade do Xis — 07/10 às 10h · Lab Criativo da Vila Belga · Santa Maria/RS">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57; --vermelho:#d63344;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#f8f3fc,#f3e9f8 60%,#fdeef7);min-height:100vh;color:var(--texto);padding:18px 14px 40px}
+  .form-wrap{max-width:560px;margin:0 auto}
+  .topo{position:relative;border-radius:18px 18px 0 0;overflow:hidden;color:#fff;background:var(--roxo-esc)}
+  .topo .foto{width:100%;height:150px;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png') center 30%/cover no-repeat}
+  .topo .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.25),rgba(75,26,96,.92))}
+  .topo .cont{position:absolute;inset:0;padding:18px 24px;display:flex;flex-direction:column}
+  .topo .marca{font-size:11.5px;letter-spacing:2px;text-transform:uppercase;opacity:.95;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .topo h1{font-size:22px;margin-top:auto;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .infos{background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;padding:14px 24px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13.5px;font-weight:700}
+  .infos span{display:inline-flex;align-items:center;gap:6px}
+  .cartao{background:#fff;border:1px solid var(--borda);border-top:none;border-radius:0 0 18px 18px;padding:26px;box-shadow:0 12px 34px #66238218}
+  .aviso{background:var(--fundo);border-left:4px solid var(--amarelo);padding:9px 13px;font-size:13px;border-radius:0 8px 8px 0;margin-bottom:18px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .full{grid-column:1/-1}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .field input,.field select{width:100%;padding:11px 13px;border:1.5px solid var(--borda);border-radius:10px;font-size:15px;background:#fdfbff;color:var(--texto);font-family:inherit}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--roxo)}
+  .msg{margin:16px 0 0;font-size:14px;font-weight:600;min-height:20px}
+  .msg.erro{color:var(--vermelho)} .msg.info{color:var(--roxo)}
+  .btn{width:100%;margin-top:16px;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--roxo),var(--rosa));color:#fff;font-size:16.5px;font-weight:800;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .nota{font-size:12.5px;color:var(--texto-suave);margin-top:14px;text-align:center;line-height:1.5}
+  .ok{text-align:center;padding:30px 10px}
+  .ok .check{width:64px;height:64px;border-radius:50%;background:var(--verde);color:#fff;font-size:34px;line-height:64px;margin:0 auto 16px}
+  .ok h3{font-size:22px;color:var(--roxo-esc)}
+  .ok p{margin-top:10px;font-size:15px;line-height:1.55}
+  .rodape{text-align:center;margin-top:18px;font-size:12.5px;color:var(--texto-suave)}
+  .rodape a{color:var(--roxo);font-weight:700;text-decoration:none}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="form-wrap">
+  <div class="topo">
+    <div class="foto"></div>
+    <div class="ov"></div>
+    <div class="cont">
+      <div class="marca">Lançamento Oficial · 4º Festival Nacional do Xis</div>
+      <h1>Painel "Cidade do Xis" — confirme sua presença</h1>
+    </div>
+  </div>
+  <div class="infos">
+    <span>📅 07/10/2026 · 10h</span>
+    <span>📍 Lab Criativo · Vila Belga</span>
+    <span>🎙️ Painel + programação do Festival</span>
+  </div>
+  <div class="cartao">
+    <div id="rsvpForm">
+      <div class="aviso">☕ Recepção a partir das <b>9h30</b>, com coffee de boas-vindas e <b>Mini Xis</b> — patrocínio Panifício Mallet.</div>
+      <div class="grid">
+        <div class="field full"><label>Nome completo *</label><input id="fNome" maxlength="120" placeholder="Seu nome"></div>
+        <div class="field full"><label>Entidade / empresa / veículo</label><input id="fOrg" maxlength="120" placeholder="Ex.: Sindhturr, Operação de Xis, Jornal…"></div>
+        <div class="field"><label>Você representa</label>
+          <select id="fSeg">
+            <option value="">Selecione…</option>
+            <option>Operação de Xis</option>
+            <option>Patrocinador do Festival</option>
+            <option>Expositor comercial</option>
+            <option>Liderança</option>
+            <option>Entidade de classe</option>
+            <option>Imprensa</option>
+            <option>Poder público</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="field"><label>Acompanhantes</label>
+          <select id="fAcomp"><option value="0">Somente eu</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select>
+        </div>
+        <div class="field"><label>WhatsApp</label><input id="fTel" maxlength="20" placeholder="(55) 9…"></div>
+        <div class="field"><label>E-mail</label><input id="fEmail" maxlength="120" type="email" placeholder="voce@email.com"></div>
+      </div>
+      <div class="msg" id="rsvpMsg"></div>
+      <button class="btn" id="btnEnviar" onclick="enviar()">✅ Confirmar presença</button>
+      <div class="nota">Suas informações serão usadas exclusivamente para a organização do evento de lançamento.</div>
+    </div>
+    <div id="rsvpOk" class="ok hide">
+      <div class="check">✓</div>
+      <h3>Presença confirmada!</h3>
+      <p>Te esperamos no dia <b>07/10, às 10h</b>, no <b>Lab Criativo da Vila Belga</b>.<br>Recepção com coffee e Mini Xis a partir das 9h30.</p>
+      <p style="margin-top:14px"><a href="https://www.cidadedoxis.com" style="color:var(--roxo);font-weight:800">cidadedoxis.com</a></p>
+    </div>
+  </div>
+  <div class="rodape">Prefeitura de Santa Maria · Programa Xis · <a href="https://www.cidadedoxis.com">cidadedoxis.com</a></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://hlstcndhxzhdzbecfrhp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr';
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  const g = id => document.getElementById(id);
+  function msg(t, tipo){ const m=g('rsvpMsg'); m.className='msg '+(tipo||'info'); m.textContent=t||''; }
+
+  async function enviar(){
+    const nome = g('fNome').value.trim();
+    if(!nome){ msg('Informe seu nome completo.', 'erro'); g('fNome').focus(); return; }
+    if(!SB){ msg('Não foi possível conectar. Recarregue a página.', 'erro'); return; }
+    const btn = g('btnEnviar'); btn.disabled = true; msg('Enviando confirmação…');
+    try{
+      const {error} = await SB.rpc('confirmar_presenca_lancamento', { p_dados: {
+        nome,
+        organizacao: g('fOrg').value.trim(),
+        segmento: g('fSeg').value,
+        telefone: g('fTel').value.trim(),
+        email: g('fEmail').value.trim(),
+        acompanhantes: parseInt(g('fAcomp').value, 10) || 0
+      }});
+      if(error) throw error;
+      g('rsvpForm').classList.add('hide');
+      g('rsvpOk').classList.remove('hide');
+      window.scrollTo({top:0, behavior:'smooth'});
+    }catch(e){
+      console.error(e);
+      msg('Não foi possível enviar agora. Tente novamente em instantes.', 'erro');
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

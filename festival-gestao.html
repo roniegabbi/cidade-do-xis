@@ -185,6 +185,7 @@
     <a class="sub-item" onclick="window.open('livro-festival-do-xis.html','_blank')">Livro do Festival (PDF)</a>
     <a class="sub-item" onclick="window.open('apresentacao-festival-2026.html','_blank')">Apresentação do Projeto (PDF)</a>
     <a class="sub-item" onclick="window.open('protocolo-lancamento-2026.html','_blank')">Protocolo do Lançamento (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">painel Cidade do Xis · 07/10 · Vila Belga</span></a>
+    <a class="sub-item" data-p="rsvp" onclick="tab('rsvp');renderRsvp()">Presenças no Lançamento<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">confirmações do link público</span></a>
     <a class="sub-item" onclick="window.open('regulamento-festival-2026.html','_blank')">Regulamento Oficial (PDF)</a>
     <a class="sub-item" onclick="window.open('regulamento-master-xis-2026.html','_blank')">Regulamento Master Xis (PDF)</a>
     <a class="sub-item" onclick="window.open('croqui-festival-2026.html','_blank')">Croqui do Evento (PDF)</a>
@@ -605,6 +606,20 @@
       </div>
       <div class="card"><h3>Recebimentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestRec"></table></div></div>
       <div class="card"><h3>Pagamentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestPag"></table></div></div>
+    </section>
+
+    <section class="pane hide" id="p-rsvp">
+      <div class="h">Presenças no Lançamento</div>
+      <div class="sub">Confirmações recebidas pelo link público — Painel "Cidade do Xis", 07/10 às 10h, Lab Criativo da Vila Belga.</div>
+      <div class="filtros no-print">
+        <select id="rsvpSeg" onchange="renderRsvp(true)"><option value="">Todos os segmentos</option></select>
+        <input id="rsvpBusca" placeholder="Buscar nome ou entidade…" oninput="renderRsvp(true)">
+        <button class="btn btn-g btn-sm" onclick="copiarLinkRsvp()">🔗 Copiar link público</button>
+        <button class="btn btn-g btn-sm" onclick="csvRsvp()">CSV</button>
+        <button class="btn btn-g btn-sm" onclick="window.print()">Imprimir / PDF</button>
+      </div>
+      <div class="kpis" id="rsvpKpis"></div>
+      <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabRsvp"></table></div></div>
     </section>
 
     <section class="pane hide" id="p-reled">
@@ -2420,6 +2435,56 @@
     doc.remove();
     btn.disabled = false; btn.textContent = 'Relatório PDF';
   }
+  // ===== PRESENÇAS NO LANÇAMENTO (RSVP) =====
+  let RSVP = [];
+  const RSVP_LINK = 'https://www.cidadedoxis.com/confirmacao-lancamento-2026.html';
+  function rsvpFiltrada(){
+    const seg = g('rsvpSeg').value, q = (g('rsvpBusca').value||'').toLowerCase();
+    return RSVP.filter(r => (!seg || r.segmento===seg) &&
+      (!q || (r.nome||'').toLowerCase().includes(q) || (r.organizacao||'').toLowerCase().includes(q)));
+  }
+  async function renderRsvp(soFiltro){
+    if(!soFiltro){
+      const {data, error} = await SB.from('lancamento_rsvp').select('*').order('criado_em', {ascending:false});
+      if(error){ toast('Erro ao carregar confirmações'); return; }
+      RSVP = data||[];
+      const segs = [...new Set(RSVP.map(r=>r.segmento).filter(Boolean))].sort();
+      const sel = g('rsvpSeg'), atual = sel.value;
+      sel.innerHTML = '<option value="">Todos os segmentos</option>' + segs.map(s=>`<option${s===atual?' selected':''}>${s}</option>`).join('');
+    }
+    const lista = rsvpFiltrada();
+    const pessoas = lista.reduce((s,r)=>s+1+(r.acompanhantes||0), 0);
+    g('rsvpKpis').innerHTML = `
+      <div class="kpi"><b>${lista.length}</b><span>confirmações</span></div>
+      <div class="kpi"><b>${pessoas}</b><span>pessoas esperadas</span></div>
+      <div class="kpi"><b>${RSVP.length?new Date(RSVP[0].criado_em).toLocaleDateString('pt-BR'):'—'}</b><span>última confirmação</span></div>`;
+    g('tabRsvp').innerHTML = '<tr><th>Nome</th><th>Entidade / empresa</th><th>Segmento</th><th>Acomp.</th><th>WhatsApp</th><th>E-mail</th><th>Recebido em</th></tr>' +
+      (lista.length ? lista.map(r=>`<tr>
+        <td><b>${r.nome||'—'}</b></td><td>${r.organizacao||'—'}</td><td>${r.segmento||'—'}</td>
+        <td>${r.acompanhantes?'+'+r.acompanhantes:'—'}</td><td>${r.telefone||'—'}</td><td>${r.email||'—'}</td>
+        <td>${r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'—'}</td></tr>`).join('')
+      : '<tr><td colspan="7" style="text-align:center;color:var(--texto-suave)">Nenhuma confirmação ainda — divulgue o link público 🔗</td></tr>');
+  }
+  function copiarLinkRsvp(){
+    (navigator.clipboard ? navigator.clipboard.writeText(RSVP_LINK) : Promise.reject())
+      .then(()=>toast('Link copiado — pronto para enviar nos convites'))
+      .catch(()=>prompt('Copie o link:', RSVP_LINK));
+  }
+  function csvRsvp(){
+    const lista = rsvpFiltrada();
+    if(!lista.length){ toast('Nenhuma confirmação no filtro atual'); return; }
+    const cab = ['Nome','Entidade/Empresa','Segmento','Acompanhantes','WhatsApp','Email','Recebido em'];
+    const linha = r => [r.nome, r.organizacao, r.segmento, r.acompanhantes||0, r.telefone, r.email,
+      r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'']
+      .map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(';');
+    const csv = '﻿'+cab.join(';')+'\n'+lista.map(linha).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+    a.download = 'Presencas-Lancamento-Festival-2026.csv';
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('CSV exportado');
+  }
+
   function csvInt26(){
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }

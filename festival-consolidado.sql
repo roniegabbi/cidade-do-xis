@@ -440,3 +440,37 @@ grant execute on function public.inscrever_festival(text, jsonb) to anon, authen
 -- ============================================================================
 -- FIM · Papéis: update public.perfis set papel='financeiro' where email='...';
 -- ============================================================================
+
+-- ===== CONFIRMAÇÃO DE PRESENÇA · LANÇAMENTO DO FESTIVAL (07/10, Lab Criativo Vila Belga) =====
+create table if not exists public.lancamento_rsvp (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  organizacao text,
+  segmento text,
+  email text,
+  telefone text,
+  acompanhantes int not null default 0,
+  criado_em timestamptz not null default now()
+);
+alter table public.lancamento_rsvp enable row level security;
+drop policy if exists rsvp_auth_all on public.lancamento_rsvp;
+create policy rsvp_auth_all on public.lancamento_rsvp for all to authenticated using (true) with check (true);
+
+create or replace function public.confirmar_presenca_lancamento(p_dados jsonb)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(trim(p_dados->>'nome'),'') = '' then
+    raise exception 'nome obrigatório';
+  end if;
+  insert into public.lancamento_rsvp (nome, organizacao, segmento, email, telefone, acompanhantes)
+  values (
+    trim(p_dados->>'nome'),
+    nullif(trim(p_dados->>'organizacao'),''),
+    nullif(trim(p_dados->>'segmento'),''),
+    nullif(trim(p_dados->>'email'),''),
+    nullif(trim(p_dados->>'telefone'),''),
+    least(greatest(coalesce((p_dados->>'acompanhantes')::int,0),0),10)
+  );
+end $$;
+revoke all on function public.confirmar_presenca_lancamento(jsonb) from public;
+grant execute on function public.confirmar_presenca_lancamento(jsonb) to anon, authenticated;
