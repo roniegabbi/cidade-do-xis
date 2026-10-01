@@ -2358,7 +2358,7 @@
 
       // Painel: Operações de Xis por bairro
       const bairros26 = {};
-      INT26.filter(i=>i.categoria==='xis' && i.bairro).forEach(i=>{ bairros26[i.bairro]=(bairros26[i.bairro]||0)+1; });
+      INT26.filter(i=>i.categoria==='xis' && i.bairro && !i.cidade).forEach(i=>{ bairros26[i.bairro]=(bairros26[i.bairro]||0)+1; });
       const listaB = Object.entries(bairros26).sort((a,b)=>b[1]-a[1]);
       const selB = g('fIntBairro');
       if(selB){
@@ -2380,6 +2380,19 @@
             <b style="font-size:13.5px;text-align:right;color:var(--roxo-esc)">${n}</b>`;
           }).join('') + `</div></div>`;
       }
+      // Painel: Operações de Xis de outras cidades
+      const foraSM = INT26.filter(i=>i.categoria==='xis' && i.cidade);
+      if(foraSM.length){
+        const porCid = {};
+        foraSM.forEach(i=>{ (porCid[i.cidade]=porCid[i.cidade]||[]).push(i.nome); });
+        g('catsInt26').innerHTML += `<div style="border-top:1.5px dashed var(--borda);margin-top:12px;padding-top:10px">
+          <b style="font-size:13px;color:var(--roxo-esc)">🚚 Operações de Xis de outras cidades (${foraSM.length}):</b>
+          <div style="display:grid;grid-template-columns:190px minmax(0,1fr);gap:7px 12px;align-items:start;margin-top:8px">`
+          + Object.entries(porCid).sort((a,b)=>b[1].length-a[1].length).map(([cid,nomes])=>
+            `<span style="font-size:13px;font-weight:800;color:var(--roxo)">${esc(cid)} <span style="color:var(--texto-suave);font-weight:600">(${nomes.length})</span></span>
+             <span style="font-size:13px;color:var(--texto)">${nomes.map(esc).join(' · ')}</span>`).join('')
+          + `</div></div>`;
+      }
     }
     const stPill = s => s==='convertido'?'<span class="pill ok">Convertido</span>':s==='contatado'?'<span class="pill info">Contatado</span>':s==='descartado'?'<span class="pill bad">Descartado</span>':'<span class="pill warn">Novo</span>';
     el.innerHTML = lista.length ? lista.map(i=>`<div class="row" style="align-items:flex-start">
@@ -2388,7 +2401,7 @@
           ${i.boas_praticas!=null?`<span class="pill ${i.boas_praticas?'ok':'bad'}">Boas práticas: ${i.boas_praticas?'sim':'não'}</span>`:''}
           ${i.tempo_xis?`<span class="pill info">Trabalha com ${i.categoria==='xis'?'xis':'eventos'} há ${esc(i.tempo_xis)}</span>`:''}
           ${i.qtd_equipe?`<span class="pill info">Equipe: ${esc(i.qtd_equipe)} pessoa(s)</span>`:''}
-          ${i.bairro?`<span class="pill info">Bairro: ${esc(i.bairro)}</span>`:''}
+          ${i.cidade?`<span class="pill warn">🚚 Outra cidade: ${esc(i.cidade)}</span>`:(i.bairro?`<span class="pill info">Bairro: ${esc(i.bairro)}</span>`:'')}
           ${i.usa_glp!=null?`<span class="pill ${i.usa_glp?'warn':'info'}">GLP: ${i.usa_glp?'sim':'não'}</span>`:''}
           ${i.ponto_agua!=null?`<span class="pill ${i.ponto_agua?'warn':'info'}">Água: ${i.ponto_agua?'sim':'não'}</span>`:''}
           ${i.fabricacao_propria!=null?`<span class="pill info">Fabricação própria: ${i.fabricacao_propria?'sim':'não'}</span>`:''}
@@ -2412,7 +2425,8 @@
           <option value="descartado"${i.status==='descartado'?' selected':''}>Descartado</option>
         </select>
         ${i.status!=='convertido'?`<button class="btn btn-v btn-sm" onclick="converterInt26('${i.id}')">Converter em participação</button>`:''}
-        ${i.categoria==='xis'?`<button class="btn btn-g btn-sm" onclick="definirBairroInt26('${i.id}')">${i.bairro?'Trocar bairro':'Definir bairro'}</button>`:''}
+        ${i.categoria==='xis'?`<button class="btn btn-g btn-sm" onclick="definirBairroInt26('${i.id}')">${i.bairro?'Trocar bairro':'Definir bairro'}</button>
+        <button class="btn btn-g btn-sm" onclick="definirCidadeInt26('${i.id}')">${i.cidade?'Trocar cidade':'É de outra cidade?'}</button>`:''}
         <button class="btn btn-r btn-sm" onclick="excluirInt26('${i.id}')">Excluir</button>
       </div></div>`).join('')
       : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhuma manifestação ainda. Copie o link acima e envie aos interessados.</div>';
@@ -2524,9 +2538,9 @@
     const lista = int26Filtrada();
     if(!lista.length){ toast('Nenhum interessado no filtro atual'); return; }
     const sn = v => v===true?'Sim':v===false?'Nao':'';
-    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Bairro','Midias sociais','Boas praticas','Tempo com xis/eventos','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
+    const cab = ['Nome','Categoria','Tipo','Responsavel','Telefone','Email','Documento','Bairro','Cidade','Midias sociais','Boas praticas','Tempo com xis/eventos','Equipe','Participou de eventos','Quais eventos','Usa GLP','Ponto de agua','Fabricacao propria','Energia eletrica','Produtos','LabCriativo','Historia','Licenciamento','Foto trailer','Descricao','Status','Recebido em'];
     const linha = i => [i.nome, INT26_CATS[i.categoria]||i.categoria, i.tipo_operacao?txLabel(i.tipo_operacao):'',
-      i.responsavel, i.telefone, i.email, i.documento, i.bairro, i.midias_sociais,
+      i.responsavel, i.telefone, i.email, i.documento, i.bairro, i.cidade, i.midias_sociais,
       sn(i.boas_praticas), i.tempo_xis, i.qtd_equipe,
       sn(i.participou_eventos), i.eventos_quais, sn(i.usa_glp), sn(i.ponto_agua),
       sn(i.fabricacao_propria), sn(i.precisa_energia), i.produtos, sn(i.labcriativo), i.historia,
@@ -2541,6 +2555,15 @@
     toast('CSV exportado');
   }
 
+  async function definirCidadeInt26(id){
+    const i = INT26.find(x=>x.id===id); if(!i) return;
+    const c = prompt('De qual cidade é "'+i.nome+'"?\n(Deixe vazio e OK para remover — volta a contar como Santa Maria)', i.cidade||'');
+    if(c===null) return;
+    const val = c.trim()||null;
+    const {error} = await SB.from('festival_interessados').update({cidade:val}).eq('id', id);
+    if(error){ toast('Erro ao salvar a cidade'); return; }
+    i.cidade = val; renderInt26(); toast(val?('Cidade definida: '+val):'Cidade removida');
+  }
   async function definirBairroInt26(id){
     const i = INT26.find(x=>x.id===id); if(!i) return;
     const b = prompt('Bairro de "'+i.nome+'":', i.bairro||'');

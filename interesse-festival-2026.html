@@ -92,7 +92,8 @@
           <select id="fPartEv" onchange="partEvToggle()"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
         <div class="field hide" id="partEvQuaisWrap"><label>Qual(is)?</label><input id="fPartEvQuais" placeholder="Ex.: Feira do Livro, Expofeira"></div>
         <div class="field hide xisOnly"><label>Em qual bairro fica sua operação? *</label>
-          <select id="fBairro"><option value="">— selecione —</option><option value="Outro / região">Outro / região</option></select></div>
+          <select id="fBairro" onchange="bairroToggle()"><option value="">— selecione —</option><option value="Outro / região">Outro / região (ou outra cidade)</option></select></div>
+        <div class="field hide" id="cidadeWrap"><label>De qual cidade é sua operação? *</label><input id="fCidade" maxlength="120" placeholder="Ex.: São Sepé, Dom Pedrito…"></div>
         <div class="field hide xisOnly"><label>Sua operação utilizaria gás GLP na operação para o festival? *</label>
           <select id="fGlp"><option value="">— selecione —</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
         <div class="field hide xisOnly"><label>Necessita de ponto de água? *</label>
@@ -146,6 +147,11 @@
   const g = id => document.getElementById(id);
   function cadMsg(t, tipo){ const m=g('cadMsg'); m.className='msg '+(tipo||'info'); m.textContent=t||''; }
 
+  function bairroToggle(){
+    const outro = g('fBairro').value==='Outro / região';
+    g('cidadeWrap').classList.toggle('hide', !outro);
+    if(!outro) g('fCidade').value='';
+  }
   // Campos condicionais: tipo aparece p/ Operação de Xis; endereço+foto aparecem p/ Trailer
   function catToggle(){
     const cat = g('fCat').value, ehXis = cat==='xis';
@@ -193,7 +199,7 @@
       if(data && data.length){
         g('fBairro').innerHTML = '<option value="">— selecione —</option>'
           + data.map(b=>`<option value="${b.nome.replace(/"/g,'&quot;')}">${b.nome}</option>`).join('')
-          + '<option value="Outro / região">Outro / região</option>';
+          + '<option value="Outro / região">Outro / região (ou outra cidade)</option>';
       }
     }catch(e){}
   })();
@@ -211,6 +217,7 @@
     if(!g('fEquipe').value.trim()){ cadMsg('Informe quantas pessoas tem sua equipe.','erro'); return; }
     if(!g('fPartEv').value){ cadMsg('Informe se já participou de feiras, festivais e outros eventos públicos.','erro'); return; }
     if(cat==='xis' && !g('fBairro').value){ cadMsg('Informe em qual bairro fica sua operação.','erro'); return; }
+    if(cat==='xis' && g('fBairro').value==='Outro / região' && !g('fCidade').value.trim()){ cadMsg('Informe de qual cidade é sua operação.','erro'); return; }
     if(cat==='xis' && !g('fGlp').value){ cadMsg('Informe se utilizaria gás GLP na operação.','erro'); return; }
     if(cat==='xis' && !g('fAgua').value){ cadMsg('Informe se necessita de ponto de água.','erro'); return; }
     if(cat==='cervejaria' && (!g('fFab').value || !g('fEnerg').value)){ cadMsg('Responda as perguntas sobre a sua cervejaria.','erro'); return; }
@@ -247,6 +254,7 @@
           participou_eventos: g('fPartEv').value==='sim',
           eventos_quais: g('fPartEv').value==='sim' ? g('fPartEvQuais').value.trim() : null,
           bairro: cat==='xis' ? g('fBairro').value : null,
+          cidade: (cat==='xis' && g('fBairro').value==='Outro / região') ? g('fCidade').value.trim() : null,
           usa_glp: cat==='xis' ? g('fGlp').value==='sim' : null,
           ponto_agua: cat==='xis' ? g('fAgua').value==='sim' : null,
           fabricacao_propria: cat==='cervejaria' ? g('fFab').value==='sim' : null,

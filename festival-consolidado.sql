@@ -474,3 +474,7 @@ begin
 end $$;
 revoke all on function public.confirmar_presenca_lancamento(jsonb) from public;
 grant execute on function public.confirmar_presenca_lancamento(jsonb) to anon, authenticated;
+
+-- ===== CIDADE DOS INTERESSADOS (operações de Xis de outras cidades) =====
+alter table festival_interessados add column if not exists cidade text;
+-- RPC manifestar_interesse_2026 recriado incluindo p_dados->>'cidade' (aplicado direto no banco em 01/10/2026)
