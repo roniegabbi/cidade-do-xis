@@ -647,6 +647,7 @@
         <select id="rsvpSeg" onchange="renderRsvp(true)"><option value="">Todos os segmentos</option></select>
         <input id="rsvpBusca" placeholder="Buscar nome ou entidade…" oninput="renderRsvp(true)">
         <button class="btn btn-g btn-sm" onclick="copiarLinkRsvp()">🔗 Copiar link público</button>
+        <button class="btn btn-v btn-sm" id="btnFichaRsvp" onclick="baixarFichaRsvp()">Ficha técnica (PDF)</button>
         <button class="btn btn-g btn-sm" onclick="csvRsvp()">CSV</button>
         <button class="btn btn-g btn-sm" onclick="window.print()">Imprimir / PDF</button>
       </div>
@@ -2505,10 +2506,15 @@
     }
     const lista = rsvpFiltrada();
     const pessoas = lista.reduce((s,r)=>s+1+(r.acompanhantes||0), 0);
+    const porSeg = {};
+    lista.forEach(r=>{ const k=r.segmento||'Sem segmento'; porSeg[k]=porSeg[k]||{c:0,p:0}; porSeg[k].c++; porSeg[k].p+=1+(r.acompanhantes||0); });
+    const segOrdem = Object.entries(porSeg).sort((a,b)=>b[1].c-a[1].c);
     g('rsvpKpis').innerHTML = `
       <div class="kpi"><b>${lista.length}</b><span>confirmações</span></div>
       <div class="kpi"><b>${pessoas}</b><span>pessoas esperadas</span></div>
-      <div class="kpi"><b>${RSVP.length?new Date(RSVP[0].criado_em).toLocaleDateString('pt-BR'):'—'}</b><span>última confirmação</span></div>`;
+      <div class="kpi"><b>${RSVP.length?new Date(RSVP[0].criado_em).toLocaleDateString('pt-BR'):'—'}</b><span>última confirmação</span></div>`
+      + (segOrdem.length ? `<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">`
+        + segOrdem.map(([sg,v])=>`<span class="pill info" style="font-size:12px">${esc(sg)}: <b>${v.c}</b>${v.p>v.c?' ('+v.p+' pessoas)':''}</span>`).join('') + `</div>` : '');
     g('tabRsvp').innerHTML = '<tr><th>Nome</th><th>Entidade / empresa</th><th>Segmento</th><th>Acomp.</th><th>WhatsApp</th><th>E-mail</th><th>Recebido em</th></tr>' +
       (lista.length ? lista.map(r=>`<tr>
         <td><b>${r.nome||'—'}</b></td><td>${r.organizacao||'—'}</td><td>${r.segmento||'—'}</td>
@@ -2520,6 +2526,74 @@
     (navigator.clipboard ? navigator.clipboard.writeText(RSVP_LINK) : Promise.reject())
       .then(()=>toast('Link copiado — pronto para enviar nos convites'))
       .catch(()=>prompt('Copie o link:', RSVP_LINK));
+  }
+  async function baixarFichaRsvp(){
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Não foi possível carregar o gerador — use Imprimir / PDF'); return; }
+    const lista = rsvpFiltrada();
+    if(!lista.length){ toast('Nenhuma confirmação no filtro atual'); return; }
+    const btn = g('btnFichaRsvp'); btn.disabled = true; btn.textContent = 'Gerando…';
+    const pessoas = lista.reduce((s,r)=>s+1+(r.acompanhantes||0), 0);
+    const porSeg = {};
+    lista.forEach(r=>{ const k=r.segmento||'Sem segmento'; porSeg[k]=porSeg[k]||{c:0,p:0}; porSeg[k].c++; porSeg[k].p+=1+(r.acompanhantes||0); });
+    const segOrdem = Object.entries(porSeg).sort((a,b)=>b[1].c-a[1].c);
+    const LOGO_PDF = 'https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png';
+    const doc = document.createElement('div');
+    doc.style.cssText = 'width:194mm;padding:8mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
+    doc.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #e91e8c;padding-bottom:10px;margin-bottom:12px">
+        <img src="${LOGO_PDF}" crossorigin="anonymous" style="height:52px">
+        <div>
+          <div style="font-size:19px;font-weight:800;color:#4b1a60">Ficha Técnica — Presenças no Lançamento</div>
+          <div style="font-size:11px;color:#8a7f95">Painel "Cidade do Xis" · 07/10/2026 · 10h · Lab Criativo da Vila Belga · gerada em ${new Date().toLocaleString('pt-BR')}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:#f6f1fa;border-radius:10px;padding:10px;text-align:center"><div style="font-size:24px;font-weight:800;color:#4b1a60">${lista.length}</div><div style="font-size:10px;color:#8a7f95">confirmações recebidas</div></div>
+        <div style="background:#f6f1fa;border-radius:10px;padding:10px;text-align:center"><div style="font-size:24px;font-weight:800;color:#4b1a60">${pessoas}</div><div style="font-size:10px;color:#8a7f95">pessoas esperadas (com acompanhantes)</div></div>
+        <div style="background:#f6f1fa;border-radius:10px;padding:10px;text-align:center"><div style="font-size:24px;font-weight:800;color:#4b1a60">${segOrdem.length}</div><div style="font-size:10px;color:#8a7f95">segmentos representados</div></div>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Resumo por segmento</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-bottom:12px">
+        <tr><th style="background:#662382;color:#fff;text-align:left;padding:5px 8px;font-size:9px;text-transform:uppercase">Segmento</th>
+            <th style="background:#662382;color:#fff;text-align:right;padding:5px 8px;font-size:9px;text-transform:uppercase">Confirmações</th>
+            <th style="background:#662382;color:#fff;text-align:right;padding:5px 8px;font-size:9px;text-transform:uppercase">Pessoas (com acomp.)</th></tr>
+        ${segOrdem.map(([sg,v])=>`<tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0eaf5"><b>${esc(sg)}</b></td>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0eaf5;text-align:right">${v.c}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0eaf5;text-align:right">${v.p}</td></tr>`).join('')}
+        <tr><td style="padding:6px 8px;background:#f6f1fa;font-weight:800;color:#4b1a60">Total</td>
+            <td style="padding:6px 8px;background:#f6f1fa;font-weight:800;color:#4b1a60;text-align:right">${lista.length}</td>
+            <td style="padding:6px 8px;background:#f6f1fa;font-weight:800;color:#4b1a60;text-align:right">${pessoas}</td></tr>
+      </table>
+      <div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Lista de presenças confirmadas</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr>${['Nome','Entidade / empresa','Segmento','Acomp.','Contato','Recebido em']
+          .map(h=>`<th style="background:#662382;color:#fff;text-align:left;padding:4px 7px;font-size:9px;text-transform:uppercase">${h}</th>`).join('')}</tr>
+        ${lista.map(r=>`<tr>
+          <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5"><b>${esc(r.nome||'—')}</b></td>
+          <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${esc(r.organizacao||'—')}</td>
+          <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${esc(r.segmento||'—')}</td>
+          <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${r.acompanhantes?'+'+r.acompanhantes:'—'}</td>
+          <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${esc([r.telefone,r.email].filter(Boolean).join(' · ')||'—')}</td>
+          <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'—'}</td>
+        </tr>`).join('')}
+      </table>
+      <div style="margin-top:10px;font-size:9px;color:#8a7f95">Lançamento Oficial do 4º Festival Nacional do Xis · Prefeitura de Santa Maria · Sindhturr · cidadedoxis.com</div>`;
+    document.body.appendChild(doc);
+    try{
+      await html2pdf().set({
+        margin: [8,8,8,8],
+        filename: 'Ficha-Tecnica-Presencas-Lancamento-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor:'#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'] }
+      }).from(doc).save();
+      toast('Ficha técnica exportada');
+    }catch(e){ console.error(e); toast('Não foi possível gerar o PDF'); }
+    doc.remove();
+    btn.disabled = false; btn.textContent = 'Ficha técnica (PDF)';
   }
   function csvRsvp(){
     const lista = rsvpFiltrada();
