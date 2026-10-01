@@ -24,7 +24,7 @@
   h3{font-size:16.5px;color:var(--roxo);margin:14px 0 6px}
   p{margin-bottom:9px}
   .capa{position:relative;color:#fff;padding:0;background:#4b1a60}
-  .capa .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .capa .bg{position:absolute;inset:0;display:block}
   .capa .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.30) 0%,rgba(75,26,96,.55) 45%,rgba(75,26,96,.92) 80%,#4b1a60 100%)}
   .capa .conteudo{position:relative;z-index:2;display:flex;flex-direction:column;height:210mm;padding:11mm 16mm 9mm}
   .capa .eyebrow{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;opacity:.95;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.5)}
@@ -89,7 +89,7 @@
 <div id="deck">
 
 <section class="slide capa">
-  <img class="bg" src="livro-fest-01.jpg" alt="Festival do Xis no Largo da Gare">
+  <div class="bg" style="background:url('livro-fest-01.jpg') center/cover no-repeat"></div>
   <div class="ov"></div>
   <div class="conteudo">
     <div style="display:flex;align-items:center;gap:16px">
@@ -177,7 +177,7 @@
 </section>
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579647979.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579647979.jpg') center/cover no-repeat"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.40) 0%,rgba(75,26,96,.70) 55%,rgba(75,26,96,.95) 100%)"></div>
   <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:13mm 16mm">
     <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" crossorigin="anonymous" style="height:150px;background:#fff;border-radius:24px;padding:18px 26px;box-shadow:0 10px 34px rgba(0,0,0,.45)">
@@ -188,7 +188,7 @@
 </section>
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571946220.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571946220.jpg') center/cover no-repeat"></div>
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
 <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
 <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Santa Maria, a Cidade do Xis</div>
@@ -198,7 +198,7 @@
 </section>
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571685753.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571685753.jpg') center/cover no-repeat"></div>
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
 <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
 <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">O Xis como Patrimônio Cultural</div>
@@ -207,8 +207,20 @@
 </div>
 </section>
 
+<section class="slide" style="background:#241430;color:#fff;display:flex;flex-direction:column;justify-content:center;padding:14mm 18mm">
+  <div style="font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--amarelo)">Anúncio · Dossiê COMPHIC 2026</div>
+  <div style="font-size:40px;font-weight:800;line-height:1.15;margin-top:5mm">O Modo de Fazer do Xis<br>rumo ao <span style="color:var(--amarelo)">Livro dos Saberes</span></div>
+  <div style="font-size:17px;margin-top:7mm;line-height:1.6;opacity:.95;max-width:220mm">O Conselho Municipal do Patrimônio Histórico e Cultural concluiu o <b>Dossiê Histórico-Cultural do Modo de Fazer do Xis de Santa Maria</b>: o documento que fundamenta o registro do nosso xis como <b>patrimônio cultural imaterial</b> do município.</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:9mm">
+    <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:14px;text-align:center"><div style="font-size:14px;font-weight:800">Desde os anos 1970</div><div style="font-size:11.5px;opacity:.85;margin-top:3px">uma construção coletiva da cidade, do trailer do Lucão (1978) às novas gerações</div></div>
+    <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:14px;text-align:center"><div style="font-size:14px;font-weight:800">Saber-fazer protegido</div><div style="font-size:11.5px;opacity:.85;margin-top:3px">pão redondo prensado, montagem e fartura — sem engessar a receita</div></div>
+    <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:14px;text-align:center"><div style="font-size:14px;font-weight:800">Salvaguarda viva</div><div style="font-size:11.5px;opacity:.85;margin-top:3px">documentar, transmitir e valorizar os mestres da chapa</div></div>
+  </div>
+  <div style="font-size:12px;margin-top:8mm;opacity:.75">Dossiê: Arq. Urb. Laura Arigony Corrêa · COMPHIC · Prefeitura de Santa Maria · íntegra em cidadedoxis.com</div>
+</section>
+
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571745592.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571745592.jpg') center/cover no-repeat"></div>
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
 <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
 <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">O Xis impulsionador do Turismo</div>
@@ -271,7 +283,7 @@
 </section>
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579458811.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579458811.jpg') center/cover no-repeat"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.50) 0%,rgba(75,26,96,.78) 55%,rgba(75,26,96,.95) 100%)"></div>
   <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:13mm 16mm">
     <div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;font-weight:700;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.5)">E agora, o que vem por aí</div>
@@ -354,11 +366,11 @@
 </section>
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579447458.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579447458.jpg') center/cover no-repeat"></div>
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
 <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
 <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Mega Xis — a ação símbolo da edição</div>
-<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">Um xis <span style="color:var(--amarelo)">gigante</span>, feito a muitas mãos, para abrir o Festival</div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">O maior xis</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">preparado coletivamente<br>pelas operações do Festival</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Momento de mídia</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">a imagem da edição 2026<br>para o estado inteiro ver</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Feito em conjunto</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">operações, padaria oficial<br>e parceiros juntos na chapa</div></div></div>
+<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">Na 3ª edição, o <span style="color:var(--amarelo)">maior xis do mundo: 32,6 kg</span>. Em 2026, a tradição continua</div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">O maior xis do mundo</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">32,6 kg e 1 m de diâmetro<br>na edição de 2025</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Momento de mídia</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">a imagem da edição 2026<br>para o estado inteiro ver</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Feito em conjunto</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">operações, padaria oficial<br>e parceiros juntos na chapa</div></div></div>
 
 </div>
 </section>
@@ -386,7 +398,7 @@
 
 <!-- MERCADO CRIATIVO -->
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-  <img src="livro-fest-03.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:url('livro-fest-03.jpg') center/cover no-repeat"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
   <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
     <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Mercado Criativo</div>
@@ -401,7 +413,7 @@
 
 <!-- FERROMODELISMO -->
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-  <img src="livro-fest-06.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:url('livro-fest-06.jpg') center/cover no-repeat"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
   <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
     <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Ferromodelismo</div>
@@ -452,7 +464,7 @@
 </section>
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571662000.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571662000.jpg') center/cover no-repeat"></div>
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
 <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
 <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Concurso "Come Xis"</div>
@@ -463,7 +475,7 @@
 
 
 <section class="slide" style="padding:0;background:#4b1a60;color:#fff">
-  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571774361.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571774361.jpg') center/cover no-repeat"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
   <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
     <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Concurso "Xis da Galera"</div>
@@ -523,7 +535,8 @@
     try{
       // Gera slide a slide: um deck longo numa imagem unica estoura o limite do navegador e sai em branco
       const slides = [...document.querySelectorAll('#deck .slide')];
-      const optC = { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' };
+      const sw = slides[0].offsetWidth, sh = slides[0].offsetHeight;
+      const optC = { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, backgroundColor: '#ffffff', windowWidth: sw+160, width: sw, height: sh };
       const pdf = await html2pdf().set({
         margin: 0, image: { type:'jpeg', quality: 0.92 }, html2canvas: optC,
         jsPDF: { unit:'mm', format:'a4', orientation:'landscape' }
