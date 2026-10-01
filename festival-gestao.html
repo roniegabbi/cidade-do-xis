@@ -2520,7 +2520,9 @@
         <td><b>${r.nome||'—'}</b></td><td>${r.organizacao||'—'}</td><td>${r.segmento||'—'}</td>
         <td>${r.acompanhantes?'+'+r.acompanhantes:'—'}</td><td>${r.telefone||'—'}</td><td>${r.email||'—'}</td>
         <td>${r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'—'}</td></tr>`).join('')
-      : '<tr><td colspan="7" style="text-align:center;color:var(--texto-suave)">Nenhuma confirmação ainda — divulgue o link público 🔗</td></tr>');
+      : '<tr><td colspan="7" style="text-align:center;color:var(--texto-suave)">Nenhuma confirmação ainda — divulgue o link público 🔗</td></tr>')
+      + (lista.length ? `<tr><td colspan="3" style="background:var(--fundo);font-weight:800;color:var(--roxo-esc)">TOTAL DE PARTICIPANTES</td>
+          <td colspan="4" style="background:var(--fundo);font-weight:800;color:var(--roxo-esc)">${lista.length} confirmações · ${pessoas} pessoas (com acompanhantes)</td></tr>` : '');
   }
   function copiarLinkRsvp(){
     (navigator.clipboard ? navigator.clipboard.writeText(RSVP_LINK) : Promise.reject())
