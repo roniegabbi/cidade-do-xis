@@ -518,18 +518,24 @@
       setTimeout(()=>window.print(), 600);
       btn.disabled = false; btn.textContent = ' Baixar PDF'; return;
     }
-    msg.textContent = 'Montando os slides — pode levar alguns segundos';
+    msg.textContent = 'Montando os slides — pode levar um minuto';
     document.body.classList.add('exportando');
     try{
-      await html2pdf().set({
-        margin: 0,
-        filename: 'Apresentacao-Lancamento-Festival-do-Xis-2026.pdf',
-        image: { type:'jpeg', quality: 0.92 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
-        jsPDF: { unit:'mm', format:'a4', orientation:'landscape' },
-        pagebreak: { mode: ['css','legacy'], after: '.slide' }
-      }).from(document.getElementById('deck')).save();
-      msg.textContent = 'PDF baixado  — confira na pasta Downloads';
+      // Gera slide a slide: um deck longo numa imagem unica estoura o limite do navegador e sai em branco
+      const slides = [...document.querySelectorAll('#deck .slide')];
+      const optC = { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' };
+      const pdf = await html2pdf().set({
+        margin: 0, image: { type:'jpeg', quality: 0.92 }, html2canvas: optC,
+        jsPDF: { unit:'mm', format:'a4', orientation:'landscape' }
+      }).from(slides[0]).toPdf().get('pdf');
+      for(let i=1;i<slides.length;i++){
+        msg.textContent = 'Montando slide '+(i+1)+' de '+slides.length+'…';
+        const canvas = await html2pdf().set({html2canvas: optC}).from(slides[i]).toCanvas().get('canvas');
+        pdf.addPage('a4','landscape');
+        pdf.addImage(canvas.toDataURL('image/jpeg',0.92), 'JPEG', 0, 0, 297, 210);
+      }
+      pdf.save('Apresentacao-Lancamento-Festival-do-Xis-2026.pdf');
+      msg.textContent = 'PDF baixado — confira na pasta Downloads';
     }catch(e){
       msg.textContent = 'Não foi possível gerar — abrindo a impressão (escolha "Salvar como PDF")';
       setTimeout(()=>window.print(), 800);
