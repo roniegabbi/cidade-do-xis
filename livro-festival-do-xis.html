@@ -6,6 +6,7 @@
 <title>Livro do Festival do Xis · 2026</title>
 <meta name="robots" content="noindex">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="origem-mapa.js"></script>
 <style>
   :root{
     --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
@@ -319,6 +320,22 @@
   <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Croqui do Evento</span></div>
 </section>
 
+
+<!-- ORIGEM TERRITORIAL -->
+<section class="pagina">
+  <h2>4.3 Origem Territorial das Operações de Xis</h2>
+  <p>De onde vem o xis do Festival: o mapa abaixo mostra, com dados vivos da plataforma, os bairros de Santa Maria representados pelas operações inscritas — e as operações que vêm de outras cidades gaúchas. Posições reais dos bairros (IBGE / OpenStreetMap); bolha maior e mais escura = mais operações.</p>
+  <div style="background:#faf7fc;border-radius:12px;overflow:hidden;margin:8px 0"><svg id="svgOrigemLivro" viewBox="0 0 560 345" style="width:100%;display:block"></svg></div>
+  <div style="display:flex;gap:10px;align-items:stretch">
+    <div style="flex:none;width:52mm;background:#faf7fc;border-radius:12px;padding:5px 7px">
+      <div style="font-size:10px;font-weight:800;color:#4b1a60;margin-bottom:2px">🚚 De fora de Santa Maria</div>
+      <svg id="svgOrigemRSLivro" viewBox="0 0 235 230" style="width:100%;display:block"></svg>
+    </div>
+    <div style="flex:1;background:#f6f1fa;border-radius:12px;padding:9px 12px;font-size:11.5px;color:#3a2f42" id="notaOrigemLivro">Carregando dados da plataforma…</div>
+  </div>
+  <div class="rodape"><span><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="" style="height:14px;vertical-align:-3px;margin-right:6px">Livro do Festival do Xis · 2026</span><span>Origem Territorial</span></div>
+</section>
+
 <!-- AMBIENTES -->
 <section class="pagina">
   <h2>5. Ambientes do Festival</h2>
@@ -415,6 +432,7 @@
   (async function(){
     try{
       const SB = window.supabase.createClient('https://hlstcndhxzhdzbecfrhp.supabase.co','sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr');
+      if(window.renderOrigemXis) renderOrigemXis({sb:SB, svgMapa:'svgOrigemLivro', svgRS:'svgOrigemRSLivro', notaEl:'notaOrigemLivro'});
       const [esp, cap, cnv] = await Promise.all([
         SB.from('livro_orcamento').select('*'),
         SB.from('livro_captacao').select('*'),

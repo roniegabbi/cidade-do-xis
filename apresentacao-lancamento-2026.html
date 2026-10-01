@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apresentação do Lançamento · Festival do Xis 2026</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="origem-mapa.js"></script>
+<style>
+  :root{
+    --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800;
+    --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; --fundo:#f6f1fa;
+    --verde:#1d9e57;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#d8cfe2;color:var(--texto);font-size:14px;line-height:1.55}
+  .slide{width:297mm;height:210mm;margin:14px auto;background:#fff;padding:14mm 16mm;box-shadow:0 10px 30px rgba(75,26,96,.25);position:relative;overflow:hidden}
+  .toolbar{position:sticky;top:0;z-index:10;background:var(--roxo-esc);color:#fff;padding:12px 20px;display:flex;gap:14px;align-items:center}
+  .toolbar b{font-size:15px}
+  .toolbar button{margin-left:auto;padding:10px 22px;border:none;border-radius:99px;background:var(--rosa);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+  h1{font-size:44px;color:#fff;line-height:1.12}
+  h2{font-size:26px;color:var(--roxo-esc);margin-bottom:12px;border-bottom:3px solid var(--rosa);padding-bottom:7px}
+  h3{font-size:16.5px;color:var(--roxo);margin:14px 0 6px}
+  p{margin-bottom:9px}
+  .capa{position:relative;color:#fff;padding:0;background:#4b1a60}
+  .capa .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .capa .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.30) 0%,rgba(75,26,96,.55) 45%,rgba(75,26,96,.92) 80%,#4b1a60 100%)}
+  .capa .conteudo{position:relative;z-index:2;display:flex;flex-direction:column;height:210mm;padding:11mm 16mm 9mm}
+  .capa .eyebrow{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;opacity:.95;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .capa .ano{font-size:72px;font-weight:800;color:var(--amarelo);line-height:1;letter-spacing:2px;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+  .capa .sub{font-size:17px;margin-top:10px;opacity:.98;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .capa .sec-list{margin-top:auto;border-top:1px solid rgba(255,255,255,.35);padding-top:10px;font-size:12px;line-height:1.65;opacity:.95;text-align:center}
+  .capa h1{text-shadow:0 3px 14px rgba(0,0,0,.5)}
+  .selo{display:inline-block;background:var(--amarelo);color:#4b1a60;font-weight:800;border-radius:99px;padding:8px 20px;margin-top:14px;font-size:14px}
+  .rodape{position:absolute;bottom:7mm;left:16mm;right:16mm;display:flex;justify-content:space-between;font-size:10.5px;color:var(--texto-suave);border-top:1px solid var(--borda);padding-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 12px}
+  th{background:var(--roxo);color:#fff;text-align:left;padding:7px 11px;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+  td{padding:7px 11px;border-bottom:1px solid var(--fundo)}
+  tr:nth-child(even) td{background:#faf7fc}
+  .tot td{background:var(--fundo)!important;font-weight:800;color:var(--roxo-esc)}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}
+  .kpi{background:var(--fundo);border-radius:12px;padding:14px 10px;text-align:center}
+  .kpi .n{font-size:27px;font-weight:800;color:var(--roxo)}
+  .kpi .l{font-size:11px;color:var(--texto-suave);margin-top:2px}
+  .leg-cores{display:flex;gap:13px;flex-wrap:wrap;font-size:12px;font-weight:700;margin:8px 0}
+  .leg-cores i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px}
+  .obs{background:var(--fundo);border-left:4px solid var(--rosa);padding:10px 14px;font-size:12.5px;color:var(--texto);margin:10px 0}
+  .q-esp{display:grid;grid-template-columns:repeat(21,1fr);gap:4px;margin:8px 0 4px}
+  .q-esp span{display:flex;align-items:center;justify-content:center;height:26px;border-radius:6px;font-weight:800;font-size:11px;border:1.5px solid}
+  .q-esp .qt{background:#f1e7fb;border-color:#5C2890;color:#4b1a60}
+  .q-esp .qf{background:#e2f6ea;border-color:#1d9e57;color:#0c6b3d}
+  .q-esp .qc{background:#fdf1d8;border-color:#f5a800;color:#7d5600;border-radius:99px}
+  .q-esp .qm{background:#fbeaf0;border-color:#d4537e;color:#72243e}
+  .q-esp .qk{background:#f2e9e2;border-color:#8a5a3b;color:#52351f}
+  .q-esp .qx{background:#e0f4f7;border-color:#1994a8;color:#0b4c57}
+  .q-esp .qd{background:#efe9fb;border-color:#7f77dd;color:#3c3489}
+  .q-esp .qa{background:#f6f4f8;border-style:dashed;border-color:#b4b2a9;color:#8a7f95}
+  .q-esp .qr{background:#eef4dc;border-color:#639922;color:#27500a}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .barras .linha{display:grid;grid-template-columns:170px 1fr 46px;gap:10px;align-items:center;margin:5px 0;font-size:12.5px}
+  .barras .trilho{height:15px;background:var(--fundo);border-radius:99px;overflow:hidden}
+  .barras .fill{height:100%;background:var(--roxo);border-radius:99px}
+  .norma{display:flex;gap:14px;align-items:flex-start;background:var(--fundo);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .norma .num{min-width:34px;height:34px;border-radius:50%;background:var(--rosa);color:#fff;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center}
+  .norma .tx{font-size:15px;line-height:1.5}
+  .norma .tx b{color:var(--roxo-esc)}
+  ul{margin:0 0 10px 18px}
+  li{margin-bottom:5px}
+  @media print{
+    @page{size:A4 landscape;margin:0}
+    body{background:#fff}
+    .toolbar{display:none}
+    .slide{margin:0;box-shadow:none;page-break-after:always;page-break-inside:avoid;width:297mm;height:210mm;overflow:hidden}
+    .slide:last-child{page-break-after:auto}
+  }
+  body.exportando{background:#fff}
+  body.exportando .slide{margin:0;box-shadow:none;height:210mm;overflow:hidden}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>Apresentação do Lançamento · Painel "Cidade do Xis"</b>
+  <span style="font-size:12.5px;opacity:.85" id="tbMsg">07/10 · 10h · Lab Criativo da Vila Belga</span>
+  <button id="btnBaixar" onclick="baixarPDF()">⬇️ Baixar PDF</button>
+  <button style="background:transparent;border:1.5px solid #ffffff66" onclick="window.print()">🖨️ Imprimir</button>
+</div>
+<div id="deck">
+
+<section class="slide capa">
+  <img class="bg" src="livro-fest-01.jpg" alt="Festival do Xis no Largo da Gare">
+  <div class="ov"></div>
+  <div class="conteudo">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="background:#fff;border-radius:16px;padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.35)">
+        <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Marca Cidade do Xis" style="height:52px;display:block">
+      </span>
+      <div class="eyebrow">Prefeitura de Santa Maria<br>Programa Xis · Cidade do Xis</div>
+    </div>
+    <div style="flex:1"></div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">Lançamento Oficial</div>
+      <h1>4º Festival Nacional do Xis</h1>
+      <div class="ano">2026</div>
+      <div class="sub">13, 14 e 15 de novembro · Largo da Gare · Santa Maria/RS</div>
+      <span class="selo">Painel "Cidade do Xis" · 07/10 · Lab Criativo da Vila Belga</span>
+    </div>
+    <div class="sec-list">
+      <b>Realização:</b> Prefeitura Municipal de Santa Maria · RS &nbsp;e&nbsp; Sindhturr<br>
+      <b>Execução:</b> Secretaria de Desenvolvimento Econômico e Inovação · Secretaria de Cultura · Secretaria de Turismo · Secretaria de Comunicação
+    </div>
+  </div>
+</section>
+
+
+<!-- REALIZADORES -->
+<section class="slide">
+  <h2>Realização</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6mm">
+    <div style="background:var(--fundo);border-radius:16px;padding:22px;text-align:center">
+      <div style="font-size:40px">🏛️</div>
+      <div style="font-size:21px;font-weight:800;color:var(--roxo-esc);margin-top:6px">Prefeitura Municipal<br>de Santa Maria</div>
+      <div style="font-size:12.5px;color:var(--texto-suave);margin-top:4px">Realização</div>
+    </div>
+    <div style="background:var(--fundo);border-radius:16px;padding:22px;text-align:center">
+      <div style="font-size:40px">🤝</div>
+      <div style="font-size:21px;font-weight:800;color:var(--roxo-esc);margin-top:6px">Sindhturr</div>
+      <div style="font-size:12.5px;color:var(--texto-suave);margin-top:4px">Sindicato de Hotéis, Restaurantes, Bares e Similares · Realização</div>
+    </div>
+  </div>
+  <h3 style="margin-top:9mm">Execução · Secretarias Municipais</h3>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+    <div class="kpi" style="padding:18px 12px"><div style="font-size:28px">🚀</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Desenvolvimento Econômico e Inovação</div><div class="l">coordenação geral</div></div>
+    <div class="kpi" style="padding:18px 12px"><div style="font-size:28px">🎭</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Cultura</div><div class="l">programação e patrimônio</div></div>
+    <div class="kpi" style="padding:18px 12px"><div style="font-size:28px">🗺️</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Turismo</div><div class="l">promoção e visitantes</div></div>
+    <div class="kpi" style="padding:18px 12px"><div style="font-size:28px">📣</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Comunicação</div><div class="l">divulgação e imprensa</div></div>
+  </div>
+  <div style="text-align:center;margin-top:9mm"><img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" style="height:52px"></div>
+  <div class="rodape"><span>Lançamento Oficial · Festival do Xis 2026</span><span>cidadedoxis.com</span></div>
+</section>
+
+<!-- PATROCINADORES -->
+<section class="slide">
+  <h2>Patrocinadores</h2>
+  <div style="font-size:14px;color:var(--texto-suave);margin-top:2mm">Marcas que fazem o Festival acontecer</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:8mm">
+    <div style="border:2px solid var(--borda);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:center;min-height:42mm">
+      <img src="" data-marca="sicredi" alt="" style="max-height:34mm;max-width:80%;display:none">
+      <div class="marca-nome" style="font-size:24px;font-weight:800;color:var(--roxo-esc);text-align:center">Sicredi<br><span style="font-size:12px;color:var(--texto-suave);font-weight:600">Cooperativa de Crédito</span></div>
+    </div>
+    <div style="border:2px solid var(--borda);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:center;min-height:42mm">
+      <img src="" data-marca="banrisul" alt="" style="max-height:34mm;max-width:80%;display:none">
+      <div class="marca-nome" style="font-size:24px;font-weight:800;color:var(--roxo-esc);text-align:center">Banrisul</div>
+    </div>
+    <div style="border:2px solid var(--borda);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:center;min-height:42mm">
+      <img src="" data-marca="imembui" alt="" style="max-height:34mm;max-width:80%;display:none">
+      <div class="marca-nome" style="font-size:24px;font-weight:800;color:var(--roxo-esc);text-align:center">Imembuí Microfinanças<br><span style="font-size:12px;color:var(--texto-suave);font-weight:600">CredXis · crédito para a cadeia do xis</span></div>
+    </div>
+    <div style="border:2px solid var(--borda);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:center;min-height:42mm">
+      <img src="" data-marca="mallet" alt="" style="max-height:34mm;max-width:80%;display:none">
+      <div class="marca-nome" style="font-size:24px;font-weight:800;color:var(--roxo-esc);text-align:center">Panifício Mallet<br><span style="font-size:12px;color:var(--texto-suave);font-weight:600">Pão Oficial do Festival</span></div>
+    </div>
+  </div>
+  <div class="obs" style="margin-top:8mm">Cotas de patrocínio em formalização — o conjunto final de marcas será atualizado até o evento.</div>
+  <div class="rodape"><span>Lançamento Oficial · Festival do Xis 2026</span><span>cidadedoxis.com</span></div>
+</section>
+
+<section class="slide">
+  <h2>O Painel de hoje</h2>
+  <div class="cols2" style="margin-top:4mm">
+    <div><h3 style="margin-top:0">🎙️ Bloco 1 · Painel "Cidade do Xis"</h3><div class="norma"><div class="num" style="background:var(--roxo)">1</div><div class="tx"><b>Abertura institucional</b><br><span style="color:var(--texto-suave);font-size:13px">Prefeito Rodrigo Decimo</span></div></div><div class="norma"><div class="num" style="background:var(--roxo)">2</div><div class="tx"><b>Fala institucional</b><br><span style="color:var(--texto-suave);font-size:13px">João Provensi · Presidente do Sindhturr</span></div></div><div class="norma"><div class="num" style="background:var(--roxo)">3</div><div class="tx"><b>Santa Maria, a Cidade do Xis</b><br><span style="color:var(--texto-suave);font-size:13px">Ronie Gabbi · Desenvolvimento Econômico e Inovação</span></div></div><div class="norma"><div class="num" style="background:var(--roxo)">4</div><div class="tx"><b>O Xis como Patrimônio Cultural</b><br><span style="color:var(--texto-suave);font-size:13px">Rose Carneiro · Cultura</span></div></div><div class="norma"><div class="num" style="background:var(--roxo)">5</div><div class="tx"><b>O Xis impulsionador do Turismo</b><br><span style="color:var(--texto-suave);font-size:13px">Ewerton Falk · Turismo</span></div></div><div class="norma"><div class="num" style="background:var(--roxo)">6</div><div class="tx"><b>Xis é Economia — os números</b><br><span style="color:var(--texto-suave);font-size:13px">Ronie Gabbi · Desenvolvimento Econômico e Inovação</span></div></div></div>
+    <div><h3 style="margin-top:0">🎪 Bloco 2 · O Festival 2026</h3><div class="norma"><div class="num">7</div><div class="tx"><b>Estrutura e layout — o croqui do Largo da Gare</b></div></div><div class="norma"><div class="num">8</div><div class="tx"><b>Mega Xis — a ação símbolo da edição</b></div></div><div class="norma"><div class="num">9</div><div class="tx"><b>Comissão Organizadora</b></div></div><div class="norma"><div class="num">10</div><div class="tx"><b>Concursos do Festival</b><br><span style="color:var(--texto-suave);font-size:13px">Master Xis · Come Xis · Xis da Galera</span></div></div>
+      <div class="obs" style="margin-top:8mm"><b>Mediação:</b> Ramiro Guimarães · Secretário de Comunicação</div>
+    </div>
+  </div>
+  <div class="rodape"><span>Lançamento Oficial · Festival do Xis 2026</span><span>cidadedoxis.com</span></div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579647979.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.40) 0%,rgba(75,26,96,.70) 55%,rgba(75,26,96,.95) 100%)"></div>
+  <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:13mm 16mm">
+    <div style="font-size:54px;font-weight:800;line-height:1.15;text-shadow:0 4px 18px rgba(0,0,0,.55)">Você está na cidade do <span style="color:var(--amarelo)">XIS</span></div>
+    <div style="font-size:20px;font-weight:600;margin-top:10mm;opacity:.98;text-shadow:0 2px 10px rgba(0,0,0,.5)">Nenhuma outra cidade do Brasil tem essa história para contar.<br>E ela começa de novo em novembro.</div>
+    <span class="selo" style="margin-top:12mm;font-size:16px">13 · 14 · 15 de novembro — Largo da Gare</span>
+  </div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571946220.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
+<div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
+<div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Santa Maria, a Cidade do Xis</div>
+<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">De tradição querida a <span style="color:var(--amarelo)">estratégia de cidade</span></div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">⚖️</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Lei da Cidade do Xis</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">Dia do Xis · 28 de maio<br>Festival no calendário oficial</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🎓</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Programa Xis</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">capacitação e padronização<br>da cadeia · SMDEI</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">💰</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">CredXis</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">linha de crédito para<br>as operações e a cadeia</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">💻</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">cidadedoxis.com</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">vitrine · mapa · voto popular<br>· gestão do evento</div></div></div>
+<div style="text-align:center;font-size:12px;margin-top:8mm;opacity:.95">Aprovado por unanimidade na Câmara de Vereadores de Santa Maria</div>
+</div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571685753.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
+<div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
+<div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">O Xis como Patrimônio Cultural</div>
+<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">O xis é o jeito de Santa Maria <span style="color:var(--amarelo)">se reunir à mesa</span></div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🏛️</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Patrimônio Gastronômico</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">reconhecido em lei como<br>patrimônio cultural da cidade</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🚂</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Memória da Gare</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">o Festival devolve vida ao<br>patrimônio ferroviário</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">👨‍👩‍👧</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Histórias de família</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">gerações empreendendo<br>em torno da chapa</div></div></div>
+
+</div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571745592.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
+<div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
+<div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">O Xis impulsionador do Turismo</div>
+<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">Gente de todo o estado vem <span style="color:var(--amarelo)">provar o original</span></div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🏨</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Hotelaria e serviços</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">um fim de semana de alta<br>ocupação na cidade</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🗺️</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Turismo gastronômico</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">o xis como motivo<br>de viagem a Santa Maria</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🚚</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Operações de fora</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">lancherias de outras cidades<br>já se inscrevem para vir</div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8mm"><div style="background:linear-gradient(135deg,var(--roxo),var(--rosa));border-radius:14px;padding:12px;text-align:center"><div style="font-size:34px;font-weight:800;color:var(--amarelo)">35 mil</div><div style="font-size:12px;opacity:.95">visitantes na 3ª edição</div></div><div style="background:linear-gradient(135deg,var(--roxo),var(--rosa));border-radius:14px;padding:12px;text-align:center"><div style="font-size:34px;font-weight:800;color:var(--amarelo)">3 dias</div><div style="font-size:12px;opacity:.95">de cidade cheia e viva</div></div></div>
+</div>
+</section>
+
+<section class="slide">
+  <h2>Xis é Economia — os números da cidade</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="n">1.103</div><div class="l">operações na plataforma Cidade do Xis</div></div>
+    <div class="kpi"><div class="n">682</div><div class="l">lancherias ativas</div></div>
+    <div class="kpi"><div class="n">R$ 12 mi</div><div class="l">movimentados por mês</div></div>
+    <div class="kpi"><div class="n">300 mil</div><div class="l">pães de xis por mês</div></div>
+    <div class="kpi"><div class="n">R$ 40</div><div class="l">ticket médio do xis</div></div>
+  </div>
+  <div class="cols2" style="margin-top:4mm">
+    <div>
+      <h3 style="margin-top:0">A viagem do xis pela economia</h3>
+      <div class="norma"><div class="num" style="background:var(--amarelo);color:#4b1a60">🥖</div><div class="tx"><b>Tudo começa no forno</b> — padarias produzindo 300 mil pães por mês</div></div>
+      <div class="norma"><div class="num" style="background:var(--amarelo);color:#4b1a60">🛵</div><div class="tx"><b>Movimenta a cidade</b> — distribuidoras, bebidas e entregadores cruzando os bairros</div></div>
+      <div class="norma"><div class="num" style="background:var(--amarelo);color:#4b1a60">🔥</div><div class="tx"><b>Cai na chapa</b> — centenas de famílias empreendendo todos os dias</div></div>
+      <div class="norma"><div class="num" style="background:var(--amarelo);color:#4b1a60">🎉</div><div class="tx"><b>Vira festa (e negócio)</b> — R$ 12 milhões por mês girando na cidade</div></div>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Em todos os cantos da cidade</h3>
+      <div class="barras">
+        <div class="linha"><span>Centro</span><div class="trilho"><div class="fill" style="width:100%"></div></div><b>179</b></div>
+        <div class="linha"><span>Camobi</span><div class="trilho"><div class="fill" style="width:66%"></div></div><b>118</b></div>
+        <div class="linha"><span>Medianeira</span><div class="trilho"><div class="fill" style="width:30%"></div></div><b>53</b></div>
+        <div class="linha"><span>J. Kubitschek</span><div class="trilho"><div class="fill" style="width:28%"></div></div><b>51</b></div>
+        <div class="linha"><span>Pinheiro Machado</span><div class="trilho"><div class="fill" style="width:27%"></div></div><b>49</b></div>
+        <div class="linha"><span>Demais bairros</span><div class="trilho"><div class="fill" style="width:43%;background:#9b6cc0"></div></div><b>+77</b></div>
+      </div>
+      <div class="obs" style="margin-top:6mm">O xis está presente em <b>todos os bairros</b> de Santa Maria — e o Festival é a vitrine dessa força.</div>
+    </div>
+  </div>
+  <div class="rodape"><span>Lançamento Oficial · Festival do Xis 2026</span><span>cidadedoxis.com</span></div>
+</section>
+
+
+<section class="slide">
+  <h2>De onde vem o Xis do Festival</h2>
+  <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:10mm;align-items:start;margin-top:3mm">
+    <div>
+      <div style="background:#faf7fc;border-radius:12px;overflow:hidden"><svg id="svgOrigemDeck" viewBox="0 0 560 345" style="width:100%;display:block"></svg></div>
+      <div style="font-size:11px;color:var(--texto-suave);margin-top:4px">Posições reais dos bairros (IBGE / OpenStreetMap) · bolha maior e mais escura = mais operações inscritas</div>
+    </div>
+    <div>
+      <div style="background:#faf7fc;border-radius:12px;padding:6px 8px">
+        <div style="font-size:11px;font-weight:800;color:var(--roxo-esc);margin-bottom:2px">🚚 E de fora de Santa Maria…</div>
+        <svg id="svgOrigemRSDeck" viewBox="0 0 235 230" style="width:100%;display:block"></svg>
+      </div>
+      <div class="obs" style="margin-top:6mm" id="notaOrigemDeck">Carregando dados da plataforma…</div>
+      <div style="background:linear-gradient(90deg,var(--roxo),var(--rosa));border-radius:10px;padding:9px 12px;font-size:12px;font-weight:700;color:#fff;margin-top:5mm">O xis nasce em todos os cantos da cidade — e já atrai operações de outros municípios gaúchos.</div>
+    </div>
+  </div>
+  <div class="rodape"><span>Lançamento Oficial · Festival do Xis 2026</span><span>cidadedoxis.com · dados vivos</span></div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579458811.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.50) 0%,rgba(75,26,96,.78) 55%,rgba(75,26,96,.95) 100%)"></div>
+  <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:13mm 16mm">
+    <div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;font-weight:700;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.5)">E agora, o que vem por aí</div>
+    <div style="font-size:50px;font-weight:800;line-height:1.15;margin-top:6mm;text-shadow:0 4px 18px rgba(0,0,0,.55)">O Festival <span style="color:var(--amarelo)">2026</span></div>
+    <div style="display:flex;gap:12px;margin-top:12mm;flex-wrap:wrap;justify-content:center">
+      <span class="selo">📅 13, 14 e 15 de novembro</span>
+      <span class="selo">📍 Largo da Gare</span>
+      <span class="selo">🎪 97 espaços</span>
+      <span class="selo">🚜 Pátio Rural</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" style="display:flex;flex-direction:column">
+  <h2 style="margin-bottom:8px">A estrutura — implantação no Largo da Gare</h2>
+  <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 760 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+<rect x="2" y="2" width="756" height="576" rx="12" fill="#ffffff" stroke="#e4dced"/>
+<g font-family="'Segoe UI',system-ui,sans-serif">
+<text x="20" y="28" font-size="15" font-weight="800" fill="#4b1a60">Croqui — 4º Festival Nacional do Xis · Largo da Gare</text>
+<text x="96" y="52" font-size="9" fill="#8a7f95">PLATAFORMA (atrás do prédio): mesas · paisagismo · Feira Criativa · Pipoqueiro</text>
+<rect x="96" y="62" width="118" height="42" fill="#fdf6e3" stroke="#b17b00"/>
+<text x="155" y="80" font-size="8.5" font-weight="800" fill="#633806" text-anchor="middle">ESPAÇO INFANTIL</text>
+<text x="155" y="92" font-size="7.5" fill="#854F0B" text-anchor="middle">recepção</text>
+<rect x="214" y="62" width="121" height="42" fill="#f2e9e2" stroke="#8a5a3b"/>
+<text x="274" y="80" font-size="8.5" font-weight="800" fill="#52351f" text-anchor="middle">CAFÉ &amp; TORTAS</text>
+<text x="274" y="92" font-size="7.5" fill="#8a5a3b" text-anchor="middle">espaços 60–70</text>
+<rect x="335" y="44" width="100" height="60" fill="#662382" stroke="#4b1a60" stroke-width="1.5"/>
+<rect x="351" y="52" width="15" height="10" fill="#f1e7fb"/><rect x="374" y="52" width="15" height="10" fill="#f1e7fb"/><rect x="397" y="52" width="15" height="10" fill="#f1e7fb"/>
+<rect x="351" y="68" width="15" height="10" fill="#f1e7fb"/><rect x="374" y="68" width="15" height="10" fill="#f1e7fb"/><rect x="397" y="68" width="15" height="10" fill="#f1e7fb"/>
+<text x="385" y="92" font-size="8.5" font-weight="800" fill="#f5a800" text-anchor="middle">BLOCO CENTRAL</text>
+<text x="385" y="101" font-size="7.5" fill="#d9c3e8" text-anchor="middle">2 pisos · Auditório/PodXis</text>
+<rect x="435" y="62" width="90" height="42" fill="#fbeaf0" stroke="#d4537e"/>
+<text x="480" y="80" font-size="8.5" font-weight="800" fill="#72243e" text-anchor="middle">SALAS DA GARE</text>
+<text x="480" y="92" font-size="7.5" fill="#993556" text-anchor="middle">Ferromodelismo · Games</text>
+<rect x="525" y="62" width="100" height="42" fill="#eef4dc" stroke="#639922"/>
+<text x="575" y="80" font-size="8.5" font-weight="800" fill="#27500a" text-anchor="middle">PÁTIO RURAL</text>
+<text x="575" y="92" font-size="7.5" fill="#639922" text-anchor="middle">agricultura familiar (83–97)</text>
+<rect x="625" y="62" width="91" height="42" fill="#f6f4f8" stroke="#8a7f95"/>
+<text x="670" y="80" font-size="8.5" font-weight="800" fill="#5f5e5a" text-anchor="middle">VAGÕES · TREM</text>
+<text x="670" y="92" font-size="7.5" fill="#8a7f95" text-anchor="middle">Estação Marvin</text>
+<text x="385" y="117" font-size="9.5" font-weight="800" fill="#662382" text-anchor="middle">← PRÉDIO DA GARE — se estende por todo o espaço →</text>
+<line x1="94" y1="182" x2="672" y2="182" stroke="#d8cfe2" stroke-width="22" stroke-linecap="round"/>
+<text x="385" y="163" font-size="8.5" fill="#8a7f95" text-anchor="middle">corredor central de circulação — entre a Gare e os pavilhões</text>
+<rect x="34" y="138" width="52" height="88" rx="8" fill="#f5a800" stroke="#b17b00"/>
+<text x="60" y="174" font-size="17" text-anchor="middle">🚪</text>
+<text x="60" y="194" font-size="8" font-weight="800" fill="#4b1a60" text-anchor="middle">PÓRTICO</text>
+<text x="60" y="205" font-size="7.5" fill="#7d5600" text-anchor="middle">entrada</text>
+<circle cx="60" cy="124" r="10" fill="#4b1a60"/><text x="60" y="128" font-size="10" fill="#f5a800" font-weight="800" text-anchor="middle">1</text>
+<rect x="678" y="132" width="56" height="100" rx="10" fill="#4b1a60" stroke="#e91e8c" stroke-width="1.5"/>
+<text x="706" y="178" font-size="16" text-anchor="middle">🎤</text>
+<text x="706" y="199" font-size="8.5" font-weight="800" fill="#f5a800" text-anchor="middle">PALCO</text>
+<circle cx="706" cy="118" r="10" fill="#4b1a60"/><text x="706" y="122" font-size="10" fill="#f5a800" font-weight="800" text-anchor="middle">5</text>
+<line x1="385" y1="104" x2="385" y2="258" stroke="#662382" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="396" y="216" font-size="8" fill="#662382">bloco central em frente</text>
+<text x="396" y="226" font-size="8" fill="#662382">à praça de convivência</text>
+<rect x="64" y="258" width="260" height="130" rx="10" fill="#f6f1fa" stroke="#662382" stroke-width="1.5" stroke-dasharray="7 4"/>
+<text x="194" y="274" font-size="10" font-weight="800" fill="#4b1a60" text-anchor="middle">PAVILHÃO LONADO 1</text>
+<g fill="#b5d4f4" stroke="#378add" stroke-width="0.8"><circle cx="100" cy="294" r="6"/><circle cx="140" cy="290" r="6"/><circle cx="180" cy="296" r="6"/><circle cx="220" cy="290" r="6"/><circle cx="260" cy="294" r="6"/><circle cx="296" cy="290" r="6"/><circle cx="118" cy="314" r="6"/><circle cx="160" cy="316" r="6"/><circle cx="202" cy="312" r="6"/><circle cx="244" cy="316" r="6"/><circle cx="282" cy="312" r="6"/></g><text x="194" y="336" font-size="8" fill="#185FA5" text-anchor="middle">mesas de convivência · mesas de bar</text><g font-size="6.8" font-weight="800"><rect x="71" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="79" y="364" fill="#0c6b3d" text-anchor="middle">06</text><rect x="89" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="97" y="364" fill="#0c6b3d" text-anchor="middle">07</text><circle cx="116" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="116" y="364" fill="#7d5600" text-anchor="middle">31</text><rect x="127" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="135" y="364" fill="#0c6b3d" text-anchor="middle">08</text><rect x="145" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="153" y="364" fill="#0c6b3d" text-anchor="middle">09</text><circle cx="172" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="172" y="364" fill="#7d5600" text-anchor="middle">32</text><rect x="183" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="191" y="364" fill="#0c6b3d" text-anchor="middle">10</text><rect x="201" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="209" y="364" fill="#0c6b3d" text-anchor="middle">11</text><circle cx="228" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="228" y="364" fill="#7d5600" text-anchor="middle">33</text><rect x="239" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="247" y="364" fill="#0c6b3d" text-anchor="middle">12</text><rect x="257" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="265" y="364" fill="#0c6b3d" text-anchor="middle">13</text><circle cx="284" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="284" y="364" fill="#7d5600" text-anchor="middle">34</text><rect x="295" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="303" y="364" fill="#0c6b3d" text-anchor="middle">14</text><rect x="313" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="321" y="364" fill="#0c6b3d" text-anchor="middle">15</text></g><text x="194" y="382" font-size="7.5" fill="#8a7f95" text-anchor="middle">operações alinhadas · lado oposto à Gare · atendimento voltado às mesas</text><circle cx="194" cy="244" r="10" fill="#4b1a60"/><text x="194" y="248" font-size="10" fill="#f5a800" font-weight="800" text-anchor="middle">2</text><rect x="446" y="258" width="260" height="130" rx="10" fill="#f6f1fa" stroke="#662382" stroke-width="1.5" stroke-dasharray="7 4"/>
+<text x="576" y="274" font-size="10" font-weight="800" fill="#4b1a60" text-anchor="middle">PAVILHÃO LONADO 2</text>
+<g fill="#b5d4f4" stroke="#378add" stroke-width="0.8"><circle cx="482" cy="294" r="6"/><circle cx="522" cy="290" r="6"/><circle cx="562" cy="296" r="6"/><circle cx="602" cy="290" r="6"/><circle cx="642" cy="294" r="6"/><circle cx="678" cy="290" r="6"/><circle cx="500" cy="314" r="6"/><circle cx="542" cy="316" r="6"/><circle cx="584" cy="312" r="6"/><circle cx="626" cy="316" r="6"/><circle cx="664" cy="312" r="6"/></g><text x="576" y="336" font-size="8" fill="#185FA5" text-anchor="middle">mesas de convivência · mesas de bar</text><g font-size="6.8" font-weight="800"><rect x="453" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="461" y="364" fill="#0c6b3d" text-anchor="middle">16</text><rect x="471" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="479" y="364" fill="#0c6b3d" text-anchor="middle">17</text><circle cx="498" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="498" y="364" fill="#7d5600" text-anchor="middle">35</text><rect x="509" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="517" y="364" fill="#0c6b3d" text-anchor="middle">18</text><rect x="527" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="535" y="364" fill="#0c6b3d" text-anchor="middle">19</text><circle cx="554" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="554" y="364" fill="#7d5600" text-anchor="middle">36</text><rect x="565" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="573" y="364" fill="#0c6b3d" text-anchor="middle">20</text><rect x="583" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="591" y="364" fill="#0c6b3d" text-anchor="middle">21</text><circle cx="610" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="610" y="364" fill="#7d5600" text-anchor="middle">37</text><rect x="621" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="629" y="364" fill="#0c6b3d" text-anchor="middle">22</text><rect x="639" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="647" y="364" fill="#0c6b3d" text-anchor="middle">23</text><circle cx="666" cy="361" r="9" fill="#fdf1d8" stroke="#f5a800"/><text x="666" y="364" fill="#7d5600" text-anchor="middle">38</text><rect x="677" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="685" y="364" fill="#0c6b3d" text-anchor="middle">24</text><rect x="695" y="350" width="16" height="22" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="703" y="364" fill="#0c6b3d" text-anchor="middle">25</text></g><text x="576" y="382" font-size="7.5" fill="#8a7f95" text-anchor="middle">operações alinhadas · lado oposto à Gare · atendimento voltado às mesas</text><circle cx="576" cy="244" r="10" fill="#4b1a60"/><text x="576" y="248" font-size="10" fill="#f5a800" font-weight="800" text-anchor="middle">4</text><circle cx="385" cy="328" r="58" fill="#fdeef7" stroke="#e91e8c" stroke-width="1.5"/><rect x="370" y="272" width="30" height="18" rx="4" fill="#f1e7fb" stroke="#5C2890"/><text x="385" y="284.5" font-size="7.5" font-weight="800" fill="#4b1a60" text-anchor="middle">T·01</text><rect x="318" y="306" width="30" height="18" rx="4" fill="#f1e7fb" stroke="#5C2890"/><text x="333" y="318.5" font-size="7.5" font-weight="800" fill="#4b1a60" text-anchor="middle">T·02</text><rect x="412" y="306" width="30" height="18" rx="4" fill="#f1e7fb" stroke="#5C2890"/><text x="427" y="318.5" font-size="7.5" font-weight="800" fill="#4b1a60" text-anchor="middle">T·03</text><rect x="338" y="356" width="30" height="18" rx="4" fill="#f1e7fb" stroke="#5C2890"/><text x="353" y="368.5" font-size="7.5" font-weight="800" fill="#4b1a60" text-anchor="middle">T·04</text><rect x="392" y="356" width="30" height="18" rx="4" fill="#f1e7fb" stroke="#5C2890"/><text x="407" y="368.5" font-size="7.5" font-weight="800" fill="#4b1a60" text-anchor="middle">T·05</text><text x="385" y="325" font-size="9" font-weight="800" fill="#72243e" text-anchor="middle">PRAÇA CENTRAL</text>
+<text x="385" y="336" font-size="7.5" fill="#993556" text-anchor="middle">convivência · mesas</text>
+<text x="385" y="346" font-size="7.5" fill="#993556" text-anchor="middle">paisagismo · luzes</text>
+<circle cx="330" cy="252" r="10" fill="#4b1a60"/><text x="330" y="256" font-size="10" fill="#f5a800" font-weight="800" text-anchor="middle">3</text>
+<rect x="656" y="470" width="84" height="44" rx="8" fill="#e6f1fb" stroke="#378add"/>
+<text x="698" y="489" font-size="12" text-anchor="middle">🚻</text>
+<text x="698" y="504" font-size="7.5" font-weight="800" fill="#0c447c" text-anchor="middle">BANHEIROS QUÍMICOS</text>
+<line x1="712" y1="234" x2="700" y2="468" stroke="#8a7f95" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="716" y="430" font-size="7.5" fill="#8a7f95">afastado</text>
+<circle cx="640" cy="490" r="10" fill="#4b1a60"/><text x="640" y="494" font-size="10" fill="#f5a800" font-weight="800" text-anchor="middle">6</text>
+<g font-size="9" fill="#3a2f42">
+<rect x="24" y="452" width="12" height="12" rx="3" fill="#e2f6ea" stroke="#1d9e57"/><text x="42" y="462">Estações fixas (20)</text>
+<circle cx="146" cy="458" r="6" fill="#fdf1d8" stroke="#f5a800"/><text x="158" y="462">Cervejarias (8) — a cada 2 xis, 1 cerveja</text>
+<rect x="352" y="452" width="12" height="12" rx="3" fill="#f1e7fb" stroke="#5C2890"/><text x="370" y="462">Trailers (5)</text>
+<circle cx="450" cy="458" r="6" fill="#b5d4f4" stroke="#378add"/><text x="462" y="462">Mesas de convivência/bar</text>
+<rect x="24" y="474" width="12" height="12" rx="3" fill="#662382"/><text x="42" y="484">Prédio da Gare</text>
+<text x="24" y="510" fill="#8a7f95">Pórtico e palco nos extremos do corredor central, entre a Gare e os pavilhões. Operações em fileira única</text>
+<text x="24" y="524" fill="#8a7f95">no lado oposto à Gare, com as mesas à frente. Fluxo: Pórtico → Pavilhão 1 → Praça → Pavilhão 2 → Palco.</text>
+</g></g></svg></div>
+  <div class="rodape"><span>Apresentação · Festival do Xis 2026</span><span>Croqui do Evento</span></div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782579486427.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
+<div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
+<div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Mega Xis — a ação símbolo da edição</div>
+<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">Um xis <span style="color:var(--amarelo)">gigante</span>, feito a muitas mãos, para abrir o Festival</div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🍔</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">O maior xis</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">preparado coletivamente<br>pelas operações do Festival</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">📸</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Momento de mídia</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">a imagem da edição 2026<br>para o estado inteiro ver</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🤝</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Feito em conjunto</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">operações, padaria oficial<br>e parceiros juntos na chapa</div></div></div>
+
+</div>
+</section>
+
+<section class="slide">
+  <h2>Comissão Organizadora</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8mm"><div class="kpi" style="padding:20px 14px"><div style="font-size:30px">🏛️</div><div style="font-size:15px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Prefeitura de Santa Maria</div><div class="l">Realização</div></div><div class="kpi" style="padding:20px 14px"><div style="font-size:30px">🤝</div><div style="font-size:15px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Sindhturr</div><div class="l">Realização</div></div><div class="kpi" style="padding:20px 14px"><div style="font-size:30px">🚀</div><div style="font-size:15px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Desenvolvimento Econômico e Inovação</div><div class="l">Execução e coordenação</div></div><div class="kpi" style="padding:20px 14px"><div style="font-size:30px">🎭</div><div style="font-size:15px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Cultura</div><div class="l">Programação e patrimônio</div></div><div class="kpi" style="padding:20px 14px"><div style="font-size:30px">🗺️</div><div style="font-size:15px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Turismo</div><div class="l">Promoção e visitantes</div></div><div class="kpi" style="padding:20px 14px"><div style="font-size:30px">📣</div><div style="font-size:15px;font-weight:800;color:var(--roxo-esc);margin-top:4px">Comunicação</div><div class="l">Divulgação e imprensa</div></div></div>
+  <div class="obs" style="margin-top:8mm"><b>Com o apoio de:</b> SEBRAE/RS (capacitação e subsídio às operações de Xis), patrocinadores oficiais e parceiros da cadeia produtiva.</div>
+  <div class="rodape"><span>Lançamento Oficial · Festival do Xis 2026</span><span>cidadedoxis.com</span></div>
+</section>
+
+
+<section class="slide" style="background:linear-gradient(150deg,#241430,#4b1a60);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+  <div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--amarelo)">Capítulo especial</div>
+  <div style="font-size:52px;font-weight:800;line-height:1.15;margin-top:6mm">Os <span style="color:var(--amarelo)">Concursos</span> do Festival</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14mm;width:80%">
+    <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:16px;text-align:center"><div style="font-size:34px">🧺</div><div style="font-size:17px;font-weight:800;margin-top:4px">Master Xis</div><div style="font-size:12px;opacity:.85;margin-top:2px">o campo encontra a chapa</div></div>
+    <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:16px;text-align:center"><div style="font-size:34px">😋</div><div style="font-size:17px;font-weight:800;margin-top:4px">Come Xis</div><div style="font-size:12px;opacity:.85;margin-top:2px">a disputa mais divertida</div></div>
+    <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:16px;text-align:center"><div style="font-size:34px">🗳️</div><div style="font-size:17px;font-weight:800;margin-top:4px">Xis da Galera</div><div style="font-size:12px;opacity:.85;margin-top:2px">o público escolhe o campeão</div></div>
+  </div>
+</section>
+
+<section class="slide" style="background:#241430;color:#fff">
+  <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:14mm;height:182mm;align-items:center">
+    <div style="text-align:center">
+      <img src="marca-master-xis.svg" alt="Emblema Master Xis" style="width:100%;max-width:300px">
+    </div>
+    <div>
+      <div style="font-size:14px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--amarelo)">Concurso oficial · novidade 2026</div>
+      <div style="font-size:42px;font-weight:800;line-height:1.1;margin-top:4mm">Master <span style="color:var(--amarelo)">Xis</span></div>
+      <div style="font-size:16px;margin-top:6mm;line-height:1.6;opacity:.95">O campo encontra a chapa: <b>duplas formadas por um expositor do Pátio Rural e uma operação de Xis</b> recebem uma cesta colonial de ingredientes da agricultura familiar e criam, juntas, o <b style="color:var(--amarelo)">Xis Colono</b> da edição.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8mm">
+        <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:11px;text-align:center"><div style="font-size:24px">🧺</div><div style="font-size:12px;font-weight:700;margin-top:3px">Cesta colonial<br>da agricultura familiar</div></div>
+        <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:11px;text-align:center"><div style="font-size:24px">👥</div><div style="font-size:12px;font-weight:700;margin-top:3px">Duplas campo<br>+ cidade</div></div>
+        <div style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:11px;text-align:center"><div style="font-size:24px">🏆</div><div style="font-size:12px;font-weight:700;margin-top:3px">Troféu e selo<br>para a dupla</div></div>
+      </div>
+      <div style="font-size:12px;margin-top:6mm;opacity:.8">Regulamento próprio disponível na plataforma cidadedoxis.com</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+<img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571809266.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
+<div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
+<div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Concurso "Come Xis"</div>
+<div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">A disputa mais <span style="color:var(--amarelo)">divertida</span> (e saborosa) do Festival</div><div style="flex:1"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">😋</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Para o público</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">a plateia vira protagonista<br>no palco do Festival</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">⏱️</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Ao vivo</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">disputa animada com<br>torcida e mediação</div></div><div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🎁</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Premiação</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">prêmios dos patrocinadores<br>e fama de bom de garfo</div></div></div>
+<div style="text-align:center;font-size:12px;margin-top:8mm;opacity:.95">Detalhes e inscrições serão divulgados na programação oficial</div>
+</div>
+</section>
+
+
+<section class="slide" style="padding:0;background:#4b1a60;color:#fff">
+  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/festival/1782571774361.jpg" crossorigin="anonymous" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.55) 0%,rgba(75,26,96,.82) 55%,rgba(75,26,96,.96) 100%)"></div>
+  <div style="position:relative;z-index:2;height:210mm;display:flex;flex-direction:column;padding:13mm 16mm 10mm">
+    <div style="font-size:26px;font-weight:800;border-bottom:3px solid var(--rosa);padding-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,.45)">Concurso "Xis da Galera"</div>
+    <div style="font-size:22px;font-weight:800;margin-top:9mm;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.5)">Quem escolhe o melhor xis é <span style="color:var(--amarelo)">quem come</span></div>
+    <div style="flex:1"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🗳️</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Voto popular</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">o público vota no seu xis<br>favorito durante o Festival</div></div>
+      <div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">📱</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Pela plataforma</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">votação em<br>cidadedoxis.com</div></div>
+      <div style="background:rgba(255,255,255,.96);border-radius:12px;padding:13px 12px;text-align:center;color:var(--texto)"><div style="font-size:26px">🏅</div><div style="font-size:14px;font-weight:800;color:var(--roxo-esc);margin-top:3px">Selo de campeão</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px">o Xis da Galera 2026 leva o<br>título escolhido pela cidade</div></div>
+    </div>
+    <div style="text-align:center;font-size:12px;margin-top:8mm;opacity:.95">Formato e período de votação serão divulgados na programação oficial</div>
+  </div>
+</section>
+
+<section class="slide" style="background:linear-gradient(150deg,#4b1a60,#662382);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+  <img src="https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png" alt="Cidade do Xis" style="height:90px;background:#fff;border-radius:18px;padding:12px 16px">
+  <div style="font-size:44px;font-weight:800;margin-top:10mm;line-height:1.15">Nos vemos no <span style="color:var(--amarelo)">Largo da Gare</span></div>
+  <div style="font-size:19px;font-weight:600;margin-top:5mm;opacity:.95">13, 14 e 15 de novembro de 2026 · entrada gratuita</div>
+  <span class="selo" style="margin-top:10mm;font-size:15px">cidadedoxis.com</span>
+  <div style="font-size:12px;margin-top:12mm;opacity:.85">Prefeitura de Santa Maria · Sindhturr · SMDEI · Cultura · Turismo · Comunicação</div>
+</section>
+
+</div>
+
+<script>
+  const SBdeck = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient('https://hlstcndhxzhdzbecfrhp.supabase.co','sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr') : null;
+  if(SBdeck && window.renderOrigemXis) renderOrigemXis({sb:SBdeck, svgMapa:'svgOrigemDeck', svgRS:'svgOrigemRSDeck', notaEl:'notaOrigemDeck'});
+  function carregarScript(url){
+    return new Promise((res, rej)=>{
+      const s=document.createElement('script'); s.src=url; s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+  async function garantirHtml2pdf(){
+    if(window.html2pdf) return;
+    const urls = [
+      'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+      'https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'
+    ];
+    for(const u of urls){ try{ await carregarScript(u); if(window.html2pdf) return; }catch(e){} }
+    throw new Error('sem gerador');
+  }
+  async function baixarPDF(){
+    const btn = document.getElementById('btnBaixar');
+    const msg = document.getElementById('tbMsg');
+    btn.disabled = true; btn.textContent = 'Gerando PDF…';
+    try{ await garantirHtml2pdf(); }
+    catch(e){
+      msg.textContent = 'Gerador indisponível — abrindo a impressão (escolha "Salvar como PDF")';
+      setTimeout(()=>window.print(), 600);
+      btn.disabled = false; btn.textContent = '⬇️ Baixar PDF'; return;
+    }
+    msg.textContent = 'Montando os slides — pode levar alguns segundos';
+    document.body.classList.add('exportando');
+    try{
+      await html2pdf().set({
+        margin: 0,
+        filename: 'Apresentacao-Lancamento-Festival-do-Xis-2026.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'landscape' },
+        pagebreak: { mode: ['css','legacy'], after: '.slide' }
+      }).from(document.getElementById('deck')).save();
+      msg.textContent = 'PDF baixado ✓ — confira na pasta Downloads';
+    }catch(e){
+      msg.textContent = 'Não foi possível gerar — abrindo a impressão (escolha "Salvar como PDF")';
+      setTimeout(()=>window.print(), 800);
+    }
+    document.body.classList.remove('exportando');
+    btn.disabled = false; btn.textContent = '⬇️ Baixar PDF';
+  }
+</script>
+</body>
+</html>
