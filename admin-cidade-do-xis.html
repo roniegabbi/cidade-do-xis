@@ -278,6 +278,16 @@
           style="width:100%;padding:11px 14px;border:1.5px solid var(--borda,#e4dced);border-radius:10px;font-size:14.5px">
         <div id="buscaPendInfo" class="sub" style="margin-top:6px"></div>
       </div>
+      <div class="card" style="margin-bottom:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;cursor:pointer">
+          <input type="checkbox" id="ckTodosPend" onchange="selTodos('pend', this.checked)" style="width:18px;height:18px;accent-color:#1d9e57">
+          Selecionar todos os filtrados
+        </label>
+        <span id="selPendInfo" class="sub" style="margin:0"></span>
+        <span style="flex:1"></span>
+        <button class="btn btn-verde btn-sm" onclick="aprovarSelecionados()">✓ Publicar selecionados</button>
+        <button class="btn btn-vermelho btn-sm" onclick="rejeitarSelecionados()">✕ Rejeitar selecionados</button>
+      </div>
       <div id="listaPend"></div>
     </section>
 
@@ -295,6 +305,15 @@
         <input id="buscaPub" placeholder="🔎 Buscar por nome, bairro, endereço, responsável, CNPJ…" oninput="renderCuradoria()"
           style="width:100%;padding:11px 14px;border:1.5px solid var(--borda,#e4dced);border-radius:10px;font-size:14.5px">
         <div id="buscaPubInfo" class="sub" style="margin-top:6px"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;cursor:pointer">
+          <input type="checkbox" id="ckTodosPub" onchange="selTodos('pub', this.checked)" style="width:18px;height:18px;accent-color:#d63344">
+          Selecionar todos os filtrados
+        </label>
+        <span id="selPubInfo" class="sub" style="margin:0"></span>
+        <span style="flex:1"></span>
+        <button class="btn btn-vermelho btn-sm" onclick="despublicarSelecionados()">Despublicar selecionados</button>
       </div>
       <div id="listaPub"></div>
     </section>
@@ -822,6 +841,7 @@
     const det = [e.cat, e.bairro, e.esp].filter(Boolean).join(' · ');
     const sub = [det, e.contato, e.responsavel?('Resp.: '+e.responsavel):''].filter(Boolean).join(' · ');
     return `<div class="row-e">
+      <input type="checkbox" onchange="selToggle('${tipo}','${esc(e.id)}',this.checked)" ${SEL[tipo].has(String(e.id))?'checked':''} style="width:19px;height:19px;flex:none;accent-color:${tipo==='pend'?'#1d9e57':'#d63344'};cursor:pointer">
       <div class="em" style="background:linear-gradient(135deg,${esc(e.cor)}33,${esc(e.cor)}11)">${esc(e.emoji||'X')}</div>
       <div><div class="nm">${esc(e.nome)} ${pill}</div>
         <div class="mt">${esc(sub)}</div></div>
@@ -834,11 +854,35 @@
     if(!q) return lista;
     return lista.filter(e=> normBusca([e.nome,e.bairro,e.endereco,e.responsavel,e.cnpj,e.cat,e.telefone,e.esp].join(' ')).includes(q));
   }
+  const SEL = { pend: new Set(), pub: new Set() };
+  let FILT = { pend: [], pub: [] };
+  function selToggle(tipo, id, on){
+    if(on) SEL[tipo].add(String(id)); else SEL[tipo].delete(String(id));
+    atualizaSelInfo();
+  }
+  function selTodos(tipo, on){
+    FILT[tipo].forEach(e=>{ if(on) SEL[tipo].add(String(e.id)); else SEL[tipo].delete(String(e.id)); });
+    renderCuradoria();
+  }
+  function atualizaSelInfo(){
+    const iP=document.getElementById('selPendInfo'), iU=document.getElementById('selPubInfo');
+    if(iP) iP.textContent = SEL.pend.size ? SEL.pend.size+' selecionado(s)' : 'nenhum selecionado';
+    if(iU) iU.textContent = SEL.pub.size ? SEL.pub.size+' selecionado(s)' : 'nenhum selecionado';
+  }
   function renderCuradoria(){
     const qP = (document.getElementById('buscaPend')||{}).value||'';
     const qU = (document.getElementById('buscaPub')||{}).value||'';
+    // limpa seleções de itens que já saíram das listas
+    const idsP = new Set(pendentes.map(e=>String(e.id))), idsU = new Set(publicados.map(e=>String(e.id)));
+    [...SEL.pend].forEach(id=>{ if(!idsP.has(id)) SEL.pend.delete(id); });
+    [...SEL.pub].forEach(id=>{ if(!idsU.has(id)) SEL.pub.delete(id); });
     const fP = filtraEstabs(pendentes, qP);
     const fU = filtraEstabs(publicados, qU);
+    FILT.pend = fP; FILT.pub = fU;
+    const ckP=document.getElementById('ckTodosPend'), ckU=document.getElementById('ckTodosPub');
+    if(ckP) ckP.checked = fP.length>0 && fP.every(e=>SEL.pend.has(String(e.id)));
+    if(ckU) ckU.checked = fU.length>0 && fU.every(e=>SEL.pub.has(String(e.id)));
+    atualizaSelInfo();
     document.getElementById('listaPend').innerHTML = fP.length
       ? fP.map(e=>rowEstab(e,'pend')).join('')
       : `<div class="card" style="text-align:center;color:var(--texto-suave)">${qP.trim()?'Nenhum resultado para essa busca.':'Nenhum cadastro pendente. 🎉'}</div>`;
@@ -850,6 +894,47 @@
     if(iU) iU.textContent = qU.trim() ? `${fU.length} de ${publicados.length} publicados` : `${publicados.length} publicados`;
     document.getElementById('bdgPend').textContent = pendentes.length;
     document.getElementById('bdgPub').textContent = publicados.length;
+  }
+  async function loteStatus(tipo, novoStatus, confirmaTxt, aplicaLocal){
+    const ids = [...SEL[tipo]];
+    if(!ids.length){ toast('Selecione ao menos um estabelecimento'); return; }
+    if(!confirm(confirmaTxt.replace('{n}', ids.length))) return;
+    const alvoLista = tipo==='pend' ? pendentes : publicados;
+    const itens = alvoLista.filter(e=>SEL[tipo].has(String(e.id)));
+    // Atualiza no banco em lotes de 100
+    const dbIds = itens.map(e=>e.dbId).filter(Boolean);
+    if(SB && dbIds.length){
+      for(let i=0;i<dbIds.length;i+=100){
+        const fatia = dbIds.slice(i,i+100);
+        const {error} = await SB.from('estabelecimentos').update({status:novoStatus}).in('id', fatia);
+        if(error){ toast('Erro ao atualizar no banco — tente de novo'); console.error(error); return; }
+      }
+    }
+    aplicaLocal(itens);
+    SEL[tipo].clear();
+    renderCuradoria();
+    return itens.length;
+  }
+  async function aprovarSelecionados(){
+    const n = await loteStatus('pend','publicado','Publicar {n} estabelecimento(s) na vitrine e no mapa?',(itens)=>{
+      itens.forEach(e=>{ const i=pendentes.indexOf(e); if(i>=0) pendentes.splice(i,1); publicados.push(e); });
+    });
+    if(n){
+      const semGeo = publicados.filter(e=>e.latitude==null||e.longitude==null).length;
+      toast('✅ '+n+' publicado(s)'+(semGeo?' — use "Localizar todos no mapa" para posicionar os '+semGeo+' sem coordenadas':''));
+    }
+  }
+  async function rejeitarSelecionados(){
+    const n = await loteStatus('pend','rejeitado','Rejeitar {n} cadastro(s)? Eles sairão da lista de pendentes.',(itens)=>{
+      itens.forEach(e=>{ const i=pendentes.indexOf(e); if(i>=0) pendentes.splice(i,1); });
+    });
+    if(n) toast(n+' cadastro(s) rejeitado(s)');
+  }
+  async function despublicarSelecionados(){
+    const n = await loteStatus('pub','pendente','Despublicar {n} estabelecimento(s)? Eles saem da vitrine e voltam para pendentes.',(itens)=>{
+      itens.forEach(e=>{ const i=publicados.indexOf(e); if(i>=0) publicados.splice(i,1); pendentes.push(e); });
+    });
+    if(n) toast(n+' despublicado(s) — voltaram para pendentes');
   }
   async function aprovar(id){const i=pendentes.findIndex(e=>e.id===id);if(i<0)return;
     const e=pendentes.splice(i,1)[0];publicados.push(e);renderCuradoria();
