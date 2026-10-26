@@ -478,3 +478,9 @@ grant execute on function public.confirmar_presenca_lancamento(jsonb) to anon, a
 -- ===== CIDADE DOS INTERESSADOS (operações de Xis de outras cidades) =====
 alter table festival_interessados add column if not exists cidade text;
 -- RPC manifestar_interesse_2026 recriado incluindo p_dados->>'cidade' (aplicado direto no banco em 01/10/2026)
+
+
+-- ===== XIS DA GALERA · VOTAÇÃO POPULAR POR QR CODE =====
+-- (tabelas festival_votos e festival_votacao + RPCs cedula_xis_galera, votar_xis_galera,
+--  votacao_aberta aplicados direto no banco em 26/10/2026; 1 voto por dispositivo,
+--  cédula = espaços 01–25 com participação confirmada, votação liga/desliga pela gestão)

@@ -197,6 +197,7 @@
     <div class="grp">
       <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival</a>
       <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival</a>
+      <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">Xis da Galera · Apuração<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">votação popular por QR Code</span></a>
     </div>
     <div class="cat" onclick="grpToggle(this)">Lançamento · 07/10</div>
     <div class="grp">
@@ -639,6 +640,19 @@
       </div>
       <div class="card"><h3>Recebimentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestRec"></table></div></div>
       <div class="card"><h3>Pagamentos no período</h3><div style="overflow-x:auto"><table class="fin" id="tabPrestPag"></table></div></div>
+    </section>
+
+    <section class="pane hide" id="p-galera">
+      <div class="h">Xis da Galera · Apuração</div>
+      <div class="sub">Votação popular por QR Code — o público escaneia o cartaz e vota em cidadedoxis.com/xis-da-galera.html. Placar visível apenas aqui.</div>
+      <div class="filtros no-print">
+        <button class="btn btn-v btn-sm" id="btnVotacao" onclick="alternarVotacao()">Abrir votação</button>
+        <button class="btn btn-g btn-sm" onclick="renderGalera()">↻ Atualizar placar</button>
+        <button class="btn btn-g btn-sm" onclick="window.open('cartaz-xis-da-galera.html','_blank')">Cartaz com QR Code</button>
+        <button class="btn btn-g btn-sm" onclick="window.open('xis-da-galera.html','_blank')">Ver página de votação</button>
+      </div>
+      <div class="kpis" id="galeraKpis"></div>
+      <div class="card"><div id="galeraRank"></div></div>
     </section>
 
     <section class="pane hide" id="p-rsvp">
@@ -2488,6 +2502,56 @@
     doc.remove();
     btn.disabled = false; btn.textContent = 'Relatório PDF';
   }
+  // ===== XIS DA GALERA (votação popular) =====
+  let VOT_ABERTA = false;
+  async function renderGalera(){
+    const [st, votos, cedula] = await Promise.all([
+      SB.from('festival_votacao').select('aberta').eq('id',1).single(),
+      SB.from('festival_votos').select('espaco_numero,ip,criado_em'),
+      SB.rpc('cedula_xis_galera')
+    ]);
+    VOT_ABERTA = !!(st.data && st.data.aberta);
+    const btn = g('btnVotacao');
+    btn.textContent = VOT_ABERTA ? '⏸ Encerrar votação' : '▶ Abrir votação';
+    btn.className = 'btn btn-sm ' + (VOT_ABERTA ? 'btn-r' : 'btn-v');
+    const vs = votos.data||[], ops = cedula.data||[];
+    const cont = {}; vs.forEach(v=>{ cont[v.espaco_numero]=(cont[v.espaco_numero]||0)+1; });
+    const nomes = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; });
+    const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Espaço '+String(n).padStart(2,'0'))}))
+      .sort((a,b)=>b.c-a.c);
+    const max = rank.length ? rank[0].c : 1;
+    g('galeraKpis').innerHTML = `
+      <div class="kpi"><b>${vs.length}</b><span>votos computados</span></div>
+      <div class="kpi"><b>${rank.length}</b><span>operações votadas</span></div>
+      <div class="kpi"><b>${ops.length}</b><span>operações na cédula</span></div>
+      <div class="kpi"><b style="color:${VOT_ABERTA?'var(--verde)':'var(--vermelho)'}">${VOT_ABERTA?'ABERTA':'FECHADA'}</b><span>situação da votação</span></div>`;
+    g('galeraRank').innerHTML = rank.length
+      ? '<div style="display:grid;grid-template-columns:40px 220px minmax(0,1fr) 60px;gap:8px 12px;align-items:center">'
+        + rank.map((r,ix)=>`
+          <b style="font-size:15px;color:${ix===0?'var(--amarelo)':'var(--texto-suave)'}">${ix+1}º</b>
+          <span style="font-size:13.5px;font-weight:700;color:var(--roxo-esc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${String(r.n).padStart(2,'0')} · ${esc(r.nome)}</span>
+          <div style="height:16px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${Math.round(r.c/max*100)}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#e91e8c)':'#662382'};border-radius:99px"></div></div>
+          <b style="text-align:right;color:var(--roxo-esc)">${r.c}</b>`).join('')
+        + '</div>'
+      : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum voto ainda. Abra a votação e espalhe o cartaz com o QR Code pelo Festival.</div>';
+    // Monitor antifraude: concentrações de votos por conexão (IP)
+    const porIp = {}; vs.forEach(v=>{ if(v.ip) porIp[v.ip]=(porIp[v.ip]||0)+1; });
+    const suspeitos = Object.entries(porIp).filter(([,c])=>c>=15).sort((a,b)=>b[1]-a[1]);
+    const ultHora = vs.filter(v=>v.criado_em && (Date.now()-new Date(v.criado_em).getTime()) < 3600000).length;
+    g('galeraRank').innerHTML += `<div style="margin-top:14px;padding:9px 13px;background:var(--fundo);border-left:4px solid ${suspeitos.length?'var(--vermelho)':'var(--verde)'};font-size:12px">
+      <b style="color:var(--roxo-esc)">Monitor antifraude:</b> ${ultHora} voto(s) na última hora · limite de 40 votos/hora por conexão ativo ·
+      ${suspeitos.length ? '<b style="color:var(--vermelho)">atenção:</b> ' + suspeitos.length + ' conexão(ões) com 15+ votos — ' + suspeitos.slice(0,5).map(([ip,c])=>ip+' ('+c+')').join(' · ') + '. Pode ser o wi-fi do evento (normal) ou abuso — me acione para auditar.' : 'nenhuma concentração suspeita de votos.'}
+    </div>`;
+  }
+  async function alternarVotacao(){
+    const nova = !VOT_ABERTA;
+    if(!confirm(nova ? 'Abrir a votação do Xis da Galera ao público?' : 'Encerrar a votação? O público não poderá mais votar.')) return;
+    const {error} = await SB.from('festival_votacao').update({aberta: nova}).eq('id', 1);
+    if(error){ toast('Erro ao alterar a votação'); return; }
+    toast(nova ? 'Votação ABERTA — bom Festival! 🗳' : 'Votação encerrada');
+    renderGalera();
+  }
+
   // ===== PRESENÇAS NO LANÇAMENTO (RSVP) =====
   let RSVP = [];
   const RSVP_LINK = 'https://www.cidadedoxis.com/confirmacao-lancamento-2026.html';
