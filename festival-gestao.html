@@ -2575,6 +2575,7 @@
           <div style="font-size:44px">${medalha[ix+1]}</div>
           <div style="font-size:30px;font-weight:800;margin-top:6px;line-height:1.2">${esc(r.nome)}</div>
           <div style="font-size:22px;opacity:.85;margin-top:4px">Espaço ${String(r.n).padStart(2,'0')}</div>
+          <div style="font-size:28px;font-weight:800;color:#f5a800;margin-top:8px">${r.c.toLocaleString('pt-BR')} votos</div>
         </div>`).join('');
       const palco = document.createElement('div');
       palco.style.cssText = 'position:fixed;top:0;left:-3000px;width:1080px;height:1350px;overflow:hidden;z-index:-1';
@@ -2586,13 +2587,12 @@
           <div style="background:#fff;border-radius:24px;padding:14px 20px;display:inline-flex;box-shadow:0 10px 30px rgba(0,0,0,.4)"><img src="${LOGO}" crossorigin="anonymous" style="height:84px;display:block"></div>
           <div style="font-size:30px;font-weight:800;letter-spacing:6px;margin-top:36px;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.5)">Resultado oficial · Voto popular</div>
           <div style="font-size:92px;font-weight:800;line-height:1.02;text-shadow:0 5px 22px rgba(0,0,0,.55)">Xis da <span style="color:#f5a800">Galera</span> 2026</div>
-          <div style="margin-top:40px;background:linear-gradient(135deg,#f5a800,#e91e8c);border-radius:30px;padding:4px;width:100%;box-shadow:0 14px 44px rgba(0,0,0,.45)">
-            <div style="background:rgba(36,20,48,.92);border-radius:26px;padding:34px 24px">
-              <div style="font-size:60px">🏆</div>
-              <div style="font-size:26px;font-weight:800;letter-spacing:4px;color:#f5a800;text-transform:uppercase;margin-top:4px">Campeão</div>
-              <div style="font-size:58px;font-weight:800;line-height:1.1;margin-top:8px">${esc(rank[0].nome)}</div>
-              <div style="font-size:26px;opacity:.9;margin-top:8px">Espaço ${String(rank[0].n).padStart(2,'0')} · escolhido pelo público do Festival</div>
-            </div>
+          <div style="margin-top:40px;background:#f5a800;border-radius:30px;padding:34px 24px;width:100%;box-shadow:0 14px 44px rgba(0,0,0,.45);text-align:center">
+            <div style="font-size:60px">🏆</div>
+            <div style="font-size:26px;font-weight:800;letter-spacing:4px;color:#4b1a60;text-transform:uppercase;margin-top:4px">Campeão</div>
+            <div style="font-size:58px;font-weight:800;line-height:1.1;margin-top:8px;color:#4b1a60">${esc(rank[0].nome)}</div>
+            <div style="font-size:26px;color:#6b4a12;margin-top:8px">Espaço ${String(rank[0].n).padStart(2,'0')} · escolhido pelo público do Festival</div>
+            <div style="font-size:42px;font-weight:800;color:#662382;margin-top:10px">${rank[0].c.toLocaleString('pt-BR')} votos</div>
           </div>
           ${rank.length>1?`<div style="display:flex;gap:18px;margin-top:30px;width:100%">${podio}</div>`:''}
           <div style="margin-top:auto;font-size:24px;font-weight:700;opacity:.95">${vs.length} votos do público · obrigado, galera! 💜</div>
