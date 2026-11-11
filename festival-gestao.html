@@ -2595,14 +2595,14 @@
     const maxH = Math.max(1,...horas.map(([,c])=>c));
     const semIp = vs.filter(v=>!v.ip).length;
     const risco = suspIp.length || suspUa.length;
-    const LOGO_PDF = 'https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png';
+    const LOGO_PDF = 'marca-festival-do-xis.jpg';
     const doc = document.createElement('div');
     doc.style.cssText = 'width:194mm;padding:8mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
     doc.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #e91e8c;padding-bottom:10px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #b23227;padding-bottom:10px;margin-bottom:12px">
         <img src="${LOGO_PDF}" crossorigin="anonymous" style="height:52px">
         <div>
-          <div style="font-size:19px;font-weight:800;color:#4b1a60">Relatório Antifraude — Xis da Galera 2026</div>
+          <div style="font-size:19px;font-weight:800;color:#7a140c">Relatório Antifraude — Xis da Galera 2026</div>
           <div style="font-size:11px;color:#8a7f95">Voto popular por QR Code · gerado em ${agora.toLocaleString('pt-BR')} · uso interno da Comissão Organizadora</div>
         </div>
       </div>
@@ -2613,38 +2613,38 @@
           : 'Sem concentrações relevantes por conexão ou por assinatura de navegador. Limites ativos: 40 votos/hora e 150 votos/24h por conexão · 1 voto por dispositivo (trava no banco).'}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
-        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${vs.length}</div><div style="font-size:9.5px;color:#8a7f95">votos computados</div></div>
-        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${ultHora}</div><div style="font-size:9.5px;color:#8a7f95">na última hora</div></div>
-        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${ipsOrd.length}</div><div style="font-size:9.5px;color:#8a7f95">conexões distintas</div></div>
-        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${semIp}</div><div style="font-size:9.5px;color:#8a7f95">votos sem IP registrado</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${vs.length}</div><div style="font-size:9.5px;color:#8a7f95">votos computados</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${ultHora}</div><div style="font-size:9.5px;color:#8a7f95">na última hora</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${ipsOrd.length}</div><div style="font-size:9.5px;color:#8a7f95">conexões distintas</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${semIp}</div><div style="font-size:9.5px;color:#8a7f95">votos sem IP registrado</div></div>
       </div>
-      <div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Votos por hora</div>
+      <div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin-bottom:6px">Votos por hora</div>
       <div style="margin-bottom:12px">${horas.length ? horas.map(([h,c])=>`
         <div style="display:grid;grid-template-columns:90px 1fr 34px;gap:8px;align-items:center;margin:2px 0;font-size:10px">
           <span>${h}</span>
-          <div style="height:10px;background:#f6f1fa;border-radius:99px"><div style="width:${Math.round(c/maxH*100)}%;height:100%;background:#662382;border-radius:99px"></div></div>
+          <div style="height:10px;background:#f8edd3;border-radius:99px"><div style="width:${Math.round(c/maxH*100)}%;height:100%;background:#7a140c;border-radius:99px"></div></div>
           <b style="text-align:right">${c}</b></div>`).join('') : '<span style="color:#8a7f95">Sem votos no período.</span>'}</div>
-      <div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Conexões com mais votos (top 12)</div>
+      <div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin-bottom:6px">Conexões com mais votos (top 12)</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:12px">
         <tr>${['Conexão (IP)','Votos','Aparelhos distintos','Assinaturas de navegador','Candidato mais votado','Avaliação']
-          .map(h=>`<th style="background:#662382;color:#fff;text-align:left;padding:4px 7px;font-size:8.5px;text-transform:uppercase">${h}</th>`).join('')}</tr>
+          .map(h=>`<th style="background:#7a140c;color:#fff;text-align:left;padding:4px 7px;font-size:8.5px;text-transform:uppercase">${h}</th>`).join('')}</tr>
         ${ipsOrd.length ? ipsOrd.slice(0,12).map(([ip,o])=>{
           const topOp = Object.entries(o.ops).sort((a,b)=>b[1]-a[1])[0];
           const concentra = topOp && (topOp[1]/o.c) >= 0.8 && o.c >= 10;
           const avaliacao = o.c>=15 ? (o.devs.size<o.c*0.9||concentra ? '⚠ investigar' : 'alto volume — possível wi-fi do evento') : 'normal';
           return `<tr>
-            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${esc(ip)}</td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5"><b>${o.c}</b></td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${o.devs.size}</td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${o.uas.size}</td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${topOp?esc(nomes[topOp[0]]||topOp[0])+' ('+topOp[1]+')':'—'}</td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5;color:${avaliacao.startsWith('⚠')?'#a32330':'#0c6b3d'};font-weight:700">${avaliacao}</td></tr>`;
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${esc(ip)}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc"><b>${o.c}</b></td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${o.devs.size}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${o.uas.size}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${topOp?esc(nomes[topOp[0]]||topOp[0])+' ('+topOp[1]+')':'—'}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc;color:${avaliacao.startsWith('⚠')?'#a32330':'#0c6b3d'};font-weight:700">${avaliacao}</td></tr>`;
         }).join('') : '<tr><td colspan="6" style="padding:6px;color:#8a7f95">Nenhum voto com IP registrado ainda.</td></tr>'}
       </table>
-      ${suspUa.length?`<div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Assinaturas de navegador com 30+ votos</div>
+      ${suspUa.length?`<div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin-bottom:6px">Assinaturas de navegador com 30+ votos</div>
       <div style="font-size:9.5px;margin-bottom:12px">${suspUa.slice(0,5).map(([ua,c])=>'<b>'+c+'×</b> '+esc(ua.slice(0,110))).join('<br>')}</div>`:''}
-      <div style="background:#f6f1fa;border-left:4px solid #662382;padding:8px 12px;font-size:10px">
-        <b style="color:#4b1a60">Critérios desta análise:</b> 1 voto por dispositivo (unicidade no banco) · limite de 40 votos/hora e 150/24h por conexão ·
+      <div style="background:#f8edd3;border-left:4px solid #a32a1c;padding:8px 12px;font-size:10px">
+        <b style="color:#7a140c">Critérios desta análise:</b> 1 voto por dispositivo (unicidade no banco) · limite de 40 votos/hora e 150/24h por conexão ·
         "⚠ investigar" quando uma conexão tem 15+ votos com baixa diversidade de aparelhos ou 80%+ dos votos num único candidato ·
         wi-fi público do evento pode concentrar votos legítimos (muitos aparelhos distintos = bom sinal). Votos fraudulentos identificados podem ser anulados com base nos registros de IP, aparelho e assinatura.
       </div>

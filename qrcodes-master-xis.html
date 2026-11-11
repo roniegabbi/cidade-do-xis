@@ -8,14 +8,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="libs/qrcode.min.js"></script>
 <style>
-  :root{ --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800; --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; }
+  :root{ --roxo:#a32a1c; --roxo-esc:#7a140c; --rosa:#b23227; --amarelo:#f5a800; --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#efdfc8; }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#d8cfe2;color:var(--texto);padding-bottom:40px}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f8edd3;color:var(--texto);padding-bottom:40px}
   .toolbar{position:sticky;top:0;z-index:10;background:var(--roxo-esc);color:#fff;padding:12px 20px;display:flex;gap:14px;align-items:center}
   .toolbar b{font-size:15px}
   .toolbar button{margin-left:auto;padding:10px 22px;border:none;border-radius:99px;background:var(--rosa);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
   .grade{max-width:210mm;margin:16px auto;display:grid;grid-template-columns:1fr 1fr;gap:10mm;padding:0 10mm}
-  .cartao{background:#fff;border-radius:16px;padding:10mm 8mm;text-align:center;page-break-inside:avoid;box-shadow:0 8px 24px rgba(75,26,96,.18)}
+  .cartao{background:#fff;border-radius:16px;padding:10mm 8mm;text-align:center;page-break-inside:avoid;box-shadow:0 8px 24px rgba(122,20,12,.16)}
   .cartao .sel{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--rosa)}
   .cartao .nome{font-size:19px;font-weight:800;color:var(--roxo-esc);line-height:1.2;margin:4px 0 2px;min-height:44px;display:flex;align-items:center;justify-content:center}
   .cartao .det{font-size:11px;color:var(--texto-suave);font-weight:600;min-height:16px}
@@ -53,6 +53,7 @@
     }
     document.getElementById('grade').innerHTML = lista.map(p=>`
       <div class="cartao">
+        <img src="marca-festival-do-xis.jpg" alt="Festival do Xis" style="height:36px;display:block;margin:0 auto 4px">
         <div class="sel">Concurso Master Xis · Júri técnico</div>
         <div class="nome">${esc(p.nome)}</div>
         <div class="det">${esc(p.detalhe||'')}</div>
