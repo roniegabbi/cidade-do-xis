@@ -581,16 +581,29 @@
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
   /* ===== MODO FESTIVAL · capa (remova este bloco para voltar à capa roxa) ===== */
-  .hero-wrap{background:url('fundo-raios-festival.png') center/cover no-repeat, #b23227}
+  .hero-wrap{background:url('fundo-raios-festival.png') center/cover no-repeat, #b23227;min-height:auto}
   .hero-wrap::before{display:none}
   .hero-orb, .hero-photo, .hero-side, .hero-parceiros{display:none!important}
   .hero-brand .disc .logo-img, .hero-brand .disc .mark-xl, .hero-brand .disc .wm{display:none!important}
-  .hero-brand .disc .logo-festa{display:block!important;height:120px}
-  .hero-brand .badge{background:#f5a800;color:#7a140c}
-  .hero-btns .btn-primary{background:linear-gradient(135deg,#f5a800,#ef9f27)!important;color:#7a140c!important;box-shadow:0 10px 28px rgba(0,0,0,.35)}
-  h1 .x, .hero h1 .x{color:#f5b73c}
-  .hero-cidade{position:relative;z-index:3;width:100vw;display:block;margin:10px 0 0}
-  .hero-cidade + .home-block{margin-top:14px}
+  .hero-brand .disc .logo-festa{display:block!important;height:72px!important;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.4)}
+  .hero-brand{position:static;margin:10px auto 0}
+  .hero-brand::before{display:none}
+  .hero-brand .disc{width:auto;height:auto;background:none;border:none;box-shadow:none}
+  .hero-brand .disc::before{display:none}
+  .hero-brand .badge{background:#f5a800;color:#7a140c;padding:5px 16px;font-size:11px}
+  .hero{padding:0 8vw 0;display:flex;align-items:center;justify-content:center;
+    min-height:calc(100svh - 72px - 150px - 30.4vw)}
+  @media(max-width:760px){.hero{min-height:auto}}
+  .hero-inner{min-height:auto}
+  .hero-mid{position:static;display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:8px;gap:12px}
+  .hero h1{white-space:normal;text-align:center;font-size:clamp(26px,2.6vw,46px)}
+  .hero h1 .x, h1 .x{color:#f5b73c}
+  .hero-btns .btn-primary{background:linear-gradient(135deg,#f5a800,#ef9f27)!important;color:#7a140c!important;
+    box-shadow:0 10px 28px rgba(0,0,0,.35);padding:11px 26px;font-size:15px}
+  .hero-cue{display:none}
+  /* a cidade fecha a primeira tela, de ponta a ponta */
+  .hero-cidade{position:relative;z-index:3;display:block;width:100%;max-width:none;margin:0}
+  .hero-cidade + .home-block{margin-top:18px}
   /* ===== fim do modo festival ===== */
 </style>
 </head>
@@ -681,13 +694,13 @@
           <h2>Destaques do último Festival do XIS</h2>
           <div class="grid" id="destaques"></div>
         </div>
+        <div class="counters" id="counters"></div>
         <div id="rankingWrap" class="hide ranking-sec">
           <h2>Voto Popular</h2>
           <button class="rank-cta" onclick="go('vitrine')">Vote no seu preferido</button>
           <div class="podio" id="podio"></div>
           <div class="rank-list" id="rankList"></div>
         </div>
-        <div class="counters" id="counters"></div>
 
 
 
