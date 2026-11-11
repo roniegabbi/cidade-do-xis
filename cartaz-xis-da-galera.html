@@ -18,19 +18,20 @@
   .msg{text-align:center;font-size:13.5px;color:var(--roxo);font-weight:700;min-height:20px;margin-top:10px}
   .palco{display:flex;justify-content:center;padding:24px 12px}
   .escala{width:540px;height:764px;overflow:hidden;border-radius:18px;box-shadow:0 14px 40px rgba(75,26,96,.35)}
-  .card{width:1080px;height:1528px;transform:scale(.5);transform-origin:top left;position:relative;background:#4b1a60;color:#fff;overflow:hidden}
-  .card .foto{position:absolute;inset:0;background:url('https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png') center 30%/cover no-repeat}
-  .card .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(75,26,96,.40) 0%,rgba(75,26,96,.72) 38%,rgba(75,26,96,.97) 68%,#4b1a60 100%)}
-  .card .cont{position:absolute;inset:0;padding:56px 64px;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .card{width:1080px;height:1528px;transform:scale(.5);transform-origin:top left;position:relative;background:#b23227;color:#fff;overflow:hidden}
+  .card .foto{position:absolute;inset:0;background:url('fundo-raios-festival.png') center/cover no-repeat}
+  .card .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 70%,rgba(122,20,12,.35) 100%)}
+  .card .cidade{position:absolute;left:0;right:0;bottom:0;width:100%;display:block}
+  .card .cont{position:absolute;left:0;right:0;top:0;bottom:330px;padding:44px 64px 0;display:flex;flex-direction:column;align-items:center;text-align:center}
   .logo-pill{background:#fff;border-radius:26px;padding:16px 22px;display:inline-flex;box-shadow:0 10px 30px rgba(0,0,0,.4)}
   .logo-pill img{height:120px;display:block}
-  .tt1{font-size:34px;font-weight:800;letter-spacing:6px;margin-top:44px;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.5)}
-  h1{font-size:110px;font-weight:800;line-height:1.02;text-shadow:0 5px 22px rgba(0,0,0,.55)}
+  .tt1{font-size:30px;font-weight:800;letter-spacing:6px;margin-top:26px;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.45)}
+  h1{font-size:96px;font-weight:800;line-height:1.02;text-shadow:0 5px 22px rgba(0,0,0,.55)}
   h1 span{color:var(--amarelo)}
-  .frase{font-size:38px;font-weight:700;margin-top:22px;text-shadow:0 2px 12px rgba(0,0,0,.5)}
-  .qrbox{margin-top:46px;background:#fff;border-radius:34px;padding:34px;display:flex;flex-direction:column;align-items:center;box-shadow:0 14px 40px rgba(0,0,0,.45)}
-  .qrbox .qr{width:360px;height:360px;display:flex;align-items:center;justify-content:center}
-  .qrbox .qr img, .qrbox .qr canvas{width:360px!important;height:360px!important}
+  .frase{font-size:32px;font-weight:700;margin-top:14px;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+  .qrbox{margin-top:26px;background:#fff;border-radius:34px;padding:34px;display:flex;flex-direction:column;align-items:center;box-shadow:0 14px 40px rgba(0,0,0,.45)}
+  .qrbox .qr{width:330px;height:330px;display:flex;align-items:center;justify-content:center}
+  .qrbox .qr img, .qrbox .qr canvas{width:330px!important;height:330px!important}
   .qrbox .tx{font-size:30px;font-weight:800;color:var(--roxo-esc);margin-top:18px}
   .passos{display:flex;gap:16px;margin-top:44px;width:100%}
   .passo{flex:1;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);border-radius:22px;padding:22px 16px}
@@ -56,6 +57,7 @@
     <div class="card" id="cardCartaz">
       <div class="foto"></div>
       <div class="ov"></div>
+      <img class="cidade" src="ilustracao-festival.png" alt="">
       <div class="cont">
         <div class="logo-pill"><img src="marca-festival-do-xis.jpg" alt="Festival do Xis"></div>
         <div class="tt1">Concurso Popular</div>
@@ -65,11 +67,10 @@
           <div class="qr" id="qrBox"></div>
           <div class="tx">📱 Aponte a câmera e vote</div>
         </div>
-        <div style="margin-top:44px;width:100%;background:linear-gradient(135deg,#f5a800,#ef9f27);border-radius:28px;padding:26px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.45)">
-          <div style="font-size:72px;font-weight:800;letter-spacing:4px;color:#4b1a60;line-height:1">VOTE AQUI</div>
-          <div style="font-size:26px;font-weight:700;color:#6b4a12;margin-top:8px">escaneie, escolha e confirme — vale 1 voto por pessoa</div>
+        <div style="margin-top:24px;width:100%;background:linear-gradient(135deg,#f5a800,#ef9f27);border-radius:28px;padding:18px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.45)">
+          <div style="font-size:64px;font-weight:800;letter-spacing:4px;color:#7a140c;line-height:1">VOTE AQUI</div>
+          <div style="font-size:23px;font-weight:700;color:#7a3a10;margin-top:6px">escaneie, escolha e confirme — vale 1 voto por pessoa</div>
         </div>
-        <div class="rodape">4º Festival Nacional do Xis · 13, 14 e 15 de novembro · Largo da Gare · cidadedoxis.com</div>
       </div>
     </div>
   </div>
@@ -120,7 +121,7 @@
         margin: 0,
         filename: 'Cartaz-Votacao-Xis-da-Galera-A4.pdf',
         image: { type:'jpeg', quality: 0.92 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, backgroundColor: '#4b1a60', windowWidth: 1240, width: 1080, height: 1528 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, backgroundColor: '#b23227', windowWidth: 1240, width: 1080, height: 1528 },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
       }).from(clone).save();
       aviso('PDF baixado ✓ — pronto para imprimir em A4 ou A3');
@@ -144,7 +145,7 @@
       palco.appendChild(clone);
       document.body.appendChild(palco);
       const dataUrl = await htmlToImage.toJpeg(clone, {
-        quality: 0.92, pixelRatio: 1, backgroundColor: '#4b1a60',
+        quality: 0.92, pixelRatio: 1, backgroundColor: '#b23227',
         canvasWidth: 1080, canvasHeight: 1528, width: 1080, height: 1528, skipFonts: true
       });
       const a = document.createElement('a');
