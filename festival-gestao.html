@@ -2517,8 +2517,8 @@
     btn.className = 'btn btn-sm ' + (VOT_ABERTA ? 'btn-r' : 'btn-v');
     const vs = votos.data||[], ops = cedula.data||[];
     const cont = {}; vs.forEach(v=>{ cont[v.espaco_numero]=(cont[v.espaco_numero]||0)+1; });
-    const nomes = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; });
-    const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Espaço '+String(n).padStart(2,'0'))}))
+    const nomes = {}, tipos = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; tipos[o.numero]=o.tipo||''; });
+    const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Nº '+n), tipo:tipos[n]||''}))
       .sort((a,b)=>b.c-a.c);
     const max = rank.length ? rank[0].c : 1;
     g('galeraKpis').innerHTML = `
@@ -2530,7 +2530,7 @@
       ? '<div style="display:grid;grid-template-columns:40px 220px minmax(0,1fr) 60px;gap:8px 12px;align-items:center">'
         + rank.map((r,ix)=>`
           <b style="font-size:15px;color:${ix===0?'var(--amarelo)':'var(--texto-suave)'}">${ix+1}º</b>
-          <span style="font-size:13.5px;font-weight:700;color:var(--roxo-esc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${String(r.n).padStart(2,'0')} · ${esc(r.nome)}</span>
+          <span style="font-size:13.5px;font-weight:700;color:var(--roxo-esc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.nome)} <span style="color:var(--texto-suave);font-weight:600;font-size:11px">· ${esc(tipos[r.n]||'')}</span></span>
           <div style="height:16px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${Math.round(r.c/max*100)}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#e91e8c)':'#662382'};border-radius:99px"></div></div>
           <b style="text-align:right;color:var(--roxo-esc)">${r.c}</b>`).join('')
         + '</div>'
@@ -2564,8 +2564,8 @@
       ]);
       const vs = votos.data||[], ops = cedula.data||[];
       const cont = {}; vs.forEach(v=>{ cont[v.espaco_numero]=(cont[v.espaco_numero]||0)+1; });
-      const nomes = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; });
-      const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Espaço '+String(n).padStart(2,'0'))})).sort((a,b)=>b.c-a.c);
+      const nomes = {}, tipos = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; tipos[o.numero]=o.tipo||''; });
+      const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Nº '+n), tipo:tipos[n]||''})).sort((a,b)=>b.c-a.c);
       if(!rank.length){ toast('Ainda não há votos para anunciar'); btn.disabled=false; btn.textContent='🏆 Imagem do resultado'; return; }
       const medalha = ['🥇','🥈','🥉'];
       const BG = 'https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/1782581898226_Captura_de_Tela_2026-06-27_a__s__14.18.45.png';
@@ -2574,7 +2574,7 @@
         <div style="flex:1;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);border-radius:22px;padding:24px 18px;text-align:center">
           <div style="font-size:44px">${medalha[ix+1]}</div>
           <div style="font-size:30px;font-weight:800;margin-top:6px;line-height:1.2">${esc(r.nome)}</div>
-          <div style="font-size:22px;opacity:.85;margin-top:4px">Espaço ${String(r.n).padStart(2,'0')}</div>
+          <div style="font-size:22px;opacity:.85;margin-top:4px">${esc(r.tipo||'')}</div>
           <div style="font-size:28px;font-weight:800;color:#f5a800;margin-top:8px">${r.c.toLocaleString('pt-BR')} votos</div>
         </div>`).join('');
       const palco = document.createElement('div');
@@ -2591,7 +2591,7 @@
             <div style="font-size:60px">🏆</div>
             <div style="font-size:26px;font-weight:800;letter-spacing:4px;color:#4b1a60;text-transform:uppercase;margin-top:4px">Campeão</div>
             <div style="font-size:58px;font-weight:800;line-height:1.1;margin-top:8px;color:#4b1a60">${esc(rank[0].nome)}</div>
-            <div style="font-size:26px;color:#6b4a12;margin-top:8px">Espaço ${String(rank[0].n).padStart(2,'0')} · escolhido pelo público do Festival</div>
+            <div style="font-size:26px;color:#6b4a12;margin-top:8px">${esc(rank[0].tipo||'')} · escolhido pelo público do Festival</div>
             <div style="font-size:42px;font-weight:800;color:#662382;margin-top:10px">${rank[0].c.toLocaleString('pt-BR')} votos</div>
           </div>
           ${rank.length>1?`<div style="display:flex;gap:18px;margin-top:30px;width:100%">${podio}</div>`:''}

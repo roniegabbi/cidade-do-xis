@@ -128,7 +128,7 @@
     g('listaOps').innerHTML = ops.map(o=>`
       <div class="op" id="op-${o.numero}" onclick="escolher(${o.numero})">
         <div class="num">${String(o.numero).padStart(2,'0')}</div>
-        <div class="nm">${esc(o.nome)}</div>
+        <div class="nm">${esc(o.nome)}<br><span style="font-size:12px;font-weight:600;color:var(--texto-suave)">${esc(o.tipo||'')}</span></div>
         <div class="ck">✓</div>
       </div>`).join('');
   }
