@@ -46,6 +46,7 @@
   <span style="font-size:12.5px;opacity:.85">Imprima em A4/A3 ou poste nas redes — o QR leva direto à votação</span>
   <span class="sp"></span>
   <button style="background:transparent;border:1.5px solid #ffffff66" onclick="copiarLink()">🔗 Copiar link</button>
+  <button id="btnPdf" onclick="baixarPDF()" style="background:transparent;border:1.5px solid #ffffff66">⬇️ Baixar PDF (A4)</button>
   <button id="btnPng" onclick="baixarJPEG()">⬇️ Baixar imagem (JPEG)</button>
 </div>
 <div class="msg" id="msg"></div>
@@ -82,6 +83,53 @@
     (navigator.clipboard ? navigator.clipboard.writeText(LINK) : Promise.reject())
       .then(()=>aviso('Link copiado ✓'))
       .catch(()=>prompt('Copie o link:', LINK));
+  }
+  function garantirHtml2pdf(){
+    return new Promise((res, rej)=>{
+      if(window.html2pdf) return res();
+      const urls = [
+        'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+        'https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'
+      ];
+      let i = 0;
+      const tenta = ()=>{
+        if(i >= urls.length) return rej(new Error('sem gerador'));
+        const s = document.createElement('script'); s.src = urls[i++];
+        s.onload = ()=> window.html2pdf ? res() : tenta();
+        s.onerror = tenta;
+        document.head.appendChild(s);
+      };
+      tenta();
+    });
+  }
+  async function baixarPDF(){
+    const btn = document.getElementById('btnPdf');
+    btn.disabled = true; btn.textContent = 'Gerando PDF…';
+    aviso('Montando o cartaz em A4…');
+    let palco = null;
+    try{
+      await garantirHtml2pdf();
+      palco = document.createElement('div');
+      palco.style.cssText = 'position:fixed;top:0;left:-3000px;width:1080px;height:1528px;overflow:hidden;z-index:-1';
+      const clone = document.getElementById('cardCartaz').cloneNode(true);
+      clone.style.transform = 'none';
+      palco.appendChild(clone);
+      document.body.appendChild(palco);
+      await html2pdf().set({
+        margin: 0,
+        filename: 'Cartaz-Votacao-Xis-da-Galera-A4.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, backgroundColor: '#4b1a60', windowWidth: 1240, width: 1080, height: 1528 },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+      }).from(clone).save();
+      aviso('PDF baixado ✓ — pronto para imprimir em A4 ou A3');
+    }catch(e){
+      console.error(e);
+      aviso('Gerador indisponível — baixe o JPEG e imprima pela galeria.');
+    }
+    if(palco) palco.remove();
+    btn.disabled = false; btn.textContent = '⬇️ Baixar PDF (A4)';
   }
   async function baixarJPEG(){
     const btn = document.getElementById('btnPng');
