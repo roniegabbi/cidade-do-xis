@@ -199,6 +199,7 @@
       <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival</a>
       <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">Xis da Galera · Apuração<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">votação popular por QR Code</span></a>
       <a class="sub-item" data-p="master" onclick="tab('master');renderMaster()">Master Xis · Jurados<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">cédula digital do júri técnico</span></a>
+      <a class="sub-item" onclick="tab('galera');renderGalera();baixarRelatorioFraude()">🛡 Relatório Antifraude (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">auditoria da votação popular</span></a>
     </div>
     <div class="cat" onclick="grpToggle(this)">Lançamento · 07/10</div>
     <div class="grp">
@@ -651,6 +652,7 @@
         <button class="btn btn-g btn-sm" onclick="renderGalera()">↻ Atualizar placar</button>
         <button class="btn btn-g btn-sm" onclick="window.open('cartaz-xis-da-galera.html','_blank')">Cartaz com QR Code</button>
         <button class="btn btn-g btn-sm" id="btnImgResultado" onclick="baixarResultadoGalera()">🏆 Imagem do resultado</button>
+        <button class="btn btn-g btn-sm" id="btnRelFraude" onclick="baixarRelatorioFraude()">🛡 Relatório antifraude (PDF)</button>
         <button class="btn btn-g btn-sm" onclick="window.open('xis-da-galera.html','_blank')">Ver página de votação</button>
       </div>
       <div class="kpis" id="galeraKpis"></div>
@@ -2558,6 +2560,100 @@
       <b style="color:var(--roxo-esc)">Monitor antifraude:</b> ${ultHora} voto(s) na última hora · limite de 40 votos/hora por conexão ativo ·
       ${suspeitos.length ? '<b style="color:var(--vermelho)">atenção:</b> ' + suspeitos.length + ' conexão(ões) com 15+ votos — ' + suspeitos.slice(0,5).map(([ip,c])=>ip+' ('+c+')').join(' · ') + '. Pode ser o wi-fi do evento (normal) ou abuso — me acione para auditar.' : 'nenhuma concentração suspeita de votos.'}
     </div>`;
+  }
+  async function baixarRelatorioFraude(){
+    try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
+    catch(e){ toast('Gerador indisponível — verifique a conexão'); return; }
+    const btn = g('btnRelFraude'); btn.disabled = true; btn.textContent = 'Gerando…';
+    const [votos, cedula] = await Promise.all([
+      SB.from('festival_votos').select('espaco_numero,ip,user_agent,criado_em,device'),
+      SB.rpc('cedula_xis_galera')
+    ]);
+    const vs = votos.data||[], nomes = {};
+    (cedula.data||[]).forEach(o=>{ nomes[o.numero]=o.nome; });
+    const agora = new Date();
+    const ultHora = vs.filter(v=>v.criado_em && (agora-new Date(v.criado_em)) < 3600000).length;
+    const porIp = {}, porUa = {}, porHora = {};
+    vs.forEach(v=>{
+      if(v.ip){ porIp[v.ip]=porIp[v.ip]||{c:0,devs:new Set(),uas:new Set(),ops:{}}; const o=porIp[v.ip]; o.c++; o.devs.add(v.device); if(v.user_agent)o.uas.add(v.user_agent); o.ops[v.espaco_numero]=(o.ops[v.espaco_numero]||0)+1; }
+      if(v.user_agent) porUa[v.user_agent]=(porUa[v.user_agent]||0)+1;
+      if(v.criado_em){ const h=new Date(v.criado_em); const k=h.toLocaleDateString('pt-BR')+' '+String(h.getHours()).padStart(2,'0')+'h'; porHora[k]=(porHora[k]||0)+1; }
+    });
+    const ipsOrd = Object.entries(porIp).sort((a,b)=>b[1].c-a[1].c);
+    const suspIp = ipsOrd.filter(([,o])=>o.c>=15);
+    const uaOrd = Object.entries(porUa).sort((a,b)=>b[1]-a[1]);
+    const suspUa = uaOrd.filter(([,c])=>c>=30);
+    const horas = Object.entries(porHora).sort((a,b)=>a[0]<b[0]?-1:1);
+    const maxH = Math.max(1,...horas.map(([,c])=>c));
+    const semIp = vs.filter(v=>!v.ip).length;
+    const risco = suspIp.length || suspUa.length;
+    const LOGO_PDF = 'https://hlstcndhxzhdzbecfrhp.supabase.co/storage/v1/object/public/capa/branding/logo_site_1782529845697_Marca_Cidade_Xis_SM_2026_PMSM__Versao_Policromatica_.png';
+    const doc = document.createElement('div');
+    doc.style.cssText = 'width:194mm;padding:8mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
+    doc.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #e91e8c;padding-bottom:10px;margin-bottom:12px">
+        <img src="${LOGO_PDF}" crossorigin="anonymous" style="height:52px">
+        <div>
+          <div style="font-size:19px;font-weight:800;color:#4b1a60">Relatório Antifraude — Xis da Galera 2026</div>
+          <div style="font-size:11px;color:#8a7f95">Voto popular por QR Code · gerado em ${agora.toLocaleString('pt-BR')} · uso interno da Comissão Organizadora</div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;border-radius:10px;margin-bottom:12px;background:${risco?'#fdecec':'#e8f6ee'};border-left:5px solid ${risco?'#d63344':'#1d9e57'}">
+        <b style="font-size:13px;color:${risco?'#a32330':'#0c6b3d'}">${risco?'⚠ INDÍCIOS A INVESTIGAR':'✔ NENHUM INDÍCIO DE FRAUDE'}</b>
+        <div style="font-size:11px;margin-top:2px">${risco
+          ? (suspIp.length+' conexão(ões) com 15+ votos e '+suspUa.length+' assinatura(s) de navegador com 30+ votos — detalhes abaixo. Pode ser o wi-fi do evento; confira a diversidade de aparelhos.')
+          : 'Sem concentrações relevantes por conexão ou por assinatura de navegador. Limites ativos: 40 votos/hora e 150 votos/24h por conexão · 1 voto por dispositivo (trava no banco).'}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${vs.length}</div><div style="font-size:9.5px;color:#8a7f95">votos computados</div></div>
+        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${ultHora}</div><div style="font-size:9.5px;color:#8a7f95">na última hora</div></div>
+        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${ipsOrd.length}</div><div style="font-size:9.5px;color:#8a7f95">conexões distintas</div></div>
+        <div style="background:#f6f1fa;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b1a60">${semIp}</div><div style="font-size:9.5px;color:#8a7f95">votos sem IP registrado</div></div>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Votos por hora</div>
+      <div style="margin-bottom:12px">${horas.length ? horas.map(([h,c])=>`
+        <div style="display:grid;grid-template-columns:90px 1fr 34px;gap:8px;align-items:center;margin:2px 0;font-size:10px">
+          <span>${h}</span>
+          <div style="height:10px;background:#f6f1fa;border-radius:99px"><div style="width:${Math.round(c/maxH*100)}%;height:100%;background:#662382;border-radius:99px"></div></div>
+          <b style="text-align:right">${c}</b></div>`).join('') : '<span style="color:#8a7f95">Sem votos no período.</span>'}</div>
+      <div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Conexões com mais votos (top 12)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:12px">
+        <tr>${['Conexão (IP)','Votos','Aparelhos distintos','Assinaturas de navegador','Candidato mais votado','Avaliação']
+          .map(h=>`<th style="background:#662382;color:#fff;text-align:left;padding:4px 7px;font-size:8.5px;text-transform:uppercase">${h}</th>`).join('')}</tr>
+        ${ipsOrd.length ? ipsOrd.slice(0,12).map(([ip,o])=>{
+          const topOp = Object.entries(o.ops).sort((a,b)=>b[1]-a[1])[0];
+          const concentra = topOp && (topOp[1]/o.c) >= 0.8 && o.c >= 10;
+          const avaliacao = o.c>=15 ? (o.devs.size<o.c*0.9||concentra ? '⚠ investigar' : 'alto volume — possível wi-fi do evento') : 'normal';
+          return `<tr>
+            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${esc(ip)}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5"><b>${o.c}</b></td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${o.devs.size}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${o.uas.size}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5">${topOp?esc(nomes[topOp[0]]||topOp[0])+' ('+topOp[1]+')':'—'}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f0eaf5;color:${avaliacao.startsWith('⚠')?'#a32330':'#0c6b3d'};font-weight:700">${avaliacao}</td></tr>`;
+        }).join('') : '<tr><td colspan="6" style="padding:6px;color:#8a7f95">Nenhum voto com IP registrado ainda.</td></tr>'}
+      </table>
+      ${suspUa.length?`<div style="font-size:13px;font-weight:800;color:#4b1a60;border-bottom:2px solid #f5a800;padding-bottom:3px;margin-bottom:6px">Assinaturas de navegador com 30+ votos</div>
+      <div style="font-size:9.5px;margin-bottom:12px">${suspUa.slice(0,5).map(([ua,c])=>'<b>'+c+'×</b> '+esc(ua.slice(0,110))).join('<br>')}</div>`:''}
+      <div style="background:#f6f1fa;border-left:4px solid #662382;padding:8px 12px;font-size:10px">
+        <b style="color:#4b1a60">Critérios desta análise:</b> 1 voto por dispositivo (unicidade no banco) · limite de 40 votos/hora e 150/24h por conexão ·
+        "⚠ investigar" quando uma conexão tem 15+ votos com baixa diversidade de aparelhos ou 80%+ dos votos num único candidato ·
+        wi-fi público do evento pode concentrar votos legítimos (muitos aparelhos distintos = bom sinal). Votos fraudulentos identificados podem ser anulados com base nos registros de IP, aparelho e assinatura.
+      </div>
+      <div style="margin-top:8px;font-size:9px;color:#8a7f95">Festival do Xis 2026 · Comissão Organizadora · cidadedoxis.com</div>`;
+    document.body.appendChild(doc);
+    try{
+      await html2pdf().set({
+        margin: [8,8,8,8], filename: 'Relatorio-Antifraude-Xis-da-Galera.pdf',
+        image: { type:'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor:'#ffffff' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css','legacy'] }
+      }).from(doc).save();
+      toast('Relatório antifraude exportado 🛡');
+    }catch(e){ console.error(e); toast('Não foi possível gerar o PDF'); }
+    doc.remove();
+    btn.disabled = false; btn.textContent = '🛡 Relatório antifraude (PDF)';
   }
   function garantirHtmlToImage(){
     return new Promise((res, rej)=>{
