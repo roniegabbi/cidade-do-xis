@@ -198,6 +198,7 @@
       <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival</a>
       <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival</a>
       <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">Xis da Galera · Apuração<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">votação popular por QR Code</span></a>
+      <a class="sub-item" data-p="master" onclick="tab('master');renderMaster()">Master Xis · Jurados<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">cédula digital do júri técnico</span></a>
     </div>
     <div class="cat" onclick="grpToggle(this)">Lançamento · 07/10</div>
     <div class="grp">
@@ -654,6 +655,19 @@
       </div>
       <div class="kpis" id="galeraKpis"></div>
       <div class="card"><div id="galeraRank"></div></div>
+    </section>
+
+    <section class="pane hide" id="p-master">
+      <div class="h">Master Xis · Júri técnico</div>
+      <div class="sub">Cada participante tem um QR Code próprio. Os jurados avaliam pelo celular em 5 critérios (0–10): uso dos ingredientes, apresentação, criatividade, sabor e respeito às características do Xis.</div>
+      <div class="filtros no-print">
+        <button class="btn btn-v btn-sm" id="btnMaster" onclick="alternarMaster()">Abrir avaliação</button>
+        <button class="btn btn-g btn-sm" onclick="renderMaster()">↻ Atualizar notas</button>
+        <button class="btn btn-g btn-sm" onclick="window.open('qrcodes-master-xis.html','_blank')">QR Codes dos participantes</button>
+        <button class="btn btn-g btn-sm" onclick="novoMasterPart()">+ Participante</button>
+      </div>
+      <div class="kpis" id="masterKpis"></div>
+      <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabMaster"></table></div></div>
     </section>
 
     <section class="pane hide" id="p-rsvp">
@@ -2619,6 +2633,86 @@
     if(error){ toast('Erro ao alterar a votação'); return; }
     toast(nova ? 'Votação ABERTA — bom Festival! 🗳' : 'Votação encerrada');
     renderGalera();
+  }
+
+  // ===== MASTER XIS · JÚRI TÉCNICO =====
+  let MASTER_ABERTA = false;
+  const MX_CRIT = ['Ingredientes','Apresentação','Criatividade','Sabor','Formato do Xis'];
+  async function renderMaster(){
+    const [cfg, parts, avs] = await Promise.all([
+      SB.from('master_config').select('aberta').eq('id',1).single(),
+      SB.from('master_participantes').select('*').order('numero'),
+      SB.from('master_avaliacoes').select('*')
+    ]);
+    MASTER_ABERTA = !!(cfg.data && cfg.data.aberta);
+    const btn = g('btnMaster');
+    btn.textContent = MASTER_ABERTA ? '⏸ Encerrar avaliação' : '▶ Abrir avaliação';
+    btn.className = 'btn btn-sm ' + (MASTER_ABERTA ? 'btn-r' : 'btn-v');
+    const P = parts.data||[], A = avs.data||[];
+    const jurados = [...new Set(A.map(a=>a.jurado))];
+    const porP = {};
+    A.forEach(a=>{ (porP[a.participante]=porP[a.participante]||[]).push(a); });
+    const linhas = P.map(p=>{
+      const notas = porP[p.numero]||[];
+      const medias = [1,2,3,4,5].map(i=> notas.length ? notas.reduce((s,a)=>s+a['c'+i],0)/notas.length : 0);
+      const total = medias.reduce((s,m)=>s+m,0);
+      return {p, n: notas.length, medias, total};
+    }).sort((a,b)=>b.total-a.total || b.n-a.n);
+    g('masterKpis').innerHTML = `
+      <div class="kpi"><b>${P.length}</b><span>participantes</span></div>
+      <div class="kpi"><b>${A.length}</b><span>avaliações recebidas</span></div>
+      <div class="kpi"><b>${jurados.length}</b><span>jurados distintos</span></div>
+      <div class="kpi"><b style="color:${MASTER_ABERTA?'var(--verde)':'var(--vermelho)'}">${MASTER_ABERTA?'ABERTA':'FECHADA'}</b><span>situação da avaliação</span></div>`;
+    g('tabMaster').innerHTML = '<tr><th>#</th><th>Participante</th><th>Avaliações</th>'
+      + MX_CRIT.map(c=>'<th style="text-align:right">'+c+'</th>').join('')
+      + '<th style="text-align:right">Total (0–50)</th><th></th></tr>'
+      + (linhas.length ? linhas.map((l,ix)=>`<tr${ix===0&&l.n?' style="background:#fdf1d8"':''}>
+          <td><b style="color:${ix===0&&l.n?'var(--amarelo)':'var(--texto-suave)'}">${ix+1}º</b></td>
+          <td><b>${esc(l.p.nome)}</b><br><span style="font-size:11px;color:var(--texto-suave)">${esc(l.p.detalhe||'')} · nº ${String(l.p.numero).padStart(2,'0')}</span></td>
+          <td>${l.n}</td>
+          ${l.medias.map(m=>'<td style="text-align:right">'+(l.n?m.toFixed(1):'—')+'</td>').join('')}
+          <td style="text-align:right"><b style="font-size:16px;color:var(--roxo-esc)">${l.n?l.total.toFixed(1):'—'}</b></td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-g btn-sm" onclick="editarMasterPart(${l.p.numero})">Editar</button>
+            <button class="btn btn-r btn-sm" onclick="excluirMasterPart(${l.p.numero})">Excluir</button>
+          </td></tr>`).join('')
+        : '<tr><td colspan="10" style="text-align:center;color:var(--texto-suave)">Cadastre os participantes (+ Participante) e imprima os QR Codes.</td></tr>');
+    if(A.length){
+      g('tabMaster').innerHTML += `<tr><td colspan="10" style="font-size:11px;color:var(--texto-suave)">Notas = média dos jurados por critério · Total = soma das 5 médias · Jurados: ${jurados.map(esc).join(', ')}</td></tr>`;
+    }
+  }
+  async function alternarMaster(){
+    const nova = !MASTER_ABERTA;
+    if(!confirm(nova ? 'Abrir a avaliação do Master Xis para os jurados?' : 'Encerrar a avaliação do Master Xis?')) return;
+    const {error} = await SB.from('master_config').update({aberta: nova}).eq('id', 1);
+    if(error){ toast('Erro ao alterar'); return; }
+    toast(nova ? 'Avaliação ABERTA aos jurados 🧺' : 'Avaliação encerrada');
+    renderMaster();
+  }
+  async function novoMasterPart(){
+    const nome = prompt('Nome do participante (dupla/operação):'); if(!nome || !nome.trim()) return;
+    const det = prompt('Detalhe (ex.: dupla com agroindústria X, categoria):') || '';
+    const {data} = await SB.from('master_participantes').select('numero').order('numero', {ascending:false}).limit(1);
+    const prox = (data && data[0] ? data[0].numero : 0) + 1;
+    const {error} = await SB.from('master_participantes').insert({numero: prox, nome: nome.trim(), detalhe: det.trim()||null});
+    if(error){ toast('Erro ao cadastrar'); return; }
+    toast('Participante '+String(prox).padStart(2,'0')+' cadastrado — reimprima os QR Codes');
+    renderMaster();
+  }
+  async function editarMasterPart(num){
+    const {data} = await SB.from('master_participantes').select('*').eq('numero', num).single();
+    if(!data) return;
+    const nome = prompt('Nome do participante:', data.nome); if(nome===null) return;
+    const det = prompt('Detalhe:', data.detalhe||''); if(det===null) return;
+    const {error} = await SB.from('master_participantes').update({nome: nome.trim(), detalhe: det.trim()||null}).eq('numero', num);
+    if(error){ toast('Erro ao salvar'); return; }
+    toast('Participante atualizado'); renderMaster();
+  }
+  async function excluirMasterPart(num){
+    if(!confirm('Excluir o participante nº '+num+'? As avaliações já recebidas dele também serão apagadas.')) return;
+    const {error} = await SB.from('master_participantes').delete().eq('numero', num);
+    if(error){ toast('Erro ao excluir'); return; }
+    toast('Participante excluído'); renderMaster();
   }
 
   // ===== PRESENÇAS NO LANÇAMENTO (RSVP) =====

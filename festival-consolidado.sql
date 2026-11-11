@@ -489,3 +489,9 @@ alter table festival_interessados add column if not exists cidade text;
 -- ===== CÉDULA OFICIAL DO XIS DA GALERA (confirmados 2026) =====
 -- Tabela festival_cedula com 19 operações (8 food trucks + 12 fixas, Taverna 90&1 única)
 -- e RPCs cedula_xis_galera/votar_xis_galera lendo dela (aplicado direto em 11/11/2026)
+
+
+-- ===== CONCURSO MASTER XIS · JÚRI TÉCNICO =====
+-- Tabelas master_participantes, master_config (aberta), master_avaliacoes (5 critérios 0–10,
+-- 1 avaliação por jurado/dispositivo por participante) + RPCs master_participante e avaliar_master
+-- (aplicado direto no banco em 11/11/2026). QR por participante: master-xis-avaliacao.html?p=N

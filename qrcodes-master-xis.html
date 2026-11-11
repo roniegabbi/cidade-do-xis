@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Codes dos Participantes · Master Xis 2026</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="libs/qrcode.min.js"></script>
+<style>
+  :root{ --roxo:#662382; --roxo-esc:#4b1a60; --rosa:#e91e8c; --amarelo:#f5a800; --texto:#3a2f42; --texto-suave:#8a7f95; --borda:#e4dced; }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#d8cfe2;color:var(--texto);padding-bottom:40px}
+  .toolbar{position:sticky;top:0;z-index:10;background:var(--roxo-esc);color:#fff;padding:12px 20px;display:flex;gap:14px;align-items:center}
+  .toolbar b{font-size:15px}
+  .toolbar button{margin-left:auto;padding:10px 22px;border:none;border-radius:99px;background:var(--rosa);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+  .grade{max-width:210mm;margin:16px auto;display:grid;grid-template-columns:1fr 1fr;gap:10mm;padding:0 10mm}
+  .cartao{background:#fff;border-radius:16px;padding:10mm 8mm;text-align:center;page-break-inside:avoid;box-shadow:0 8px 24px rgba(75,26,96,.18)}
+  .cartao .sel{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--rosa)}
+  .cartao .nome{font-size:19px;font-weight:800;color:var(--roxo-esc);line-height:1.2;margin:4px 0 2px;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .cartao .det{font-size:11px;color:var(--texto-suave);font-weight:600;min-height:16px}
+  .cartao .qr{width:150px;height:150px;margin:8px auto}
+  .cartao .qr img, .cartao .qr canvas{width:150px!important;height:150px!important}
+  .cartao .num{display:inline-block;background:var(--amarelo);color:var(--roxo-esc);font-weight:800;border-radius:99px;padding:4px 16px;font-size:13px;margin-top:6px}
+  .cartao .inst{font-size:10px;color:var(--texto-suave);margin-top:6px}
+  @media print{
+    body{background:#fff}
+    .toolbar{display:none}
+    .cartao{box-shadow:none;border:1.5px dashed var(--borda)}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>QR Codes · Avaliação do Master Xis</b>
+  <span style="font-size:12.5px;opacity:.85" id="tbMsg">Um QR por participante — imprima e fixe na bancada de cada dupla</span>
+  <button onclick="window.print()">🖨️ Imprimir</button>
+</div>
+
+<div class="grade" id="grade"><div class="cartao"><div class="nome">Carregando participantes…</div></div></div>
+
+<script>
+  const SB = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient('https://hlstcndhxzhdzbecfrhp.supabase.co','sb_publishable_7cszhO0OPjQvNZciC2jQQA_p_RMHhRr') : null;
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  async function montar(){
+    const {data, error} = await SB.from('master_participantes').select('*').order('numero');
+    const lista = data||[];
+    if(error || !lista.length){
+      document.getElementById('grade').innerHTML = '<div class="cartao"><div class="nome">Nenhum participante cadastrado</div><div class="det">Cadastre as duplas na gestão: Master Xis · Jurados</div></div>';
+      return;
+    }
+    document.getElementById('grade').innerHTML = lista.map(p=>`
+      <div class="cartao">
+        <div class="sel">Concurso Master Xis · Júri técnico</div>
+        <div class="nome">${esc(p.nome)}</div>
+        <div class="det">${esc(p.detalhe||'')}</div>
+        <div class="qr" id="qr-${p.numero}"></div>
+        <div class="num">Participante ${String(p.numero).padStart(2,'0')}</div>
+        <div class="inst">Jurado(a): aponte a câmera para avaliar esta dupla</div>
+      </div>`).join('');
+    lista.forEach(p=>{
+      new QRCode(document.getElementById('qr-'+p.numero), {
+        text: 'https://www.cidadedoxis.com/master-xis-avaliacao.html?p='+p.numero,
+        width: 150, height: 150, correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+    document.getElementById('tbMsg').textContent = lista.length + ' participante(s) — imprima e fixe na bancada de cada dupla';
+  }
+  montar();
+</script>
+</body>
+</html>
