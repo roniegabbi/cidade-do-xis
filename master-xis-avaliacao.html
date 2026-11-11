@@ -28,10 +28,10 @@
   .crit .t{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
   .crit .tt{font-size:15px;font-weight:800;color:var(--roxo-esc);line-height:1.3}
   .crit .nota{font-size:30px;font-weight:800;color:var(--rosa);min-width:46px;text-align:right}
-  .notas{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-top:10px}
-  .notas button{aspect-ratio:1;min-height:30px;border:1.5px solid var(--borda);border-radius:9px;background:#fdfbff;color:var(--texto);font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:0}
+  .notas{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+  .notas button{min-height:44px;border:1.5px solid var(--borda);border-radius:9px;background:#fdfbff;color:var(--texto);font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:0}
   .notas button.on{background:var(--rosa);border-color:var(--rosa);color:#fff;transform:scale(1.08)}
-  @media(max-width:420px){.notas{gap:3px}.notas button{font-size:12.5px;min-height:26px;border-radius:7px}}
+  @media(max-width:420px){.notas{gap:5px}.notas button{font-size:15px;min-height:38px}}
   .total{background:var(--roxo);border-radius:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
   .total b{font-size:15px}
   .total .pts{font-size:30px;font-weight:800;color:var(--amarelo)}
@@ -146,7 +146,7 @@
       <div class="crit">
         <div class="t"><div class="tt">${ix+1}. ${esc(c[0])}<br><span style="font-size:11.5px;font-weight:600;color:var(--texto-suave)">${esc(c[1])}</span></div>
         <div class="nota" id="n${ix+1}">—</div></div>
-        <div class="notas" id="g${ix+1}">${Array.from({length:11},(_,v)=>`<button type="button" onclick="nota(${ix+1},${v},this)">${v}</button>`).join('')}</div>
+        <div class="notas" id="g${ix+1}">${Array.from({length:6},(_,i)=>5+i).map(v=>`<button type="button" onclick="nota(${ix+1},${v},this)">${v}</button>`).join('')}</div>
       </div>`).join('');
     const jSalvo = localStorage.getItem('mx_jurado');
     if(jSalvo) g('jurado').value = jSalvo;
