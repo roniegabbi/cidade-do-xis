@@ -579,6 +579,19 @@
     color:#fff;padding:12px 20px;border-radius:11px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);
     opacity:0;pointer-events:none;transition:all .25s;z-index:300}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== MODO FESTIVAL · capa (remova este bloco para voltar à capa roxa) ===== */
+  .hero-wrap{background:url('fundo-raios-festival.png') center/cover no-repeat, #b23227}
+  .hero-wrap::before{display:none}
+  .hero-orb, .hero-photo, .hero-side, .hero-parceiros{display:none!important}
+  .hero-brand .disc .logo-img, .hero-brand .disc .mark-xl, .hero-brand .disc .wm{display:none!important}
+  .hero-brand .disc .logo-festa{display:block!important;height:120px}
+  .hero-brand .badge{background:#f5a800;color:#7a140c}
+  .hero-btns .btn-primary{background:linear-gradient(135deg,#f5a800,#ef9f27)!important;color:#7a140c!important;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+  h1 .x, .hero h1 .x{color:#f5b73c}
+  .hero-cidade{position:relative;z-index:3;width:100vw;display:block;margin:10px 0 0}
+  .hero-cidade + .home-block{margin-top:14px}
+  /* ===== fim do modo festival ===== */
 </style>
 </head>
 <body>
@@ -635,6 +648,7 @@
       <div class="hero-side left" id="heroSideL"></div>
       <div class="hero-brand" id="heroBrand">
         <div class="disc">
+          <img class="logo-festa hide" src="marca-festival-do-xis.jpg" alt="Festival do Xis" style="display:none">
           <img id="brandLogo" class="logo-img hide" alt="Cidade do Xis">
           <span class="mark-xl" id="brandMark">X</span>
           <div class="wm" id="brandWm">
@@ -642,7 +656,7 @@
             <div class="t2">Santa Maria · RS</div>
           </div>
         </div>
-        <div class="badge">Patrimônio Gastronômico de Santa Maria</div>
+        <div class="badge">13, 14 e 15 de novembro · Largo da Gare</div>
       </div>
       <div class="hero">
         <div class="hero-inner">
@@ -661,6 +675,7 @@
         <div class="hp-logos" id="heroParceirosLogos"></div>
       </div>
 
+      <img class="hero-cidade" src="ilustracao-festival.png" alt="Festival do Xis — ilustração da cidade">
       <div class="home-block">
         <div id="destaquesWrap" class="hide">
           <h2>Destaques do último Festival do XIS</h2>
@@ -1025,6 +1040,7 @@
     </div>
 
     <div id="painelHome">
+      <img class="hero-cidade" src="ilustracao-festival.png" alt="Festival do Xis — ilustração da cidade">
       <div class="home-block">
         <h2 style="margin-top:26px">Suas ferramentas de gestão</h2>
         <div class="tools">
@@ -1036,6 +1052,7 @@
             <h3>Plano de Comunicação</h3><p>Agenda de posts, ideias prontas, legendas e campanhas.</p></div>
         </div>
       </div>
+      <img class="hero-cidade" src="ilustracao-festival.png" alt="Festival do Xis — ilustração da cidade">
       <div class="home-block">
         <h2>Seu perfil na vitrine</h2>
         <div class="card">
