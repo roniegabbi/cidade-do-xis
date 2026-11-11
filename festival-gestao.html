@@ -30,6 +30,10 @@
   .side .cat::after{content:'▾';font-size:9px;transition:transform .15s;color:var(--texto-suave)}
   .side .cat.fechado::after{transform:rotate(-90deg)}
   .side .cat:hover{color:var(--roxo)}
+  .side .cat-conc{color:var(--rosa);font-size:11px}
+  .side .grp-conc{background:linear-gradient(135deg,#fdf1d8,#fdeef7);border:1.5px solid var(--amarelo);border-radius:12px;padding:4px;margin:0 2px 6px}
+  .side .grp-conc a{font-weight:700}
+  .side .grp-conc a:hover{background:#fff}
   .side .cat:first-child{margin-top:2px}
   .side .sub-item{padding-left:22px;font-size:13.5px}
   .side .bdg{background:var(--rosa);color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px;margin-left:4px}
@@ -197,9 +201,13 @@
     <div class="grp">
       <a class="sub-item" data-p="atracoes" onclick="tab('atracoes')">Programação do Festival</a>
       <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival</a>
+
+    </div>
+    <div class="cat cat-conc" onclick="grpToggle(this)">🏆 Concursos</div>
+    <div class="grp grp-conc">
       <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">Xis da Galera · Apuração<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">votação popular por QR Code</span></a>
       <a class="sub-item" data-p="master" onclick="tab('master');renderMaster()">Master Xis · Jurados<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">cédula digital do júri técnico</span></a>
-      <a class="sub-item" onclick="tab('galera');renderGalera();baixarRelatorioFraude()">🛡 Relatório Antifraude (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">auditoria da votação popular</span></a>
+      <a class="sub-item" onclick="tab('galera');renderGalera();baixarRelatorioFraude()">🛡 Relatório Antifraude (PDF)</a>
     </div>
     <div class="cat" onclick="grpToggle(this)">Lançamento · 07/10</div>
     <div class="grp">
