@@ -2531,25 +2531,25 @@
   // ===== XIS DA GALERA (votação popular) =====
   let VOT_ABERTA = false;
   async function renderGalera(){
-    const [st, votos, cedula] = await Promise.all([
+    const [st, apur, mon] = await Promise.all([
       SB.from('festival_votacao').select('aberta').eq('id',1).single(),
-      SB.from('festival_votos').select('espaco_numero,ip,criado_em').eq('suspeito', false),
-      SB.rpc('cedula_xis_galera')
+      SB.rpc('apuracao_xis_galera'),
+      SB.rpc('galera_monitor')
     ]);
     VOT_ABERTA = !!(st.data && st.data.aberta);
     const btn = g('btnVotacao');
     btn.textContent = VOT_ABERTA ? '⏸ Encerrar votação' : '▶ Abrir votação';
     btn.className = 'btn btn-sm ' + (VOT_ABERTA ? 'btn-r' : 'btn-v');
-    const vs = votos.data||[], ops = cedula.data||[];
-    const cont = {}; vs.forEach(v=>{ cont[v.espaco_numero]=(cont[v.espaco_numero]||0)+1; });
-    const nomes = {}, tipos = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; tipos[o.numero]=o.tipo||''; });
-    const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Nº '+n), tipo:tipos[n]||''}))
-      .sort((a,b)=>b.c-a.c);
+    const linhas = apur.data||[], M = (mon.data&&mon.data[0])||{total_validos:0,suspeitos_marcados:0,ultima_hora:0,conexoes_15mais:[]};
+    const tipos = {}; linhas.forEach(o=>{ tipos[o.numero]=o.tipo||''; });
+    const rank = linhas.filter(o=>o.votos>0).map(o=>({n:o.numero, c:+o.votos, nome:o.nome, tipo:o.tipo||''}));
+    const totalValidos = +M.total_validos || 0;
     const max = rank.length ? rank[0].c : 1;
     g('galeraKpis').innerHTML = `
-      <div class="kpi"><b>${vs.length}</b><span>votos computados</span></div>
+      <div class="kpi"><b>${totalValidos}</b><span>votos válidos</span></div>
+      <div class="kpi"><b>${M.suspeitos_marcados}</b><span>suspeitos fora da contagem</span></div>
       <div class="kpi"><b>${rank.length}</b><span>operações votadas</span></div>
-      <div class="kpi"><b>${ops.length}</b><span>operações na cédula</span></div>
+      <div class="kpi"><b>${linhas.length}</b><span>operações na cédula</span></div>
       <div class="kpi"><b style="color:${VOT_ABERTA?'var(--verde)':'var(--vermelho)'}">${VOT_ABERTA?'ABERTA':'FECHADA'}</b><span>situação da votação</span></div>`;
     g('galeraRank').innerHTML = rank.length
       ? '<div style="display:grid;grid-template-columns:40px 220px minmax(0,1fr) 60px;gap:8px 12px;align-items:center">'
@@ -2560,10 +2560,9 @@
           <b style="text-align:right;color:var(--roxo-esc)">${r.c}</b>`).join('')
         + '</div>'
       : '<div class="mt" style="font-size:13.5px;color:var(--texto-suave)">Nenhum voto ainda. Abra a votação e espalhe o cartaz com o QR Code pelo Festival.</div>';
-    // Monitor antifraude: concentrações de votos por conexão (IP)
-    const porIp = {}; vs.forEach(v=>{ if(v.ip) porIp[v.ip]=(porIp[v.ip]||0)+1; });
-    const suspeitos = Object.entries(porIp).filter(([,c])=>c>=15).sort((a,b)=>b[1]-a[1]);
-    const ultHora = vs.filter(v=>v.criado_em && (Date.now()-new Date(v.criado_em).getTime()) < 3600000).length;
+    // Monitor antifraude: dados agregados pelo banco (sem limite de linhas)
+    const suspeitos = (M.conexoes_15mais||[]).map(x=>[x.ip, x.n]);
+    const ultHora = +M.ultima_hora || 0;
     g('galeraRank').innerHTML += `<div style="margin-top:14px;padding:9px 13px;background:var(--fundo);border-left:4px solid ${suspeitos.length?'var(--vermelho)':'var(--verde)'};font-size:12px">
       <b style="color:var(--roxo-esc)">Monitor antifraude:</b> ${ultHora} voto(s) na última hora · limite de 40 votos/hora por conexão ativo ·
       ${suspeitos.length ? '<b style="color:var(--vermelho)">atenção:</b> ' + suspeitos.length + ' conexão(ões) com 15+ votos — ' + suspeitos.slice(0,5).map(([ip,c])=>ip+' ('+c+')').join(' · ') + '. Pode ser o wi-fi do evento (normal) ou abuso — me acione para auditar.' : 'nenhuma concentração suspeita de votos.'}
@@ -2573,11 +2572,16 @@
     try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
     catch(e){ toast('Gerador indisponível — verifique a conexão'); return; }
     const btn = g('btnRelFraude'); btn.disabled = true; btn.textContent = 'Gerando…';
-    const [votos, cedula] = await Promise.all([
-      SB.from('festival_votos').select('espaco_numero,ip,user_agent,criado_em,device,suspeito'),
-      SB.rpc('cedula_xis_galera')
-    ]);
-    const vs = votos.data||[], nomes = {};
+    const cedula = await SB.rpc('cedula_xis_galera');
+    const vs = [];
+    for(let de=0;;de+=1000){
+      const pag = await SB.from('festival_votos').select('espaco_numero,ip,user_agent,criado_em,device,suspeito').range(de, de+999);
+      const lote = pag.data||[];
+      vs.push(...lote);
+      if(lote.length < 1000) break;
+      if(de > 200000) break;
+    }
+    const nomes = {};
     (cedula.data||[]).forEach(o=>{ nomes[o.numero]=o.nome; });
     const agora = new Date();
     const ultHora = vs.filter(v=>v.criado_em && (agora-new Date(v.criado_em)) < 3600000).length;
@@ -2678,14 +2682,10 @@
     const btn = g('btnImgResultado'); btn.disabled = true; btn.textContent = 'Gerando…';
     try{
       await garantirHtmlToImage();
-      const [votos, cedula] = await Promise.all([
-        SB.from('festival_votos').select('espaco_numero').eq('suspeito', false),
-        SB.rpc('cedula_xis_galera')
-      ]);
-      const vs = votos.data||[], ops = cedula.data||[];
-      const cont = {}; vs.forEach(v=>{ cont[v.espaco_numero]=(cont[v.espaco_numero]||0)+1; });
-      const nomes = {}, tipos = {}; ops.forEach(o=>{ nomes[o.numero]=o.nome; tipos[o.numero]=o.tipo||''; });
-      const rank = Object.entries(cont).map(([n,c])=>({n:+n, c, nome:nomes[n]||('Nº '+n), tipo:tipos[n]||''})).sort((a,b)=>b.c-a.c);
+      const apur = await SB.rpc('apuracao_xis_galera');
+      const linhas = apur.data||[];
+      const rank = linhas.filter(o=>o.votos>0).map(o=>({n:o.numero, c:+o.votos, nome:o.nome, tipo:o.tipo||''}));
+      const vs = { length: rank.reduce((s,r)=>s+r.c,0) };
       if(!rank.length){ toast('Ainda não há votos para anunciar'); btn.disabled=false; btn.textContent='🏆 Imagem do resultado'; return; }
       const medalha = ['🥇','🥈','🥉'];
       const BG = 'fundo-raios-festival.png';
