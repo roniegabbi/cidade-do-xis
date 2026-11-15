@@ -2594,11 +2594,29 @@
       canvasWidth:1920, canvasHeight:1080, width:1920, height:1080, skipFonts:true });
     const a = document.createElement('a'); a.href=dataUrl; a.download=nome; a.click();
   }
+  function garantirJsPDF(){
+    return new Promise((res, rej)=>{
+      if(window.jspdf && window.jspdf.jsPDF) return res();
+      const urls = [
+        'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+        'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
+      ];
+      let i = 0;
+      const tenta = ()=>{
+        if(i >= urls.length) return rej(new Error('jsPDF indisponível'));
+        const s = document.createElement('script'); s.src = urls[i++];
+        s.onload = ()=> (window.jspdf && window.jspdf.jsPDF) ? res() : tenta();
+        s.onerror = tenta;
+        document.head.appendChild(s);
+      };
+      tenta();
+    });
+  }
   async function exportaPdfSlides(slides, prefixo, nomeArq){
     await garantirHtmlToImage();
-    await garantirHtml2pdf();
-    const JSPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
-    if(!JSPDF) throw new Error('jsPDF indisponível');
+    await garantirJsPDF();
+    const JSPDF = window.jspdf.jsPDF;
     const imgs = [];
     for(let i=0;i<slides.length;i++){
       const palco = await palcoTelao(prefixo+i, slides[i]);
