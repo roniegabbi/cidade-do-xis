@@ -2613,14 +2613,26 @@
       tenta();
     });
   }
+  async function assetDataUrl(url){
+    const r = await fetch(url); const b = await r.blob();
+    return await new Promise(res=>{ const f=new FileReader(); f.onload=()=>res(f.result); f.readAsDataURL(b); });
+  }
   async function exportaPdfSlides(slides, prefixo, nomeArq){
     await garantirHtmlToImage();
     await garantirJsPDF();
     const JSPDF = window.jspdf.jsPDF;
+    // embute as imagens do festival direto nos slides (nada depende da rede na hora da captura)
+    const ASSETS = {};
+    for(const a of ['marca-festival-do-xis.jpg','ilustracao-festival.png','fundo-raios-festival.png'])
+      ASSETS[a] = await assetDataUrl(a);
     const imgs = [];
     for(let i=0;i<slides.length;i++){
       const palco = await palcoTelao(prefixo+i, slides[i]);
+      let html = palco.innerHTML;
+      for(const a in ASSETS) html = html.split(a).join(ASSETS[a]);
+      palco.innerHTML = html;
       const el = palco.querySelector('#'+prefixo+i);
+      await Promise.all([...palco.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve()));
       imgs.push(await htmlToImage.toJpeg(el, { quality:0.95, pixelRatio:2, backgroundColor:'#b23227',
         canvasWidth:3840, canvasHeight:2160, width:1920, height:1080, skipFonts:true }));
       palco.remove();
@@ -2728,7 +2740,6 @@
         <span style="background:#fff;border-radius:26px;padding:16px 22px;display:inline-flex;box-shadow:0 12px 36px rgba(0,0,0,.45)"><img src="marca-festival-do-xis.jpg" style="height:190px;display:block"></span>
         <div style="font-size:92px;font-weight:800;margin-top:26px;text-shadow:0 5px 20px rgba(0,0,0,.55)">XIS DA GALERA</div>
         <div style="font-size:40px;font-weight:800;color:#f5b73c;margin-top:4px;text-shadow:0 3px 12px rgba(0,0,0,.5)">A votação popular em números</div>
-        
       </div>`;
   }
   function innerTotalTelao(reg, val, desc){
@@ -3091,7 +3102,7 @@
         <div style="position:absolute;left:0;right:0;top:70px;display:flex;flex-direction:column;align-items:center;text-align:center">
           <span style="background:#fff;border-radius:26px;padding:16px 22px;display:inline-flex;box-shadow:0 12px 36px rgba(0,0,0,.45)"><img src="marca-festival-do-xis.jpg" style="height:190px;display:block"></span>
           <div style="font-size:92px;font-weight:800;margin-top:26px;text-shadow:0 5px 20px rgba(0,0,0,.55)">MASTER XIS</div>
-          <div style="font-size:40px;font-weight:800;color:#f5b73c;margin-top:4px">O júri técnico em números</div></div>`;
+          <div style="font-size:40px;font-weight:800;color:#f5b73c;margin-top:4px;text-shadow:0 3px 12px rgba(0,0,0,.5)">O júri técnico em números</div></div>`;
 
       // 2 · como funciona
       const kcard = (num,rot)=>`<div style="flex:1;background:#f8edd3;border-radius:26px;padding:34px 20px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.35)">
