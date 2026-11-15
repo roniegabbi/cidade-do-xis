@@ -2778,59 +2778,6 @@
         <div style="position:absolute;top:870px;left:70px;right:70px;text-align:center;font-size:30px;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,.45)">Identificados por tr\u00eas marcas de automa\u00e7\u00e3o: <b style="color:#f5b73c">volume cravado no teto \u00b7 aparelho nunca repete \u00b7 navegador sempre igual</b></div>
         <div style="position:absolute;bottom:30px;left:70px;right:70px;text-align:center;font-size:22px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4\u00ba Festival Nacional do Xis \u00b7 Largo da Gare \u00b7 cidadedoxis.com</div>`;
   }
-  function innerNumeroTelao(tit, num, rotulo, corNum, frase){
-    return cabecaloTelao('Xis da Galera · ' + tit, 'votação popular por QR Code · um voto por pessoa')
-      + `<div style="position:absolute;top:260px;left:70px;right:70px;display:flex;justify-content:center">
-          <div style="background:#f8edd3;border-radius:40px;padding:60px 120px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.4)">
-            <div style="font-size:260px;font-weight:800;line-height:1;color:${corNum}">${num}</div>
-            <div style="font-size:46px;font-weight:800;color:#5c150d;margin-top:14px">${rotulo}</div>
-          </div>
-        </div>
-        <div style="position:absolute;top:800px;left:70px;right:70px;text-align:center;font-size:30px;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,.45)">${frase}</div>
-        <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
-  }
-  function innerFraudeTelao(desc){
-    const cartao = (tit, txt) => `<div style="flex:1;background:#f8edd3;border-radius:24px;padding:24px 26px;box-shadow:0 12px 36px rgba(0,0,0,.35)">
-      <div style="font-size:28px;font-weight:800;color:#a32330">${tit}</div>
-      <div style="font-size:21px;font-weight:600;color:#5c150d;margin-top:8px;line-height:1.4">${txt}</div></div>`;
-    return cabecaloTelao('Xis da Galera · Votos descartados', 'triagem antifraude')
-      + `<div style="position:absolute;top:250px;left:70px;right:70px;display:flex;justify-content:center">
-          <div style="background:#fdecec;border-radius:30px;padding:24px 90px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.4)">
-            <div style="font-size:150px;font-weight:800;line-height:1;color:#a32330">${desc}</div>
-            <div style="font-size:34px;font-weight:800;color:#5c150d;margin-top:6px">votos descartados por fraude (robô)</div></div></div>
-        <div style="position:absolute;top:620px;left:70px;right:70px;display:flex;gap:28px">
-          ${cartao('1 · Volume cravado no teto','Conexões com exatamente 40 votos — o limite por hora — que trocam de endereço e recomeçam. Gente de verdade produz número irregular.')}
-          ${cartao('2 · Aparelho nunca repete','40 votos = 40 “celulares” inéditos, 100% das vezes. Em rede real, aparelhos se repetem e são barrados pela trava de voto único.')}
-          ${cartao('3 · Navegador sempre igual','Os supostos celulares diferentes têm o mesmo modelo e versão de navegador. Público real exibe dezenas de combinações.')}
-        </div>
-        
-        <div style="position:absolute;bottom:30px;left:70px;right:70px;text-align:center;font-size:22px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
-  }
-  function innerNumeroTelao(tit, num, rotulo, corNum, frase){
-    return cabecaloTelao('Xis da Galera · ' + tit, 'votação popular por QR Code · um voto por pessoa')
-      + `<div style="position:absolute;top:260px;left:70px;right:70px;display:flex;justify-content:center">
-          <div style="background:#f8edd3;border-radius:40px;padding:60px 120px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.4)">
-            <div style="font-size:260px;font-weight:800;line-height:1;color:${corNum}">${num}</div>
-            <div style="font-size:46px;font-weight:800;color:#5c150d;margin-top:14px">${rotulo}</div>
-          </div>
-        </div>
-        <div style="position:absolute;top:800px;left:70px;right:70px;text-align:center;font-size:30px;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,.45)">${frase}</div>
-        <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
-  }
-  function innerFraudeTelao(desc){
-    const cartao = (tit, txt) => `<div style="flex:1;background:#f8edd3;border-radius:26px;padding:30px 28px;box-shadow:0 12px 36px rgba(0,0,0,.35)">
-      <div style="font-size:30px;font-weight:800;color:#a32330">${tit}</div>
-      <div style="font-size:24px;font-weight:600;color:#5c150d;margin-top:10px;line-height:1.45">${txt}</div></div>`;
-    return cabecaloTelao('Votação protegida · votos descartados', desc+' votos de robô identificados e fora da contagem')
-      + `<div style="position:absolute;top:240px;left:70px;right:70px;font-size:28px;font-weight:700;text-shadow:0 2px 10px rgba(0,0,0,.45)">Um programa automatizado tentou inflar um candidato. Ele foi identificado porque deixou três marcas que público de verdade não produz — e só é descartado o voto cuja conexão apresenta as três ao mesmo tempo:</div>
-        <div style="position:absolute;top:400px;left:70px;right:70px;display:flex;gap:30px">
-          ${cartao('1 · Volume cravado no teto','Conexões com exatamente 40 votos — o limite por hora — que trocam de endereço e recomeçam. Gente de verdade produz número irregular.')}
-          ${cartao('2 · Aparelho nunca repete','40 votos = 40 “celulares” inéditos, 100% das vezes. Em rede real, aparelhos se repetem e são barrados pela trava de voto único.')}
-          ${cartao('3 · Navegador sempre igual','Os supostos celulares diferentes têm o mesmo modelo e versão de navegador. Público real exibe dezenas de combinações.')}
-        </div>
-        <div style="position:absolute;top:840px;left:70px;right:70px;text-align:center;font-size:26px;font-weight:700;color:#f5b73c;text-shadow:0 2px 10px rgba(0,0,0,.45)">Critério objetivo, aplicado sem olhar o candidato · nenhum voto apagado: tudo preservado para auditoria</div>
-        <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
-  }
   async function baixarApresentacaoGalera(){
     const btn = g('btnApresGalera'); btn.disabled = true; btn.textContent = 'Gerando…';
     try{
