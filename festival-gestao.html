@@ -2533,7 +2533,7 @@
   async function renderGalera(){
     const [st, votos, cedula] = await Promise.all([
       SB.from('festival_votacao').select('aberta').eq('id',1).single(),
-      SB.from('festival_votos').select('espaco_numero,ip,criado_em'),
+      SB.from('festival_votos').select('espaco_numero,ip,criado_em').eq('suspeito', false),
       SB.rpc('cedula_xis_galera')
     ]);
     VOT_ABERTA = !!(st.data && st.data.aberta);
@@ -2574,7 +2574,7 @@
     catch(e){ toast('Gerador indisponível — verifique a conexão'); return; }
     const btn = g('btnRelFraude'); btn.disabled = true; btn.textContent = 'Gerando…';
     const [votos, cedula] = await Promise.all([
-      SB.from('festival_votos').select('espaco_numero,ip,user_agent,criado_em,device'),
+      SB.from('festival_votos').select('espaco_numero,ip,user_agent,criado_em,device,suspeito'),
       SB.rpc('cedula_xis_galera')
     ]);
     const vs = votos.data||[], nomes = {};
@@ -2594,6 +2594,7 @@
     const horas = Object.entries(porHora).sort((a,b)=>a[0]<b[0]?-1:1);
     const maxH = Math.max(1,...horas.map(([,c])=>c));
     const semIp = vs.filter(v=>!v.ip).length;
+    const marcados = vs.filter(v=>v.suspeito).length;
     const risco = suspIp.length || suspUa.length;
     const LOGO_PDF = 'marca-festival-do-xis.jpg';
     const doc = document.createElement('div');
@@ -2613,7 +2614,7 @@
           : 'Sem concentrações relevantes por conexão ou por assinatura de navegador. Limites ativos: 40 votos/hora e 150 votos/24h por conexão · 1 voto por dispositivo (trava no banco).'}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
-        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${vs.length}</div><div style="font-size:9.5px;color:#8a7f95">votos computados</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${vs.length}</div><div style="font-size:9.5px;color:#8a7f95">votos totais (${marcados} marcados como suspeitos e fora da contagem)</div></div>
         <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${ultHora}</div><div style="font-size:9.5px;color:#8a7f95">na última hora</div></div>
         <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${ipsOrd.length}</div><div style="font-size:9.5px;color:#8a7f95">conexões distintas</div></div>
         <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${semIp}</div><div style="font-size:9.5px;color:#8a7f95">votos sem IP registrado</div></div>
@@ -2678,7 +2679,7 @@
     try{
       await garantirHtmlToImage();
       const [votos, cedula] = await Promise.all([
-        SB.from('festival_votos').select('espaco_numero'),
+        SB.from('festival_votos').select('espaco_numero').eq('suspeito', false),
         SB.rpc('cedula_xis_galera')
       ]);
       const vs = votos.data||[], ops = cedula.data||[];
