@@ -678,6 +678,7 @@
         <button class="btn btn-g btn-sm" onclick="renderMaster()">↻ Atualizar notas</button>
         <button class="btn btn-g btn-sm" onclick="window.open('qrcodes-master-xis.html','_blank')">QR Codes dos participantes</button>
         <button class="btn btn-g btn-sm" id="btnImgMaster" onclick="baixarResultadoMaster()">🏆 Imagem do resultado</button>
+        <button class="btn btn-g btn-sm" id="btnApresMaster" onclick="baixarApresentacaoMaster()">📑 Apresentação (PDF)</button>
         <button class="btn btn-g btn-sm" onclick="novoMasterPart()">+ Participante</button>
       </div>
       <div class="kpis" id="masterKpis"></div>
@@ -3041,6 +3042,119 @@
   }
 
   const MX_EMBLEMA = "<svg style=\"width:240px;height:auto;display:block;margin:0 auto\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 680 600\"><rect x=\"0\" y=\"0\" width=\"680\" height=\"600\" rx=\"24\" fill=\"#2a1038\"/><defs>\n<linearGradient id=\"ouroMX\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n<stop offset=\"0\" stop-color=\"#f7d24c\"/><stop offset=\".5\" stop-color=\"#f5a800\"/><stop offset=\"1\" stop-color=\"#b17b00\"/>\n</linearGradient>\n</defs>\n<circle cx=\"340\" cy=\"238\" r=\"212\" fill=\"#3a1650\"/>\n<circle cx=\"340\" cy=\"238\" r=\"168\" fill=\"#4b1a60\"/>\n<circle cx=\"340\" cy=\"238\" r=\"150\" fill=\"none\" stroke=\"url(#ouroMX)\" stroke-width=\"8\"/>\n<circle cx=\"340\" cy=\"238\" r=\"137\" fill=\"none\" stroke=\"#e91e8c\" stroke-width=\"2\"/>\n<text x=\"340\" y=\"228\" font-family=\"Georgia, serif\" font-size=\"92\" font-weight=\"bold\" fill=\"url(#ouroMX)\" text-anchor=\"middle\" letter-spacing=\"2\">MX</text>\n<circle cx=\"340\" cy=\"84\" r=\"25\" fill=\"#2a1038\" stroke=\"url(#ouroMX)\" stroke-width=\"4\"/>\n<path d=\"M340 69 L345 80 L357 80 L347 88 L351 100 L340 93 L329 100 L333 88 L323 80 L335 80 Z\" fill=\"#f7d24c\"/>\n<g transform=\"rotate(-14 316 276)\">\n<ellipse cx=\"316\" cy=\"276\" rx=\"23\" ry=\"42\" fill=\"#8f3d46\"/>\n<ellipse cx=\"313\" cy=\"273\" rx=\"19\" ry=\"38\" fill=\"#a1454f\"/>\n<g fill=\"#e3c9c0\"><ellipse cx=\"308\" cy=\"258\" rx=\"4\" ry=\"2.5\"/><ellipse cx=\"318\" cy=\"270\" rx=\"5\" ry=\"3\"/><ellipse cx=\"309\" cy=\"284\" rx=\"4\" ry=\"2.5\"/><ellipse cx=\"318\" cy=\"296\" rx=\"4.5\" ry=\"3\"/></g>\n<path d=\"M296 254 L334 288 M296 274 L332 304 M300 240 L336 268\" stroke=\"#d9b98a\" stroke-width=\"2\" opacity=\".9\"/>\n<path d=\"M334 254 L298 288 M336 274 L302 302 M330 240 L296 268\" stroke=\"#d9b98a\" stroke-width=\"2\" opacity=\".9\"/>\n<path d=\"M316 236 L316 228\" stroke=\"#d9b98a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n</g>\n<g transform=\"rotate(13 366 274)\">\n<rect x=\"349\" y=\"240\" width=\"34\" height=\"70\" rx=\"17\" fill=\"#7d2b33\"/>\n<rect x=\"352\" y=\"243\" width=\"26\" height=\"64\" rx=\"13\" fill=\"#8f3038\"/>\n<g fill=\"#e8cfc4\"><circle cx=\"361\" cy=\"256\" r=\"1.8\"/><circle cx=\"369\" cy=\"266\" r=\"2\"/><circle cx=\"359\" cy=\"278\" r=\"1.6\"/><circle cx=\"371\" cy=\"288\" r=\"1.8\"/><circle cx=\"363\" cy=\"298\" r=\"2\"/></g>\n<path d=\"M350 258 L382 258 M350 274 L382 274 M350 290 L382 290\" stroke=\"#d9b98a\" stroke-width=\"2.2\"/>\n<path d=\"M366 238 L366 230\" stroke=\"#d9b98a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n</g>\n<path d=\"M240 314 Q 234 288 246 274 Q 246 288 252 292 Q 246 268 262 262 Q 258 276 264 284 Q 264 264 280 262 Q 274 276 276 290 Q 264 312 248 316 Z\" fill=\"#5b8f26\"/>\n<path d=\"M246 312 Q 242 294 252 286 Q 252 296 258 298 Q 256 284 268 280 Q 264 292 268 298 Q 258 310 250 312 Z\" fill=\"#79ad3c\"/>\n<path d=\"M250 308 Q 256 296 254 288 M262 304 Q 266 294 268 286\" stroke=\"#a5cf6e\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/>\n<circle cx=\"432\" cy=\"300\" r=\"17\" fill=\"#6f9c33\"/>\n<circle cx=\"429\" cy=\"297\" r=\"14\" fill=\"#8fbf4d\"/>\n<path d=\"M419 292 Q 429 285 442 290 M418 301 Q 429 294 443 299 M422 309 Q 431 303 441 307\" stroke=\"#5b8226\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M423 290 A 15 15 0 0 1 429 285\" stroke=\"#c8e39a\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/>\n<g stroke=\"#e6d29a\" stroke-width=\"3\" stroke-linecap=\"round\" opacity=\".9\">\n<path d=\"M268 318 L280 310\"/><path d=\"M292 320 L306 312\"/><path d=\"M330 322 L344 315\"/><path d=\"M368 322 L382 314\"/><path d=\"M404 320 L416 312\"/>\n<path d=\"M280 322 L268 312\"/><path d=\"M356 323 L344 314\"/><path d=\"M416 320 L404 311\"/>\n</g>\n<path d=\"M282 316 L322 302 L322 310 Q 304 320 282 322 Z\" fill=\"#e0a84c\"/>\n<path d=\"M282 316 L322 302 L305 295 Q 290 302 282 316 Z\" fill=\"#f7ecb0\"/>\n<path d=\"M282 316 L305 295 L305 302 Q 292 308 286 318 Z\" fill=\"#eed37a\"/>\n<circle cx=\"306\" cy=\"302\" r=\"2.4\" fill=\"#d9b95a\"/>\n<circle cx=\"296\" cy=\"308\" r=\"3\" fill=\"#d9b95a\"/>\n<ellipse cx=\"340\" cy=\"316\" rx=\"11\" ry=\"14\" fill=\"#efe0c4\"/>\n<ellipse cx=\"355\" cy=\"312\" rx=\"11\" ry=\"14\" fill=\"#f5ead6\"/>\n<ellipse cx=\"347\" cy=\"324\" rx=\"11\" ry=\"13\" fill=\"#e8d5b4\"/>\n<path d=\"M351 304 A 10 12 0 0 1 358 302\" stroke=\"#fdf7ea\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/>\n<circle cx=\"392\" cy=\"310\" r=\"18\" fill=\"#b83232\"/>\n<circle cx=\"390\" cy=\"308\" r=\"16\" fill=\"#d84343\"/>\n<path d=\"M380 300 A 16 16 0 0 1 390 294\" stroke=\"#f29d8c\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/>\n<path d=\"M392 296 L387 290 M392 296 L398 291 M392 296 L392 288\" stroke=\"#3f6b1a\" stroke-width=\"2.8\" stroke-linecap=\"round\"/>\n<g transform=\"rotate(24 414 322)\">\n<path d=\"M406 300 Q 414 298 418 304 Q 424 316 418 330 Q 415 336 411 330 Q 402 314 406 300 Z\" fill=\"#e8862e\"/>\n<path d=\"M408 304 Q 414 303 416 307 Q 419 316 416 326\" stroke=\"#f5a95c\" stroke-width=\"2.4\" fill=\"none\"/>\n<path d=\"M407 310 L415 308 M408 318 L416 315\" stroke=\"#c96a1e\" stroke-width=\"2\" stroke-linecap=\"round\"/>\n<path d=\"M410 298 Q 406 288 400 284\" stroke=\"#4d7a1f\" stroke-width=\"2.8\" fill=\"none\" stroke-linecap=\"round\"/>\n</g>\n<path d=\"M228 320 Q 224 372 250 390 L 430 390 Q 456 372 452 320 Z\" fill=\"#b17b3b\"/>\n<path d=\"M228 320 Q 224 372 250 390 L 296 390 Q 278 370 276 320 Z\" fill=\"#9a662d\"/>\n<g stroke=\"#7d5122\" stroke-width=\"4.5\" fill=\"none\" opacity=\".85\">\n<path d=\"M232 338 Q 340 354 448 338\"/>\n<path d=\"M234 358 Q 340 374 446 356\"/>\n<path d=\"M242 378 Q 340 388 438 376\"/>\n</g>\n<g stroke=\"#c98f4a\" stroke-width=\"3\" opacity=\".7\">\n<path d=\"M252 326 L252 386 M292 330 L292 390 M340 332 L340 391 M388 330 L388 390 M428 326 L428 386\"/>\n</g>\n<path d=\"M218 316 Q 340 298 462 316 L 458 332 Q 340 316 222 332 Z\" fill=\"#c98f4a\"/>\n<path d=\"M218 316 Q 340 298 462 316\" stroke=\"#a8743a\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M446 326 Q 470 332 474 352 Q 476 368 466 376\" stroke=\"#96422a\" stroke-width=\"13\" fill=\"none\" stroke-linecap=\"round\"/>\n<path d=\"M446 326 Q 470 332 474 352 Q 476 368 466 376\" stroke=\"#ad512f\" stroke-width=\"9\" fill=\"none\" stroke-linecap=\"round\"/>\n<path d=\"M460 332 L468 326 M470 348 L479 346 M470 364 L479 366\" stroke=\"#7a3018\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n<circle cx=\"444\" cy=\"326\" r=\"5\" fill=\"#7a3018\"/>\n<text x=\"340\" y=\"482\" font-family=\"Georgia, serif\" font-size=\"56\" font-weight=\"bold\" fill=\"#ffffff\" text-anchor=\"middle\" letter-spacing=\"8\">MASTER XIS</text>\n<g stroke=\"url(#ouroMX)\" stroke-width=\"3\">\n<line x1=\"138\" y1=\"502\" x2=\"284\" y2=\"502\"/><line x1=\"396\" y1=\"502\" x2=\"542\" y2=\"502\"/>\n</g>\n<circle cx=\"340\" cy=\"502\" r=\"5\" fill=\"#e91e8c\"/>\n<text x=\"340\" y=\"534\" font-family=\"Georgia, serif\" font-size=\"20\" fill=\"#f5a800\" text-anchor=\"middle\" letter-spacing=\"4\">O DESAFIO DO XIS COLONO · 2026</text><text x=\"340\" y=\"562\" font-family=\"Segoe UI, sans-serif\" font-size=\"14\" fill=\"#c9b3d8\" text-anchor=\"middle\" letter-spacing=\"2\">FESTIVAL DO XIS · SANTA MARIA · DA CHÁCARA À CHAPA</text></svg>";
+  async function baixarApresentacaoMaster(){
+    const btn = g('btnApresMaster'); btn.disabled = true; btn.textContent = 'Gerando…';
+    try{
+      await garantirHtml2pdf();
+      const [parts, avs] = await Promise.all([
+        SB.from('master_participantes').select('*').order('numero'),
+        SB.from('master_avaliacoes').select('*')
+      ]);
+      const P = parts.data||[], A = avs.data||[];
+      if(!A.length){ toast('Ainda não há avaliações do júri'); btn.disabled=false; btn.textContent='📑 Apresentação (PDF)'; return; }
+      const porP = {}; A.forEach(a=>{ (porP[a.participante]=porP[a.participante]||[]).push(a); });
+      const rank = P.map(p=>{
+        const notas = porP[p.numero]||[];
+        const medias = [1,2,3,4,5].map(i=> notas.length ? notas.reduce((s,a)=>s+a['c'+i],0)/notas.length : 0);
+        return {p, n: notas.length, medias, total: medias.reduce((s,m)=>s+m,0)};
+      }).filter(r=>r.n>0).sort((a,b)=>b.total-a.total);
+      const jurados = new Set(A.map(a=>(a.jurado||'').trim().toLowerCase())).size;
+      const fmt = v => v.toFixed(1).replace('.', ',');
+      const mediasGerais = [1,2,3,4,5].map(i=> A.reduce((s,a)=>s+a['c'+i],0)/A.length );
+      const rodape = `<div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
+
+      // 1 · capa
+      const sCapa = `<img src="ilustracao-festival.png" style="position:absolute;left:0;right:0;bottom:0;width:100%;display:block">
+        <div style="position:absolute;left:0;right:0;top:70px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <span style="background:#fff;border-radius:26px;padding:16px 22px;display:inline-flex;box-shadow:0 12px 36px rgba(0,0,0,.45)"><img src="marca-festival-do-xis.jpg" style="height:190px;display:block"></span>
+          <div style="font-size:92px;font-weight:800;margin-top:26px;text-shadow:0 5px 20px rgba(0,0,0,.55)">MASTER XIS</div>
+          <div style="font-size:40px;font-weight:800;color:#f5b73c;margin-top:4px;text-shadow:0 3px 12px rgba(0,0,0,.5)">Concurso oficial · Júri técnico</div>
+        </div>`;
+
+      // 2 · como funciona
+      const kcard = (num,rot)=>`<div style="flex:1;background:#f8edd3;border-radius:26px;padding:34px 20px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.35)">
+        <div style="font-size:92px;font-weight:800;line-height:1;color:#7a140c">${num}</div>
+        <div style="font-size:27px;font-weight:800;color:#5c150d;margin-top:8px">${rot}</div></div>`;
+      const sComo = cabecaloTelao('Master Xis · Como funciona', 'notas de 5 a 10 por critério · cédula digital por QR Code')
+        + `<div style="position:absolute;top:240px;left:70px;right:70px;display:flex;gap:28px">
+            ${kcard(rank.length,'operações na disputa')}${kcard(jurados,'jurados')}${kcard(5,'critérios')}${kcard(50,'nota máxima')}
+          </div>
+          <div style="position:absolute;top:620px;left:70px;right:70px;background:rgba(248,237,211,.18);border:2px solid rgba(248,237,211,.5);border-radius:26px;padding:28px 36px;text-align:center">
+            <div style="font-size:30px;font-weight:800;color:#f5b73c">Os 5 critérios</div>
+            <div style="font-size:32px;font-weight:700;margin-top:10px">${MX_CRIT.join('  ·  ')}</div>
+            <div style="font-size:24px;font-weight:600;color:#f8edd3;margin-top:12px">Nota final = soma das médias dos jurados em cada critério</div>
+          </div>`+rodape;
+
+      // 3 · avaliações registradas
+      const sAval = cabecaloTelao('Master Xis · Avaliações do júri', 'cada jurado avalia cada operação uma única vez')
+        + `<div style="position:absolute;top:260px;left:70px;right:70px;display:flex;justify-content:center">
+            <div style="background:#f8edd3;border-radius:40px;padding:60px 120px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.4)">
+              <div style="font-size:260px;font-weight:800;line-height:1;color:#7a140c">${A.length}</div>
+              <div style="font-size:46px;font-weight:800;color:#5c150d;margin-top:14px">avaliações registradas</div>
+            </div></div>
+          <div style="position:absolute;top:800px;left:70px;right:70px;text-align:center;font-size:30px;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,.45)">Registradas na cédula digital, pelo celular de cada jurado, diante do público.</div>`+rodape;
+
+      // 4 · médias por critério
+      const maxM = 10;
+      const linhasCrit = MX_CRIT.map((c,ix)=>`
+        <div style="display:grid;grid-template-columns:440px 1fr 150px;gap:22px;align-items:center;margin:${ix===0?'0':'30px'} 0 0">
+          <div style="font-size:40px;font-weight:800;white-space:nowrap;text-shadow:0 3px 12px rgba(0,0,0,.5)">${c}</div>
+          <div style="height:52px;background:rgba(248,237,211,.25);border-radius:99px;overflow:hidden"><div style="width:${Math.round(mediasGerais[ix]/maxM*100)}%;height:100%;background:linear-gradient(90deg,#ef9f27,#f5b73c);border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.35)"></div></div>
+          <div style="font-size:48px;font-weight:800;text-align:right;color:#f5b73c;text-shadow:0 3px 12px rgba(0,0,0,.5)">${fmt(mediasGerais[ix])}</div>
+        </div>`).join('');
+      const sCrit = cabecaloTelao('Master Xis · A régua do júri', 'média geral dos jurados em cada critério (escala 5–10)')
+        + `<div style="position:absolute;top:250px;left:70px;right:70px">${linhasCrit}</div>`+rodape;
+
+      // 5 · ranking com o 1º oculto
+      const topR = rank.slice(0,5);
+      const medal = ['🥇','🥈','🥉','4º','5º'];
+      const maxT = topR[0].total;
+      const linhasRank = topR.map((r,ix)=>{
+        const oculto = ix===0;
+        return `<div style="display:grid;grid-template-columns:110px 520px 1fr 210px;gap:22px;align-items:center;margin:${ix===0?'0':'26px'} 0 0">
+          <div style="font-size:${ix<3?'64px':'46px'};font-weight:800;text-align:center;color:#f8edd3">${medal[ix]}</div>
+          <div style="font-size:${ix===0?'54px':'44px'};font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 3px 12px rgba(0,0,0,.5);${oculto?'letter-spacing:10px;color:#f5b73c':''}">${oculto?'? ? ? ? ?':esc(r.p.nome)}</div>
+          <div style="height:${ix===0?'64px':'50px'};background:rgba(248,237,211,.25);border-radius:99px;overflow:hidden">${oculto?`<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#f5a800,#f5a800 26px,#ef9f27 26px,#ef9f27 52px);border-radius:99px"></div>`:`<div style="width:${Math.max(4,Math.round(r.total/maxT*100))}%;height:100%;background:linear-gradient(90deg,#ef9f27,#e8a04a);border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.35)"></div>`}</div>
+          <div style="font-size:${ix===0?'54px':'42px'};font-weight:800;text-align:right;color:#f5b73c;text-shadow:0 3px 12px rgba(0,0,0,.5)">${oculto?'?':fmt(r.total)+' pts'}</div>
+        </div>`;
+      }).join('');
+      const sRank = cabecaloTelao('Master Xis · O pódio do júri', 'nota final sobre 50 pontos · e o campeão é...')
+        + `<div style="position:absolute;top:230px;left:70px;right:70px">${linhasRank}</div>`+rodape;
+
+      // 6 · campeão
+      const c1 = rank[0];
+      const critFaixa = MX_CRIT.map((c,ix)=>`<div style="flex:1;text-align:center"><div style="font-size:20px;font-weight:700;color:#7a3a10">${c}</div><div style="font-size:36px;font-weight:800;color:#a32a1c">${fmt(c1.medias[ix])}</div></div>`).join('');
+      const sCamp = `<img src="ilustracao-festival.png" style="position:absolute;left:0;right:0;bottom:0;width:100%;display:block">
+        <div style="position:absolute;left:0;right:0;top:40px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <span style="background:#fff;border-radius:22px;padding:12px 16px;display:inline-flex;box-shadow:0 12px 36px rgba(0,0,0,.45)"><img src="marca-festival-do-xis.jpg" style="height:110px;display:block"></span>
+          <div style="font-size:34px;font-weight:800;letter-spacing:8px;margin-top:16px;text-transform:uppercase;color:#f5b73c;text-shadow:0 2px 12px rgba(0,0,0,.5)">Campeão · Master Xis 2026</div>
+          <div style="margin-top:12px;background:linear-gradient(135deg,#f5a800,#ef9f27);border-radius:34px;padding:26px 80px;box-shadow:0 16px 48px rgba(0,0,0,.5);text-align:center">
+            <div style="font-size:56px">🏆</div>
+            <div style="font-size:80px;font-weight:800;line-height:1.05;color:#5c150d">${esc(c1.p.nome)}</div>
+            ${c1.p.detalhe?`<div style="font-size:30px;font-weight:700;color:#7a3a10;margin-top:4px">${esc(c1.p.detalhe)}</div>`:''}
+            <div style="font-size:44px;font-weight:800;color:#a32a1c;margin-top:8px">${fmt(c1.total)} / 50 pontos</div>
+            <div style="display:flex;gap:10px;margin-top:14px;background:#f8edd3;border-radius:18px;padding:14px 10px;min-width:900px">${critFaixa}</div>
+          </div>
+        </div>`;
+
+      const slides = [sCapa, sComo, sAval, sCrit, sRank, sCamp];
+      const palcos = [];
+      for(let i=0;i<slides.length;i++) palcos.push(await palcoTelao('slideMx'+i, slides[i]));
+      const optC = { scale:1, useCORS:true, scrollY:0, scrollX:0, backgroundColor:'#b23227', windowWidth:2000, width:1920, height:1080 };
+      const pdf = await html2pdf().set({ margin:0, image:{type:'jpeg',quality:.92}, html2canvas:optC,
+        jsPDF:{ unit:'pt', format:[1920,1080], orientation:'landscape' } })
+        .from(palcos[0].firstElementChild).toPdf().get('pdf');
+      for(let i=1;i<palcos.length;i++){
+        const canvas = await html2pdf().set({ html2canvas:optC }).from(palcos[i].firstElementChild).toCanvas().get('canvas');
+        pdf.addPage([1920,1080],'landscape');
+        pdf.addImage(canvas.toDataURL('image/jpeg',.92),'JPEG',0,0,1920,1080);
+      }
+      pdf.save('Apresentacao-Master-Xis-' + new Date().toISOString().slice(0,16).replace('T','-').replace(':','h') + '.pdf');
+      palcos.forEach(x=>x.remove());
+      toast('Apresentação do Master Xis baixada 📑');
+    }catch(e){ console.error(e); toast('Não foi possível gerar a apresentação'); }
+    btn.disabled = false; btn.textContent = '📑 Apresentação (PDF)';
+  }
   async function baixarResultadoMaster(){
     const btn = g('btnImgMaster'); btn.disabled = true; btn.textContent = 'Gerando…';
     try{
