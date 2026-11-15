@@ -2621,12 +2621,12 @@
     for(let i=0;i<slides.length;i++){
       const palco = await palcoTelao(prefixo+i, slides[i]);
       const el = palco.querySelector('#'+prefixo+i);
-      imgs.push(await htmlToImage.toJpeg(el, { quality:0.92, pixelRatio:1, backgroundColor:'#b23227',
-        canvasWidth:1920, canvasHeight:1080, width:1920, height:1080, skipFonts:true }));
+      imgs.push(await htmlToImage.toJpeg(el, { quality:0.95, pixelRatio:2, backgroundColor:'#b23227',
+        canvasWidth:3840, canvasHeight:2160, width:1920, height:1080, skipFonts:true }));
       palco.remove();
     }
-    const pdf = new JSPDF({ unit:'pt', format:[1920,1080], orientation:'landscape' });
-    imgs.forEach((im,ix)=>{ if(ix>0) pdf.addPage([1920,1080],'landscape'); pdf.addImage(im,'JPEG',0,0,1920,1080); });
+    const pdf = new JSPDF({ unit:'pt', format:[3840,2160], orientation:'landscape' });
+    imgs.forEach((im,ix)=>{ if(ix>0) pdf.addPage([3840,2160],'landscape'); pdf.addImage(im,'JPEG',0,0,3840,2160); });
     pdf.save(nomeArq);
   }
   async function baixarGraficoTempo(){
