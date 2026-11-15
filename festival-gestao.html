@@ -2594,6 +2594,23 @@
       canvasWidth:1920, canvasHeight:1080, width:1920, height:1080, skipFonts:true });
     const a = document.createElement('a'); a.href=dataUrl; a.download=nome; a.click();
   }
+  async function exportaPdfSlides(slides, prefixo, nomeArq){
+    await garantirHtmlToImage();
+    await garantirHtml2pdf();
+    const JSPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+    if(!JSPDF) throw new Error('jsPDF indisponível');
+    const imgs = [];
+    for(let i=0;i<slides.length;i++){
+      const palco = await palcoTelao(prefixo+i, slides[i]);
+      const el = palco.querySelector('#'+prefixo+i);
+      imgs.push(await htmlToImage.toJpeg(el, { quality:0.92, pixelRatio:1, backgroundColor:'#b23227',
+        canvasWidth:1920, canvasHeight:1080, width:1920, height:1080, skipFonts:true }));
+      palco.remove();
+    }
+    const pdf = new JSPDF({ unit:'pt', format:[1920,1080], orientation:'landscape' });
+    imgs.forEach((im,ix)=>{ if(ix>0) pdf.addPage([1920,1080],'landscape'); pdf.addImage(im,'JPEG',0,0,1920,1080); });
+    pdf.save(nomeArq);
+  }
   async function baixarGraficoTempo(){
     const btn = g('btnGrafTempo'); btn.disabled = true; btn.textContent = 'Gerando…';
     try{
@@ -2781,19 +2798,7 @@
         innerTempoTelao(hs,validos),
         innerTop5Suspense(rank,validos),
         innerCampeaoTelao(rank[0],validos)];
-      const palcos = [];
-      for(let i=0;i<slides.length;i++) palcos.push(await palcoTelao('slideAp'+i, slides[i]));
-      const optC = { scale:1, useCORS:true, scrollY:0, scrollX:0, backgroundColor:'#b23227', windowWidth:2000, width:1920, height:1080 };
-      const pdf = await html2pdf().set({ margin:0, image:{type:'jpeg',quality:.92}, html2canvas:optC,
-        jsPDF:{ unit:'pt', format:[1920,1080], orientation:'landscape' } })
-        .from(palcos[0].firstElementChild).toPdf().get('pdf');
-      for(let i=1;i<palcos.length;i++){
-        const canvas = await html2pdf().set({ html2canvas:optC }).from(palcos[i].firstElementChild).toCanvas().get('canvas');
-        pdf.addPage([1920,1080],'landscape');
-        pdf.addImage(canvas.toDataURL('image/jpeg',.92),'JPEG',0,0,1920,1080);
-      }
-      pdf.save('Apresentacao-Xis-da-Galera-' + new Date().toISOString().slice(0,16).replace('T','-').replace(':','h') + '.pdf');
-      palcos.forEach(x=>x.remove());
+      await exportaPdfSlides(slides, 'slideAp', 'Apresentacao-Xis-da-Galera-' + new Date().toISOString().slice(0,16).replace('T','-').replace(':','h') + '.pdf');
       toast('Apresentação PDF baixada 📑');
     }catch(e){ console.error(e); toast('Não foi possível gerar a apresentação'); }
     btn.disabled = false; btn.textContent = '📑 Apresentação (PDF)';
@@ -3138,19 +3143,7 @@
         </div>`;
 
       const slides = [sCapa, sComo, sAval, sCrit, sRank, sCamp];
-      const palcos = [];
-      for(let i=0;i<slides.length;i++) palcos.push(await palcoTelao('slideMx'+i, slides[i]));
-      const optC = { scale:1, useCORS:true, scrollY:0, scrollX:0, backgroundColor:'#b23227', windowWidth:2000, width:1920, height:1080 };
-      const pdf = await html2pdf().set({ margin:0, image:{type:'jpeg',quality:.92}, html2canvas:optC,
-        jsPDF:{ unit:'pt', format:[1920,1080], orientation:'landscape' } })
-        .from(palcos[0].firstElementChild).toPdf().get('pdf');
-      for(let i=1;i<palcos.length;i++){
-        const canvas = await html2pdf().set({ html2canvas:optC }).from(palcos[i].firstElementChild).toCanvas().get('canvas');
-        pdf.addPage([1920,1080],'landscape');
-        pdf.addImage(canvas.toDataURL('image/jpeg',.92),'JPEG',0,0,1920,1080);
-      }
-      pdf.save('Apresentacao-Master-Xis-' + new Date().toISOString().slice(0,16).replace('T','-').replace(':','h') + '.pdf');
-      palcos.forEach(x=>x.remove());
+      await exportaPdfSlides(slides, 'slideMx', 'Apresentacao-Master-Xis-' + new Date().toISOString().slice(0,16).replace('T','-').replace(':','h') + '.pdf');
       toast('Apresentação do Master Xis baixada 📑');
     }catch(e){ console.error(e); toast('Não foi possível gerar a apresentação'); }
     btn.disabled = false; btn.textContent = '📑 Apresentação (PDF)';
