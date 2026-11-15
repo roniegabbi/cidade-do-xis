@@ -2603,6 +2603,13 @@
     const LOGO_PDF = 'marca-festival-do-xis.jpg';
     const doc = document.createElement('div');
     doc.style.cssText = 'width:194mm;padding:8mm;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#3a2f42;font-size:11px';
+    // classifica conexões pelo critério formal do robô
+    ipsOrd.forEach(([ip,o])=>{ o.robo = o.c>=30 && o.uas.size<=2 && o.devs.size===o.c; });
+    const roboIps = ipsOrd.filter(([,o])=>o.robo);
+    const topBar = ipsOrd.slice(0,14);
+    const maxBar = Math.max(40, ...topBar.map(([,o])=>o.c));
+    const pos40 = Math.round(40/maxBar*100);
+    const secTit = t => `<div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin:14px 0 6px">${t}</div>`;
     doc.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #b23227;padding-bottom:10px;margin-bottom:12px">
         <img src="${LOGO_PDF}" crossorigin="anonymous" style="height:52px">
@@ -2611,47 +2618,68 @@
           <div style="font-size:11px;color:#8a7f95">Voto popular por QR Code · gerado em ${agora.toLocaleString('pt-BR')} · uso interno da Comissão Organizadora</div>
         </div>
       </div>
-      <div style="padding:10px 14px;border-radius:10px;margin-bottom:12px;background:${risco?'#fdecec':'#e8f6ee'};border-left:5px solid ${risco?'#d63344':'#1d9e57'}">
-        <b style="font-size:13px;color:${risco?'#a32330':'#0c6b3d'}">${risco?'⚠ INDÍCIOS A INVESTIGAR':'✔ NENHUM INDÍCIO DE FRAUDE'}</b>
-        <div style="font-size:11px;margin-top:2px">${risco
-          ? (suspIp.length+' conexão(ões) com 15+ votos e '+suspUa.length+' assinatura(s) de navegador com 30+ votos — detalhes abaixo. Pode ser o wi-fi do evento; confira a diversidade de aparelhos.')
-          : 'Sem concentrações relevantes por conexão ou por assinatura de navegador. Limites ativos: 40 votos/hora e 150 votos/24h por conexão · 1 voto por dispositivo (trava no banco).'}</div>
+
+      <div style="padding:10px 14px;border-radius:10px;margin-bottom:10px;background:${roboIps.length?'#fdecec':'#e8f6ee'};border-left:5px solid ${roboIps.length?'#d63344':'#1d9e57'}">
+        <b style="font-size:14px;color:${roboIps.length?'#a32330':'#0c6b3d'}">${roboIps.length?'VOTOS DE ROBÔ IDENTIFICADOS E FORA DA CONTAGEM':'NENHUM INDÍCIO DE FRAUDE'}</b>
+        <div style="font-size:11px;margin-top:3px;line-height:1.5">${roboIps.length
+          ? `De <b>${vs.length}</b> votos registrados, <b>${marcados}</b> foram marcados como inválidos por automação e <b>não são contados</b> no placar. Restam <b>${vs.length-marcados} votos válidos</b>. Nenhum voto foi apagado: todos permanecem no banco de dados como evidência.`
+          : `Todos os ${vs.length} votos registrados passaram pelos filtros sem concentrações suspeitas. Proteções ativas: 1 voto por aparelho, 40 votos/hora e 150/24h por conexão.`}</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
-        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${vs.length}</div><div style="font-size:9.5px;color:#8a7f95">votos totais (${marcados} marcados como suspeitos e fora da contagem)</div></div>
-        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${ultHora}</div><div style="font-size:9.5px;color:#8a7f95">na última hora</div></div>
-        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${ipsOrd.length}</div><div style="font-size:9.5px;color:#8a7f95">conexões distintas</div></div>
-        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:800;color:#7a140c">${semIp}</div><div style="font-size:9.5px;color:#8a7f95">votos sem IP registrado</div></div>
+
+      ${secTit('Como o robô foi identificado (em linguagem simples)')}
+      <div style="font-size:10.5px;line-height:1.55;margin-bottom:4px">
+        Cada voto registra: hora, candidato, um código do aparelho, o endereço da conexão (IP) e a assinatura do navegador.
+        O robô burla a trava de "1 voto por aparelho" <b>inventando um aparelho novo a cada voto</b>. Isso deixa três marcas que público real não produz,
+        e um voto só é marcado quando a conexão dele apresenta <b>as três ao mesmo tempo</b>:</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px">
+        <tr>${['1 · Volume cravado no teto','2 · Nenhum aparelho se repete','3 · Navegador sempre igual'].map(h=>`<th style="background:#7a140c;color:#fff;text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr>
+        <tr>
+          <td style="padding:5px 8px;border:1px solid #f3e6cc;vertical-align:top">A conexão despeja <b>exatamente 40 votos</b> (o limite por hora), é bloqueada, troca de endereço e recomeça. Pessoas produzem números irregulares.</td>
+          <td style="padding:5px 8px;border:1px solid #f3e6cc;vertical-align:top">40 votos = 40 "aparelhos" diferentes, 100% das vezes. Em rede real, aparelhos se repetem e são barrados pela trava de voto único.</td>
+          <td style="padding:5px 8px;border:1px solid #f3e6cc;vertical-align:top">Os supostos aparelhos diferentes têm o <b>mesmo modelo e versão de navegador</b>. Público real exibe dezenas de combinações.</td>
+        </tr>
+      </table>
+
+      ${secTit('Gráfico — votos por conexão: as barras que batem na linha dos 40 são o robô')}
+      <div style="font-size:9.5px;color:#8a7f95;margin-bottom:4px">Cada barra é uma conexão (IP). A linha tracejada marca 40 votos — o teto por hora do sistema. Conexões em <b style="color:#a32330">vermelho</b> = padrão de robô (fora da contagem); em <b style="color:#0c6b3d">verde</b> = uso real (wi-fi/4G compartilhado, aparelhos repetidos, vários navegadores).</div>
+      <div style="position:relative;margin-bottom:12px;padding-right:40px">
+        <div style="position:absolute;left:calc(150px + (100% - 190px) * ${pos40} / 100);top:0;bottom:0;border-left:2px dashed #b23227;z-index:2"></div>
+        <div style="position:absolute;left:calc(150px + (100% - 190px) * ${pos40} / 100);top:-2px;font-size:8.5px;color:#a32330;font-weight:800;transform:translateX(4px)">teto 40/h</div>
+        ${topBar.map(([ip,o])=>`
+          <div style="display:grid;grid-template-columns:150px 1fr 34px;gap:6px;align-items:center;margin:3px 0;font-size:9.5px">
+            <span style="white-space:nowrap">${esc(ip)}${o.robo?' <b style=color:#a32330>ROBÔ</b>':''}</span>
+            <div style="height:12px;background:#f8edd3;border-radius:99px;position:relative;z-index:1"><div style="width:${Math.max(2,Math.round(o.c/maxBar*100))}%;height:100%;background:${o.robo?'#c0392b':'#1d9e57'};border-radius:99px"></div></div>
+            <b style="text-align:right;color:${o.robo?'#a32330':'#0c6b3d'}">${o.c}</b>
+          </div>`).join('')}
       </div>
-      <div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin-bottom:6px">Votos por hora</div>
-      <div style="margin-bottom:12px">${horas.length ? horas.map(([h,c])=>`
-        <div style="display:grid;grid-template-columns:90px 1fr 34px;gap:8px;align-items:center;margin:2px 0;font-size:10px">
-          <span>${h}</span>
-          <div style="height:10px;background:#f8edd3;border-radius:99px"><div style="width:${Math.round(c/maxH*100)}%;height:100%;background:#7a140c;border-radius:99px"></div></div>
-          <b style="text-align:right">${c}</b></div>`).join('') : '<span style="color:#8a7f95">Sem votos no período.</span>'}</div>
-      <div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin-bottom:6px">Conexões com mais votos (top 12)</div>
-      <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:12px">
-        <tr>${['Conexão (IP)','Votos','Aparelhos distintos','Assinaturas de navegador','Candidato mais votado','Avaliação']
-          .map(h=>`<th style="background:#7a140c;color:#fff;text-align:left;padding:4px 7px;font-size:8.5px;text-transform:uppercase">${h}</th>`).join('')}</tr>
-        ${ipsOrd.length ? ipsOrd.slice(0,12).map(([ip,o])=>{
+
+      ${secTit('Mensuração')}
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:19px;font-weight:800;color:#7a140c">${vs.length}</div><div style="font-size:9px;color:#8a7f95">votos registrados</div></div>
+        <div style="background:#fdecec;border-radius:10px;padding:9px;text-align:center"><div style="font-size:19px;font-weight:800;color:#a32330">${marcados}</div><div style="font-size:9px;color:#8a7f95">inválidos (robô)</div></div>
+        <div style="background:#e8f6ee;border-radius:10px;padding:9px;text-align:center"><div style="font-size:19px;font-weight:800;color:#0c6b3d">${vs.length-marcados}</div><div style="font-size:9px;color:#8a7f95">votos válidos</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:19px;font-weight:800;color:#7a140c">${roboIps.length}</div><div style="font-size:9px;color:#8a7f95">conexões de robô</div></div>
+        <div style="background:#f8edd3;border-radius:10px;padding:9px;text-align:center"><div style="font-size:19px;font-weight:800;color:#7a140c">${ultHora}</div><div style="font-size:9px;color:#8a7f95">votos na última hora</div></div>
+      </div>
+
+      ${secTit('Conexões marcadas como robô — dados para conferência')}
+      <table style="width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:10px">
+        <tr>${['Conexão (IP)','Votos','Aparelhos distintos','Assinaturas','Candidato beneficiado'].map(h=>`<th style="background:#7a140c;color:#fff;text-align:left;padding:4px 7px;font-size:8.5px;text-transform:uppercase">${h}</th>`).join('')}</tr>
+        ${roboIps.length ? roboIps.map(([ip,o])=>{
           const topOp = Object.entries(o.ops).sort((a,b)=>b[1]-a[1])[0];
-          const concentra = topOp && (topOp[1]/o.c) >= 0.8 && o.c >= 10;
-          const avaliacao = o.c>=15 ? (o.devs.size<o.c*0.9||concentra ? '⚠ investigar' : 'alto volume — possível wi-fi do evento') : 'normal';
           return `<tr>
             <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${esc(ip)}</td>
             <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc"><b>${o.c}</b></td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${o.devs.size}</td>
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${o.devs.size} (= votos)</td>
             <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${o.uas.size}</td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${topOp?esc(nomes[topOp[0]]||topOp[0])+' ('+topOp[1]+')':'—'}</td>
-            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc;color:${avaliacao.startsWith('⚠')?'#a32330':'#0c6b3d'};font-weight:700">${avaliacao}</td></tr>`;
-        }).join('') : '<tr><td colspan="6" style="padding:6px;color:#8a7f95">Nenhum voto com IP registrado ainda.</td></tr>'}
+            <td style="padding:4px 7px;border-bottom:1px solid #f3e6cc">${topOp?esc(nomes[topOp[0]]||topOp[0])+' ('+topOp[1]+')':'—'}</td></tr>`;
+        }).join('') : '<tr><td colspan="5" style="padding:6px;color:#8a7f95">Nenhuma conexão com padrão de robô.</td></tr>'}
       </table>
-      ${suspUa.length?`<div style="font-size:13px;font-weight:800;color:#7a140c;border-bottom:2px solid #ef9f27;padding-bottom:3px;margin-bottom:6px">Assinaturas de navegador com 30+ votos</div>
-      <div style="font-size:9.5px;margin-bottom:12px">${suspUa.slice(0,5).map(([ua,c])=>'<b>'+c+'×</b> '+esc(ua.slice(0,110))).join('<br>')}</div>`:''}
-      <div style="background:#f8edd3;border-left:4px solid #a32a1c;padding:8px 12px;font-size:10px">
-        <b style="color:#7a140c">Critérios desta análise:</b> 1 voto por dispositivo (unicidade no banco) · limite de 40 votos/hora e 150/24h por conexão ·
-        "⚠ investigar" quando uma conexão tem 15+ votos com baixa diversidade de aparelhos ou 80%+ dos votos num único candidato ·
-        wi-fi público do evento pode concentrar votos legítimos (muitos aparelhos distintos = bom sinal). Votos fraudulentos identificados podem ser anulados com base nos registros de IP, aparelho e assinatura.
+
+      <div style="background:#f8edd3;border-left:4px solid #a32a1c;padding:8px 12px;font-size:9.5px;line-height:1.5">
+        <b style="color:#7a140c">Garantias:</b> o critério é objetivo e aplicado por igual a todas as conexões, sem olhar o candidato ·
+        os votos marcados <b>não foram apagados</b> e podem ser periciados · os votos legítimos de todas as operações, inclusive das beneficiadas pelo robô, seguem computados ·
+        a identificação dos votos não constitui acusação a nenhuma operação · nenhum dado pessoal do eleitor é coletado (LGPD).
       </div>
       <div style="margin-top:8px;font-size:9px;color:#8a7f95">Festival do Xis 2026 · Comissão Organizadora · cidadedoxis.com</div>`;
     document.body.appendChild(doc);
