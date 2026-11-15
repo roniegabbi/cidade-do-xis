@@ -2656,13 +2656,43 @@
       + `<div style="position:absolute;top:230px;left:70px;right:70px">${linhas}</div>
          <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
   }
+  function innerTop5Suspense(rank, total){
+    const max = rank[0].c;
+    const medal = ['🥇','🥈','🥉','4º','5º'];
+    const linhas = rank.map((r,ix)=>{
+      const oculto = ix===0;
+      return `
+      <div style="display:grid;grid-template-columns:110px 520px 1fr 170px;gap:22px;align-items:center;margin:${ix===0?'0':'26px'} 0 0">
+        <div style="font-size:${ix<3?'64px':'46px'};font-weight:800;text-align:center;color:#f8edd3">${medal[ix]}</div>
+        <div style="font-size:${ix===0?'54px':'44px'};font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 3px 12px rgba(0,0,0,.5);${oculto?'letter-spacing:10px;color:#f5b73c':''}">${oculto?'? ? ? ? ?':esc(r.nome)}</div>
+        <div style="height:${ix===0?'64px':'50px'};background:rgba(248,237,211,.25);border-radius:99px;overflow:hidden">${oculto?`<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#f5a800,#f5a800 26px,#ef9f27 26px,#ef9f27 52px);border-radius:99px"></div>`:`<div style="width:${Math.max(4,Math.round(r.c/max*100))}%;height:100%;background:linear-gradient(90deg,#ef9f27,#e8a04a);border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.35)"></div>`}</div>
+        <div style="font-size:${ix===0?'58px':'46px'};font-weight:800;text-align:right;color:#f5b73c;text-shadow:0 3px 12px rgba(0,0,0,.5)">${oculto?'?':r.c}</div>
+      </div>`;
+    }).join('');
+    return cabecaloTelao('Xis da Galera · Os 5 mais votados', total+' votos válidos do público · e o campeão é...')
+      + `<div style="position:absolute;top:230px;left:70px;right:70px">${linhas}</div>
+         <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
+  }
+  function innerCampeaoTelao(r, total){
+    return `<img src="ilustracao-festival.png" style="position:absolute;left:0;right:0;bottom:0;width:100%;display:block">
+      <div style="position:absolute;left:0;right:0;top:50px;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <span style="background:#fff;border-radius:22px;padding:12px 16px;display:inline-flex;box-shadow:0 12px 36px rgba(0,0,0,.45)"><img src="marca-festival-do-xis.jpg" style="height:120px;display:block"></span>
+        <div style="font-size:34px;font-weight:800;letter-spacing:8px;margin-top:20px;text-transform:uppercase;color:#f5b73c;text-shadow:0 2px 12px rgba(0,0,0,.5)">Campeão · Xis da Galera 2026</div>
+        <div style="margin-top:14px;background:linear-gradient(135deg,#f5a800,#ef9f27);border-radius:34px;padding:30px 90px;box-shadow:0 16px 48px rgba(0,0,0,.5);text-align:center">
+          <div style="font-size:64px">🏆</div>
+          <div style="font-size:88px;font-weight:800;line-height:1.05;color:#5c150d">${esc(r.nome)}</div>
+          <div style="font-size:42px;font-weight:800;color:#a32a1c;margin-top:8px">${r.c} votos do público</div>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:#f8edd3;margin-top:18px;text-shadow:0 2px 10px rgba(0,0,0,.5)">escolhido entre ${total} votos válidos · um voto por pessoa · obrigado, galera! 🧡</div>
+      </div>`;
+  }
   function innerCapaTelao(total){
     return `<img src="ilustracao-festival.png" style="position:absolute;left:0;right:0;bottom:0;width:100%;display:block">
       <div style="position:absolute;left:0;right:0;top:70px;display:flex;flex-direction:column;align-items:center;text-align:center">
         <span style="background:#fff;border-radius:26px;padding:16px 22px;display:inline-flex;box-shadow:0 12px 36px rgba(0,0,0,.45)"><img src="marca-festival-do-xis.jpg" style="height:190px;display:block"></span>
         <div style="font-size:92px;font-weight:800;margin-top:26px;text-shadow:0 5px 20px rgba(0,0,0,.55)">XIS DA GALERA</div>
         <div style="font-size:40px;font-weight:800;color:#f5b73c;margin-top:4px;text-shadow:0 3px 12px rgba(0,0,0,.5)">A votação popular em números</div>
-        <div style="font-size:27px;font-weight:700;color:#f8edd3;margin-top:14px;text-shadow:0 2px 10px rgba(0,0,0,.5)">${total} votos válidos · um voto por pessoa · 4º Festival Nacional do Xis · Largo da Gare</div>
+        
       </div>`;
   }
   function innerTotalTelao(reg, val, desc){
@@ -2677,6 +2707,34 @@
         </div>
         <div style="position:absolute;top:760px;left:70px;right:70px;text-align:center;font-size:30px;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,.45)">Cada voto veio do celular do público — protegido por trava de 1 voto por aparelho<br>e monitoramento antifraude em tempo real.</div>
         <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
+  }
+  function innerNumeroTelao(tit, num, rotulo, corNum, frase){
+    return cabecaloTelao('Xis da Galera · ' + tit, 'votação popular por QR Code · um voto por pessoa')
+      + `<div style="position:absolute;top:260px;left:70px;right:70px;display:flex;justify-content:center">
+          <div style="background:#f8edd3;border-radius:40px;padding:60px 120px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.4)">
+            <div style="font-size:260px;font-weight:800;line-height:1;color:${corNum}">${num}</div>
+            <div style="font-size:46px;font-weight:800;color:#5c150d;margin-top:14px">${rotulo}</div>
+          </div>
+        </div>
+        <div style="position:absolute;top:800px;left:70px;right:70px;text-align:center;font-size:30px;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,.45)">${frase}</div>
+        <div style="position:absolute;bottom:34px;left:70px;right:70px;text-align:center;font-size:24px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
+  }
+  function innerFraudeTelao(desc){
+    const cartao = (tit, txt) => `<div style="flex:1;background:#f8edd3;border-radius:24px;padding:24px 26px;box-shadow:0 12px 36px rgba(0,0,0,.35)">
+      <div style="font-size:28px;font-weight:800;color:#a32330">${tit}</div>
+      <div style="font-size:21px;font-weight:600;color:#5c150d;margin-top:8px;line-height:1.4">${txt}</div></div>`;
+    return cabecaloTelao('Xis da Galera · Votos descartados', 'triagem antifraude')
+      + `<div style="position:absolute;top:250px;left:70px;right:70px;display:flex;justify-content:center">
+          <div style="background:#fdecec;border-radius:30px;padding:24px 90px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.4)">
+            <div style="font-size:150px;font-weight:800;line-height:1;color:#a32330">${desc}</div>
+            <div style="font-size:34px;font-weight:800;color:#5c150d;margin-top:6px">votos descartados por fraude (robô)</div></div></div>
+        <div style="position:absolute;top:620px;left:70px;right:70px;display:flex;gap:28px">
+          ${cartao('1 · Volume cravado no teto','Conexões com exatamente 40 votos — o limite por hora — que trocam de endereço e recomeçam. Gente de verdade produz número irregular.')}
+          ${cartao('2 · Aparelho nunca repete','40 votos = 40 “celulares” inéditos, 100% das vezes. Em rede real, aparelhos se repetem e são barrados pela trava de voto único.')}
+          ${cartao('3 · Navegador sempre igual','Os supostos celulares diferentes têm o mesmo modelo e versão de navegador. Público real exibe dezenas de combinações.')}
+        </div>
+        
+        <div style="position:absolute;bottom:30px;left:70px;right:70px;text-align:center;font-size:22px;font-weight:700;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.4)">4º Festival Nacional do Xis · Largo da Gare · cidadedoxis.com</div>`;
   }
   function innerNumeroTelao(tit, num, rotulo, corNum, frase){
     return cabecaloTelao('Xis da Galera · ' + tit, 'votação popular por QR Code · um voto por pessoa')
@@ -2716,12 +2774,12 @@
       const validos = +M.total_validos||total, descartados = +M.suspeitos_marcados||0;
       const slides = [
         innerCapaTelao(validos),
-        innerNumeroTelao('Votos registrados', validos+descartados, 'votos registrados', '#7a140c', 'Tudo o que chegou à urna digital durante o Festival — antes da triagem antifraude.'),
-        innerNumeroTelao('Votos válidos', validos, 'votos válidos', '#0c6b3d', 'São estes que decidem o campeão: um voto por pessoa, direto do celular do público.'),
-        innerNumeroTelao('Votos descartados', descartados, 'descartados por fraude (robô)', '#a32330', 'Identificados pelo monitoramento antifraude — o próximo slide mostra como.'),
+        innerNumeroTelao('Total de votos', validos+descartados, 'votos registrados', '#7a140c', 'Tudo o que chegou à urna digital durante o Festival — antes da triagem antifraude.'),
         innerFraudeTelao(descartados),
+        innerNumeroTelao('Votos válidos', validos, 'votos válidos', '#0c6b3d', 'São estes que decidem o campeão: um voto por pessoa, direto do celular do público.'),
         innerTempoTelao(hs,validos),
-        innerTop5Telao(rank,validos)];
+        innerTop5Suspense(rank,validos),
+        innerCampeaoTelao(rank[0],validos)];
       const palcos = [];
       for(let i=0;i<slides.length;i++) palcos.push(await palcoTelao('slideAp'+i, slides[i]));
       const optC = { scale:1, useCORS:true, scrollY:0, scrollX:0, backgroundColor:'#b23227', windowWidth:2000, width:1920, height:1080 };
