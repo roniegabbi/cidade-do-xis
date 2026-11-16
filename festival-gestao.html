@@ -206,6 +206,7 @@
     <div class="cat cat-conc" onclick="grpToggle(this)">🎪 4º Festival · 2026</div>
     <div class="grp grp-conc">
       <a class="sub-item" data-p="fest4" onclick="tab('fest4');renderFest4()">📋 Painel do 4º Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">números, vendas, mídia e relatório geral</span></a>
+      <a class="sub-item" data-p="aval4" onclick="tab('aval4');renderAval4()">📝 Avaliação das Operações<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">NPS, vendas e intenção 2027 · link para enviar</span></a>
       <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">🏆 Xis da Galera · Apuração</a>
       <a class="sub-item" data-p="master" onclick="tab('master');renderMaster()">🏆 Master Xis · Jurados</a>
       <a class="sub-item" onclick="tab('galera');renderGalera();baixarRelatorioFraude()">🛡 Relatório Antifraude (PDF)</a>
@@ -696,6 +697,19 @@
         </div>
         <div style="font-size:12px;color:var(--texto-suave);margin-top:12px">Preenchidos, esses números entram automaticamente no Relatório Geral em uma seção própria.</div>
       </div>
+    </section>
+
+    <section class="pane hide" id="p-aval4">
+      <div class="h">Avaliação das Operações · 4º Festival</div>
+      <div class="sub">Pesquisa com as operações de Xis e cervejarias que comercializaram no Festival. Envie o link pelo grupo de WhatsApp — uma resposta por aparelho.</div>
+      <div class="filtros no-print">
+        <button class="btn btn-v btn-sm" onclick="copiarLinkAval()">🔗 Copiar link da pesquisa</button>
+        <button class="btn btn-g btn-sm" onclick="window.open('avaliacao-festival-2026.html','_blank')">Ver página da pesquisa</button>
+        <button class="btn btn-g btn-sm" onclick="renderAval4()">↻ Atualizar respostas</button>
+        <button class="btn btn-g btn-sm" onclick="baixarCsvAval()">⬇️ Exportar CSV</button>
+      </div>
+      <div class="kpis" id="aval4Kpis"></div>
+      <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabAval4"></table></div></div>
     </section>
 
     <section class="pane hide" id="p-fest5">
@@ -3017,6 +3031,42 @@
       toast('Relatório Geral baixado 📑');
     }catch(e){ console.error(e); toast('Não foi possível gerar o relatório'); }
     btn.disabled=false; btn.textContent='📑 Relatório Geral (PDF)';
+  }
+  // ===== AVALIAÇÃO DAS OPERAÇÕES (pós-festival) =====
+  let AVAL4 = [];
+  function copiarLinkAval(){
+    const L='https://www.cidadedoxis.com/avaliacao-festival-2026.html';
+    (navigator.clipboard?navigator.clipboard.writeText(L):Promise.reject()).then(()=>toast('Link copiado ✓')).catch(()=>prompt('Copie o link:',L));
+  }
+  async function renderAval4(){
+    const {data} = await SB.from('festival_avaliacao_ops').select('*').order('criado_em',{ascending:false});
+    AVAL4 = data||[];
+    const n = AVAL4.length;
+    const prom = AVAL4.filter(a=>a.nps>=9).length, det = AVAL4.filter(a=>a.nps<=6).length;
+    const nps = n ? Math.round((prom-det)/n*100) : 0;
+    const sim = AVAL4.filter(a=>a.participar_2027==='Sim').length;
+    const parse = s => { const v=parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return isNaN(v)?0:v; };
+    const vendas = AVAL4.reduce((s,a)=>s+parse(a.vendas_total),0);
+    g('aval4Kpis').innerHTML = `
+      <div class="kpi"><b>${n}</b><span>respostas recebidas</span></div>
+      <div class="kpi"><b style="color:${nps>=50?'var(--verde)':nps>=0?'var(--amarelo)':'var(--vermelho)'}">${n?nps:'—'}</b><span>NPS do Festival</span></div>
+      <div class="kpi"><b>${n?Math.round(sim/n*100)+'%':'—'}</b><span>querem voltar em 2027</span></div>
+      <div class="kpi"><b>${vendas?('R$ '+vendas.toLocaleString('pt-BR',{maximumFractionDigits:0})):'—'}</b><span>vendas informadas (soma)</span></div>`;
+    g('tabAval4').innerHTML = '<tr><th>Operação</th><th>Tipo</th><th>NPS</th><th>Vendas (R$)</th><th>2027?</th><th>Sugestões</th></tr>'
+      + (n ? AVAL4.map(a=>`<tr>
+          <td><b>${esc(a.operacao)}</b></td><td>${esc(a.tipo)}</td>
+          <td style="text-align:center;font-weight:800;color:${a.nps>=9?'var(--verde)':a.nps<=6?'var(--vermelho)':'var(--amarelo)'}">${a.nps}</td>
+          <td>${esc(a.vendas_total||'—')}</td><td>${esc(a.participar_2027)}</td>
+          <td style="font-size:12px;max-width:340px">${esc(a.sugestoes||'—')}</td></tr>`).join('')
+        : '<tr><td colspan="6" style="color:var(--texto-suave)">Nenhuma resposta ainda — copie o link e envie às operações.</td></tr>');
+  }
+  function baixarCsvAval(){
+    if(!AVAL4.length){ toast('Sem respostas para exportar'); return; }
+    const esc2 = s => '"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+    const linhas = [['Operação','Tipo','NPS (0-10)','Vendas (R$)','Participa 2027','Sugestões','Data'].map(esc2).join(';')]
+      .concat(AVAL4.map(a=>[a.operacao,a.tipo,a.nps,a.vendas_total,a.participar_2027,a.sugestoes,new Date(a.criado_em).toLocaleString('pt-BR')].map(esc2).join(';')));
+    const blob = new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Avaliacao-Operacoes-4-Festival.csv'; a.click();
   }
   async function baixarRelatorioFraude(){
     try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
