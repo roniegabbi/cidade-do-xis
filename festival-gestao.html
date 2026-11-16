@@ -203,28 +203,27 @@
       <a class="sub-item" data-p="cardapio" onclick="tab('cardapio')">Cardápio do Festival</a>
 
     </div>
-    <div class="cat cat-conc" onclick="grpToggle(this)">🏆 Concursos</div>
+    <div class="cat cat-conc" onclick="grpToggle(this)">🎪 4º Festival · 2026</div>
     <div class="grp grp-conc">
-      <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">Xis da Galera · Apuração<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">votação popular por QR Code</span></a>
-      <a class="sub-item" data-p="master" onclick="tab('master');renderMaster()">Master Xis · Jurados<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">cédula digital do júri técnico</span></a>
+      <a class="sub-item" data-p="fest4" onclick="tab('fest4');renderFest4()">📋 Painel do 4º Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">números, vendas, mídia e relatório geral</span></a>
+      <a class="sub-item" data-p="galera" onclick="tab('galera');renderGalera()">🏆 Xis da Galera · Apuração</a>
+      <a class="sub-item" data-p="master" onclick="tab('master');renderMaster()">🏆 Master Xis · Jurados</a>
       <a class="sub-item" onclick="tab('galera');renderGalera();baixarRelatorioFraude()">🛡 Relatório Antifraude (PDF)</a>
-    </div>
-    <div class="cat" onclick="grpToggle(this)">Lançamento · 07/10</div>
-    <div class="grp">
-      <a class="sub-item" onclick="window.open('protocolo-lancamento-2026.html','_blank')">Protocolo do Lançamento (PDF)</a>
-      <a class="sub-item" onclick="window.open('apresentacao-lancamento-2026.html','_blank')">Apresentação do Lançamento (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">slides que norteiam o painel</span></a>
-      <a class="sub-item" data-p="rsvp" onclick="tab('rsvp');renderRsvp()">Presenças confirmadas</a>
-      <a class="sub-item" onclick="window.open('convite-lancamento-2026.html','_blank')">Convite com QR Code (imagem)</a>
-    </div>
-    <div class="cat fechado" onclick="grpToggle(this)">Documentos do Festival</div>
-    <div class="grp hide">
+      <a class="sub-item" data-p="rsvp" onclick="tab('rsvp');renderRsvp()">Lançamento · Presenças confirmadas</a>
+      <a class="sub-item" onclick="window.open('protocolo-lancamento-2026.html','_blank')">Lançamento · Protocolo (PDF)</a>
+      <a class="sub-item" onclick="window.open('apresentacao-lancamento-2026.html','_blank')">Lançamento · Apresentação (PDF)</a>
+      <a class="sub-item" onclick="window.open('convite-lancamento-2026.html','_blank')">Lançamento · Convite com QR</a>
       <a class="sub-item" onclick="window.open('livro-festival-do-xis.html','_blank')">Livro do Festival (PDF)</a>
       <a class="sub-item" onclick="window.open('apresentacao-festival-2026.html','_blank')">Apresentação do Projeto (PDF)</a>
       <a class="sub-item" onclick="window.open('regulamento-festival-2026.html','_blank')">Regulamento Oficial (PDF)</a>
       <a class="sub-item" onclick="window.open('regulamento-master-xis-2026.html','_blank')">Regulamento Master Xis (PDF)</a>
       <a class="sub-item" onclick="window.open('croqui-festival-2026.html','_blank')">Croqui do Evento (PDF)</a>
-      <a class="sub-item" onclick="window.open('dossie-modo-de-fazer-do-xis.pdf','_blank')">Dossiê do Patrimônio (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">COMPHIC · Modo de Fazer do Xis · Livro dos Saberes</span></a>
-      <a class="sub-item" onclick="window.open('origem-territorial-xis-2026.html','_blank')">Origem das Operações (PDF)<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">mapa de bairros e cidades de fora</span></a>
+      <a class="sub-item" onclick="window.open('dossie-modo-de-fazer-do-xis.pdf','_blank')">Dossiê do Patrimônio (PDF)</a>
+      <a class="sub-item" onclick="window.open('origem-territorial-xis-2026.html','_blank')">Origem das Operações (PDF)</a>
+    </div>
+    <div class="cat cat-conc" onclick="grpToggle(this)">🎉 5º Festival · 2027</div>
+    <div class="grp grp-conc">
+      <a class="sub-item" data-p="fest5" onclick="tab('fest5')">📋 Planejamento do 5º Festival<br><span style="font-size:10.5px;color:var(--texto-suave);font-weight:600">espelho da edição 2026 · pronto para reutilizar</span></a>
     </div>
     <div class="cat fechado" onclick="grpToggle(this)">Propostas de Patrocínio</div>
     <div class="grp hide">
@@ -668,6 +667,58 @@
       </div>
       <div class="kpis" id="galeraKpis"></div>
       <div class="card"><div id="galeraRank"></div></div>
+    </section>
+
+    <section class="pane hide" id="p-fest4">
+      <div class="h">Painel do 4º Festival do Xis · 2026</div>
+      <div class="sub">13 a 15 de novembro · Largo da Gare · edição encerrada. Complete vendas e mídia quando os números chegarem e gere o Relatório Geral em PDF com tudo consolidado.</div>
+      <div class="filtros no-print">
+        <button class="btn btn-v btn-sm" onclick="salvarFest4()">💾 Salvar vendas e mídia</button>
+        <button class="btn btn-g btn-sm" id="btnRelGeral" onclick="baixarRelatorioGeral()">📑 Relatório Geral (PDF)</button>
+        <button class="btn btn-g btn-sm" onclick="tab('galera');renderGalera();baixarApresentacaoGalera()">📺 Apresentação · Galera</button>
+        <button class="btn btn-g btn-sm" onclick="tab('master');renderMaster();baixarApresentacaoMaster()">📺 Apresentação · Master</button>
+      </div>
+      <div class="kpis" id="fest4Kpis"></div>
+      <div class="card">
+        <div style="font-weight:800;color:var(--roxo-esc);margin-bottom:10px">Vendas do Festival</div>
+        <div style="display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center">
+          <label style="font-size:13px;font-weight:700">Faturamento total (R$)</label>
+          <input id="f4VendasTotal" style="padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px" placeholder="ex.: 1.250.000,00">
+          <label style="font-size:13px;font-weight:700">Observações de vendas</label>
+          <input id="f4VendasObs" style="padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px" placeholder="ex.: média por operação, ticket médio, comparação com 2025">
+        </div>
+        <div style="font-weight:800;color:var(--roxo-esc);margin:16px 0 10px">Mídia e alcance</div>
+        <div style="display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center">
+          <label style="font-size:13px;font-weight:700">Alcance / matérias</label>
+          <input id="f4MidiaAlcance" style="padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px" placeholder="ex.: 42 matérias, 1,8 mi de alcance nas redes">
+          <label style="font-size:13px;font-weight:700">Observações de mídia</label>
+          <input id="f4MidiaObs" style="padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px" placeholder="ex.: veículos, campanhas, destaque estadual">
+        </div>
+        <div style="font-size:12px;color:var(--texto-suave);margin-top:12px">Preenchidos, esses números entram automaticamente no Relatório Geral em uma seção própria.</div>
+      </div>
+    </section>
+
+    <section class="pane hide" id="p-fest5">
+      <div class="h">Planejamento do 5º Festival do Xis · 2027</div>
+      <div class="sub">Ambiente espelho da edição 2026 — toda a infraestrutura já está pronta para reuso.</div>
+      <div class="card">
+        <div style="font-weight:800;color:var(--roxo-esc);margin-bottom:10px">O que já está pronto, herdado de 2026</div>
+        <div style="font-size:13.5px;line-height:1.9">
+          ✔ Votação popular por QR Code com antifraude em camadas (Xis da Galera)<br>
+          ✔ Cédula digital do júri + QRs por participante + apuração (Master Xis)<br>
+          ✔ Apresentações de resultados em telão geradas ao vivo (Galera e Master)<br>
+          ✔ Relatório Geral em PDF pela plataforma · Relatório e dossiê antifraude<br>
+          ✔ Roteiros do narrador (Mega Xis, Master, Come Xis e frases de impacto)<br>
+          ✔ Captação por manifestação de interesse, croqui, cardápio e identidade visual
+        </div>
+        <div style="font-weight:800;color:var(--roxo-esc);margin:16px 0 8px">Primeiros passos para 2027</div>
+        <div style="font-size:13.5px;line-height:1.9">
+          ☐ Definir datas e reservar o Largo da Gare&nbsp;&nbsp;·&nbsp;&nbsp;☐ Abrir captação de patrocínio (propostas-modelo prontas)<br>
+          ☐ Reabrir manifestações de interesse das operações&nbsp;&nbsp;·&nbsp;&nbsp;☐ Zerar concursos e gerar novos QRs<br>
+          ☐ Atualizar croqui e cardápio&nbsp;&nbsp;·&nbsp;&nbsp;☐ Planejar o Mega Xis 2027 (recorde a bater: 223 kg)
+        </div>
+        <div style="font-size:12px;color:var(--texto-suave);margin-top:12px">Quando a edição 2027 for aberta, este painel vira o centro de operação — mesma estrutura do 4º Festival.</div>
+      </div>
     </section>
 
     <section class="pane hide" id="p-master">
@@ -2801,6 +2852,171 @@
       toast('Apresentação PDF baixada 📑');
     }catch(e){ console.error(e); toast('Não foi possível gerar a apresentação'); }
     btn.disabled = false; btn.textContent = '📑 Apresentação (PDF)';
+  }
+  // ===== PAINEL DO 4º FESTIVAL =====
+  const F4 = { publico:[['SEX 13',12450],['SÁB 14',16750],['DOM 15',13278]], pubTotal:42478,
+    ops:20, cervejas:8, megaKg:'223 kg', notaMaster:'45,8' };
+  async function renderFest4(){
+    const [{data:ex}, mon] = await Promise.all([
+      SB.from('festival_relatorio_extra').select('*').eq('edicao',4).single(),
+      SB.rpc('galera_monitor')
+    ]);
+    const M=(mon.data&&mon.data[0])||{total_validos:0,suspeitos_marcados:0};
+    g('fest4Kpis').innerHTML = `
+      <div class="kpi"><b>${F4.pubTotal.toLocaleString('pt-BR')}</b><span>público total (3 dias)</span></div>
+      <div class="kpi"><b>${F4.ops} + ${F4.cervejas}</b><span>operações de xis + cervejarias</span></div>
+      <div class="kpi"><b>${F4.megaKg}</b><span>Mega Xis recorde</span></div>
+      <div class="kpi"><b>${(+M.total_validos).toLocaleString('pt-BR')}</b><span>votos válidos · Xis da Galera</span></div>
+      <div class="kpi"><b>${(+M.suspeitos_marcados).toLocaleString('pt-BR')}</b><span>votos de robô anulados</span></div>
+      <div class="kpi"><b>${F4.notaMaster}</b><span>nota campeã do Master (de 50)</span></div>`;
+    if(ex){
+      g('f4VendasTotal').value = ex.vendas_total||'';
+      g('f4VendasObs').value = ex.vendas_obs||'';
+      g('f4MidiaAlcance').value = ex.midia_alcance||'';
+      g('f4MidiaObs').value = ex.midia_obs||'';
+    }
+  }
+  async function salvarFest4(){
+    const {error} = await SB.from('festival_relatorio_extra').upsert({ edicao:4,
+      vendas_total:g('f4VendasTotal').value.trim(), vendas_obs:g('f4VendasObs').value.trim(),
+      midia_alcance:g('f4MidiaAlcance').value.trim(), midia_obs:g('f4MidiaObs').value.trim(),
+      atualizado:new Date().toISOString() });
+    toast(error?'Não foi possível salvar':'Vendas e mídia salvas ✓ — já entram no Relatório Geral');
+  }
+  function palcoA4(id, inner){
+    const palco = document.createElement('div');
+    palco.style.cssText = 'position:fixed;top:0;left:-4000px;width:1240px;height:1754px;overflow:hidden;z-index:-1';
+    palco.innerHTML = `<div id="${id}" style="width:1240px;height:1754px;position:relative;background:#b23227 url('fundo-raios-festival.png') center/cover no-repeat;color:#fff8ec;overflow:hidden;font-family:Segoe UI,system-ui,sans-serif">
+      <div style="position:absolute;inset:0;background:rgba(92,21,13,.15)"></div>${inner}</div>`;
+    document.body.appendChild(palco);
+    return palco;
+  }
+  function cabA4(tit,sub){
+    return `<div style="position:absolute;top:50px;left:70px;right:70px;display:flex;align-items:center;gap:22px">
+      <span style="background:#fff;border-radius:16px;padding:8px 12px;display:inline-flex"><img src="marca-festival-do-xis.jpg" style="height:76px;display:block"></span>
+      <div><div style="font-size:40px;font-weight:800;line-height:1.05">${tit}</div>
+      <div style="font-size:21px;font-weight:700;color:#f5b73c;margin-top:4px">${sub}</div></div></div>
+      <div style="position:absolute;bottom:22px;left:70px;right:70px;text-align:center;font-size:16px;font-weight:700;opacity:.95">4º Festival Nacional do Xis · 13 a 15 de novembro de 2026 · Largo da Gare · Santa Maria/RS · cidadedoxis.com</div>`;
+  }
+  async function baixarRelatorioGeral(){
+    const btn = g('btnRelGeral'); btn.disabled = true; btn.textContent = 'Gerando…';
+    try{
+      const [{data:ex}, mon, horasR, apur] = await Promise.all([
+        SB.from('festival_relatorio_extra').select('*').eq('edicao',4).single(),
+        SB.rpc('galera_monitor'), SB.rpc('galera_votos_por_hora'), SB.rpc('apuracao_xis_galera')
+      ]);
+      const M=(mon.data&&mon.data[0])||{total_validos:0,suspeitos_marcados:0};
+      const validos=(+M.total_validos).toLocaleString('pt-BR'), robos=(+M.suspeitos_marcados).toLocaleString('pt-BR');
+      const hs=(horasR.data||[]).map(x=>({t:new Date(x.hora), n:+x.n}));
+      const rank=(apur.data||[]).filter(o=>o.votos>0).slice(0,3);
+      const card=(x)=>`<div style="background:#f8edd3;border-radius:22px;padding:26px 30px;color:#5c150d;${x||''}">`;
+      const kpiCard=(num,rot,cor)=>`<div style="flex:1;background:#f8edd3;border-radius:20px;padding:26px 12px;text-align:center">
+        <div style="font-size:44px;font-weight:800;line-height:1;color:${cor||'#7a140c'}">${num}</div>
+        <div style="font-size:15px;font-weight:700;color:#5c150d;margin-top:8px">${rot}</div></div>`;
+      // capa
+      const s1=`<img src="ilustracao-festival.png" style="position:absolute;left:0;right:0;bottom:0;width:100%;display:block">
+        <div style="position:absolute;left:0;right:0;top:170px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <span style="background:#fff;border-radius:24px;padding:14px 20px;display:inline-flex"><img src="marca-festival-do-xis.jpg" style="height:220px;display:block"></span>
+          <div style="font-size:74px;font-weight:800;margin-top:30px;text-shadow:0 5px 20px rgba(0,0,0,.55)">RELATÓRIO GERAL</div>
+          <div style="font-size:38px;font-weight:800;color:#f5b73c;margin-top:6px">4º Festival Nacional do Xis</div>
+          <div style="font-size:24px;font-weight:700;color:#f8edd3;margin-top:14px">13, 14 e 15 de novembro de 2026 · Largo da Gare · Santa Maria/RS</div>
+        </div>`;
+      // números (+vendas/mídia se preenchidos)
+      const temExtra = ex && ((ex.vendas_total||'').trim() || (ex.midia_alcance||'').trim());
+      const extraHtml = temExtra ? `
+        <div style="position:absolute;top:1120px;left:70px;right:70px">${card()}
+          <div style="font-size:24px;font-weight:800;color:#7a140c;margin-bottom:10px">Vendas e mídia</div>
+          ${(ex.vendas_total||'').trim()?`<div style="font-size:19px;margin:4px 0"><b>Faturamento total:</b> R$ ${esc(ex.vendas_total)}${(ex.vendas_obs||'').trim()?' — '+esc(ex.vendas_obs):''}</div>`:''}
+          ${(ex.midia_alcance||'').trim()?`<div style="font-size:19px;margin:4px 0"><b>Mídia e alcance:</b> ${esc(ex.midia_alcance)}${(ex.midia_obs||'').trim()?' — '+esc(ex.midia_obs):''}</div>`:''}
+        </div></div>`:'';
+      const barsPub = F4.publico.map(([dnome,pv])=>{
+        const mx=Math.max(...F4.publico.map(x=>x[1]));
+        return `<div style="display:grid;grid-template-columns:110px 1fr 120px;gap:16px;align-items:center;margin:12px 0">
+          <b style="font-size:18px">${dnome}</b>
+          <div style="height:26px;background:#eadfc6;border-radius:99px;overflow:hidden"><div style="width:${Math.round(pv/mx*100)}%;height:100%;background:#ef9f27;border-radius:99px"></div></div>
+          <b style="font-size:20px;color:#a32330;text-align:right">${pv.toLocaleString('pt-BR')}</b></div>`;
+      }).join('');
+      const s2=cabA4('O Festival em números','três dias de festa na Cidade do Xis')
+        +`<div style="position:absolute;top:210px;left:70px;right:70px;display:flex;gap:18px">
+            ${kpiCard('42.478','público total nos 3 dias','#a32330')}${kpiCard('20','operações de Xis')}${kpiCard('8','cervejarias artesanais')}</div>
+          <div style="position:absolute;top:400px;left:70px;right:70px;display:flex;gap:18px">
+            ${kpiCard('223 kg','Mega Xis recorde','#ef9f27')}${kpiCard(validos,'votos válidos na Galera','#0c6b3d')}${kpiCard('45,8','nota campeã do Master')}</div>
+          <div style="position:absolute;top:600px;left:70px;right:70px">${card()}
+            <div style="font-size:24px;font-weight:800;color:#7a140c;margin-bottom:6px">Público por dia (números oficiais)</div>
+            ${barsPub}<div style="font-size:18px;font-weight:800;margin-top:6px">Total: 42.478 pessoas</div></div></div>
+          <div style="position:absolute;top:950px;left:70px;right:70px">${card()}
+            <div style="font-size:24px;font-weight:800;color:#7a140c;margin-bottom:8px">Atrações permanentes</div>
+            <div style="font-size:19px;line-height:1.6">Exposição de Ferromodelismo no prédio histórico da Gare · Mercado Criativo com artesãos e empreendedores locais · Contação de Histórias para as famílias · Loja do Xis.</div></div></div>
+          ${extraHtml}`;
+      // histograma
+      const mxv=Math.max(1,...hs.map(h=>h.n));
+      const DIAS=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+      const barras=hs.map((h,ix)=>{
+        const hora=h.t.getHours();
+        const novo=ix===0||h.t.getDate()!==hs[ix-1].t.getDate();
+        return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;${novo&&ix>0?'border-left:2px dashed rgba(255,248,236,.5);':''}">
+          ${h.n===mxv?`<div style="font-size:17px;font-weight:800;color:#f5b73c;margin-bottom:3px">${h.n}</div>`:''}
+          <div style="width:70%;height:${Math.max(1,Math.round(h.n/mxv*100))}%;background:linear-gradient(180deg,#f5b73c,#ef9f27);border-radius:5px 5px 0 0"></div>
+          <div style="font-size:${hora%3===0?'13px':'0'};font-weight:700;color:#f8edd3;margin-top:4px;height:17px">${hora%3===0?hora+'h':''}</div>
+          <div style="font-size:14px;font-weight:800;color:#f5b73c;height:18px;white-space:nowrap">${novo?DIAS[h.t.getDay()]+' '+h.t.getDate():''}</div></div>`;
+      }).join('');
+      const s3=cabA4('O ritmo da votação popular',validos+' votos válidos do Xis da Galera · um voto por pessoa')
+        +`<div style="position:absolute;top:230px;left:60px;right:60px;bottom:420px;display:flex;align-items:stretch;gap:2px">${barras}</div>
+          <div style="position:absolute;bottom:90px;left:70px;right:70px">${card()}
+            <div style="font-size:24px;font-weight:800;color:#7a140c;margin-bottom:8px">Leitura do comportamento</div>
+            <div style="font-size:19px;line-height:1.65">Três ondas bem definidas, acompanhando as noites do Festival: pico absoluto na abertura (338 votos/h na sexta às 20h), retomada forte nas tardes de sábado e domingo e sprint final até o fechamento das 18h. A urna digital registrou votos nas 48 horas de vigência.</div></div></div>`;
+      // programação
+      const diaB=(tit,itens)=>`${card('margin-bottom:22px')}
+        <div style="background:#7a140c;color:#fff8ec;border-radius:12px;padding:10px 18px;font-size:21px;font-weight:800;margin:-6px -8px 12px">${tit}</div>
+        ${itens.map(([h2,e2])=>`<div style="display:grid;grid-template-columns:110px 1fr;gap:14px;font-size:18px;margin:7px 0"><b style="color:#a32330">${h2}</b><span>${e2}</span></div>`).join('')}</div>`;
+      const s4=cabA4('Programação realizada','conforme divulgado pela imprensa regional')
+        +`<div style="position:absolute;top:210px;left:70px;right:70px">
+          ${diaB('SEXTA 13/11 — Abertura · público 12.450',[['11h00','Montagem do MEGA XIS — 223 kg, novo recorde'],['18h00','Abertura oficial com autoridades'],['20h00','Show · Banda Supernes'],['22h00','Show · Banda Hellroad'],['—','Rádio Xis · abertura da votação do Xis da Galera']])}
+          ${diaB('SÁBADO 14/11 — Dia do Master Xis · público 16.750',[['11h00','Abertura das operações — 20 estações e 8 cervejarias'],['18h00','Concurso MASTER XIS'],['19h00','Show · Banda Highlanders'],['20h30','Show · Banda Vintage Queen'],['22h00','Show · Banda Rock de Galpão']])}
+          ${diaB('DOMINGO 15/11 — Encerramento · público 13.278',[['18h00','Desafio COME XIS'],['19h00','Show · Banda Onda Sul'],['20h30','Anúncio do XIS DA GALERA no palco'],['21h00','Show · Banda Tela Class']])}</div>`;
+      // concursos
+      const faixa=(t)=>`<div style="background:linear-gradient(135deg,#f5a800,#f5b73c);border-radius:12px;padding:10px 16px;font-size:20px;font-weight:800;color:#5c150d;margin:8px 0">${t}</div>`;
+      const bl=(tit,inner)=>`${card('margin-bottom:20px')}<div style="font-size:23px;font-weight:800;color:#7a140c;margin-bottom:6px">${tit}</div>${inner}</div>`;
+      const g1=rank[0]?esc(rank[0].nome)+' — '+(+rank[0].votos).toLocaleString('pt-BR')+' votos':'—';
+      const g23=rank.length>2?`2º: ${esc(rank[1].nome)} — ${(+rank[1].votos).toLocaleString('pt-BR')} · 3º: ${esc(rank[2].nome)} — ${(+rank[2].votos).toLocaleString('pt-BR')}`:'';
+      const come = ex&&ex.come_campeao?esc(ex.come_campeao):'[registrar vencedor]';
+      const s5=cabA4('Concursos e resultados','os campeões do 4º Festival')
+        +`<div style="position:absolute;top:210px;left:70px;right:70px">
+          ${bl('MEGA XIS — o gigante da abertura',`<div style="font-size:18px;line-height:1.6">223 kg e 2 m de diâmetro — recorde histórico. Comissão do Mega Xis com apoio de Panifício Mallet, Espetiño e Damofix. Distribuído gratuitamente ao público.</div>`)}
+          ${bl('MASTER XIS — júri técnico',faixa('CAMPEÃO: NATIONAL DOG — 45,8 de 50 pontos')+`<div style="font-size:18px;line-height:1.6">2º: Bravus — 45,6 · 3º: Central Park e Espetiño — 45,4 (desempate por Ingredientes).<br>Cesta surpresa da agricultura familiar · cédula digital por QR Code · júri: Rodrigo Decimo, Lucia Madruga, Marcus Guazzelli, Maida Dimperio e Isadora Severo.</div>`)}
+          ${bl('XIS DA GALERA — voto popular',faixa('CAMPEÃO: '+g1.toUpperCase())+`<div style="font-size:18px;line-height:1.6">${g23}<br>${validos} votos válidos · antifraude anulou ${robos} votos de robô, preservados como evidência.</div>`)}
+          ${bl('COME XIS — desafio do apetite',faixa('CAMPEÃO: '+come.toUpperCase())+`<div style="font-size:18px;line-height:1.6">Músico e aluno do bacharelado em Música da UFSM (contrabaixo), integrante das orquestras sinfônicas da UFSM e do Recanto do Maestro. 10 competidores, 5 xis completos, 20 minutos.</div>`)}</div>`;
+      // realização
+      const tb=(tit,txt)=>`${card('margin-bottom:20px')}<div style="font-size:22px;font-weight:800;color:#7a140c;margin-bottom:6px">${tit}</div><div style="font-size:18px;line-height:1.65">${txt}</div></div>`;
+      const s6=cabA4('Realização e reconhecimentos','quem fez o Festival acontecer')
+        +`<div style="position:absolute;top:210px;left:70px;right:70px">
+          ${tb('Realização','Prefeitura Municipal de Santa Maria (SMDEI e secretarias parceiras) e Sindhturr, com o programa Xis e a plataforma cidadedoxis.com.')}
+          ${tb('Patrocinadores e apoiadores','Sicredi · Banrisul · Imembuí Microfinanças · Panifício Mallet. Apoio ao Mega Xis: Panifício Mallet, Espetiño e Damofix · Sebrae RS (Master Xis).')}
+          ${tb('A plataforma Cidade do Xis no Festival','Votação popular por QR Code com trava de voto único, monitoramento antifraude em tempo real com relatório técnico e dossiê às operações, cédula digital do júri do Master Xis, apuração instantânea e apresentações de resultados geradas ao vivo.')}
+          ${tb('Patrimônio e identidade','O modo de fazer do xis é patrimônio cultural imaterial de Santa Maria. O Festival é a celebração viva desse patrimônio e o motor da estratégia que afirma Santa Maria como a Cidade do Xis.')}
+          ${tb('Fontes','Dados internos: plataforma cidadedoxis.com e Comissão Organizadora (público oficial e vendas). Imprensa regional: claudemirpereira.com.br, santamaria24horas.com.br, poa24horas.com.br, grupopilau.com.br, gastronominho.com.br.')}</div>`;
+      const paginas=[s1,s2,s3,s4,s5,s6];
+      await garantirHtmlToImage(); await garantirJsPDF();
+      const ASSETS={};
+      for(const a of ['marca-festival-do-xis.jpg','ilustracao-festival.png','fundo-raios-festival.png']) ASSETS[a]=await assetDataUrl(a);
+      const JSPDF=window.jspdf.jsPDF;
+      const pdf=new JSPDF({unit:'pt',format:'a4',orientation:'portrait'});
+      for(let i=0;i<paginas.length;i++){
+        const palco=palcoA4('relG'+i, paginas[i]);
+        let html=palco.innerHTML;
+        for(const a in ASSETS) html=html.split(a).join(ASSETS[a]);
+        palco.innerHTML=html;
+        const el=palco.querySelector('#relG'+i);
+        await Promise.all([...palco.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve()));
+        const im=await htmlToImage.toJpeg(el,{quality:0.95,pixelRatio:2,backgroundColor:'#b23227',canvasWidth:2480,canvasHeight:3508,width:1240,height:1754,skipFonts:true});
+        if(i>0) pdf.addPage('a4','portrait');
+        pdf.addImage(im,'JPEG',0,0,595.28,841.89);
+        palco.remove();
+      }
+      pdf.save('Relatorio-Geral-4-Festival-do-Xis.pdf');
+      toast('Relatório Geral baixado 📑');
+    }catch(e){ console.error(e); toast('Não foi possível gerar o relatório'); }
+    btn.disabled=false; btn.textContent='📑 Relatório Geral (PDF)';
   }
   async function baixarRelatorioFraude(){
     try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
