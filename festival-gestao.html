@@ -707,6 +707,7 @@
         <button class="btn btn-g btn-sm" onclick="window.open('avaliacao-festival-2026.html','_blank')">Ver página da pesquisa</button>
         <button class="btn btn-g btn-sm" onclick="renderAval4()">↻ Atualizar respostas</button>
         <button class="btn btn-g btn-sm" onclick="baixarCsvAval()">⬇️ Exportar CSV</button>
+        <button class="btn btn-g btn-sm" id="btnRelAval" onclick="baixarRelatorioAval()">📑 Relatório das Avaliações (PDF)</button>
       </div>
       <div class="kpis" id="aval4Kpis"></div>
       <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabAval4"></table></div></div>
@@ -3039,13 +3040,13 @@
     (navigator.clipboard?navigator.clipboard.writeText(L):Promise.reject()).then(()=>toast('Link copiado ✓')).catch(()=>prompt('Copie o link:',L));
   }
   async function renderAval4(){
-    const {data} = await SB.from('festival_avaliacao_ops').select('*').order('criado_em',{ascending:false});
-    AVAL4 = data||[];
+    const {data} = await SB.from('festival_avaliacao_ops').select('*');
+    const parse = s => { const v=parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return isNaN(v)?0:v; };
+    AVAL4 = (data||[]).sort((a,b)=> parse(b.vendas_total)-parse(a.vendas_total) || new Date(b.criado_em)-new Date(a.criado_em));
     const n = AVAL4.length;
     const prom = AVAL4.filter(a=>a.nps>=9).length, det = AVAL4.filter(a=>a.nps<=6).length;
     const nps = n ? Math.round((prom-det)/n*100) : 0;
     const sim = AVAL4.filter(a=>a.participar_2027==='Sim').length;
-    const parse = s => { const v=parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return isNaN(v)?0:v; };
     const vendas = AVAL4.reduce((s,a)=>s+parse(a.vendas_total),0);
     g('aval4Kpis').innerHTML = `
       <div class="kpi"><b>${n}</b><span>respostas recebidas</span></div>
@@ -3067,6 +3068,107 @@
       .concat(AVAL4.map(a=>[a.operacao,a.tipo,a.nps,a.vendas_total,a.participar_2027,a.sugestoes,new Date(a.criado_em).toLocaleString('pt-BR')].map(esc2).join(';')));
     const blob = new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Avaliacao-Operacoes-4-Festival.csv'; a.click();
+  }
+  async function baixarRelatorioAval(){
+    const btn = g('btnRelAval'); btn.disabled = true; btn.textContent = 'Gerando…';
+    try{
+      if(!AVAL4.length) await renderAval4();
+      const R = AVAL4;
+      if(!R.length){ toast('Ainda não há respostas'); btn.disabled=false; btn.textContent='📑 Relatório das Avaliações (PDF)'; return; }
+      const parse = s => { const v=parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return isNaN(v)?0:v; };
+      const n=R.length;
+      const prom=R.filter(a=>a.nps>=9).length, neu=R.filter(a=>a.nps>=7&&a.nps<=8).length, det=R.filter(a=>a.nps<=6).length;
+      const nps=Math.round((prom-det)/n*100);
+      const sim=R.filter(a=>a.participar_2027==='Sim').length, talvez=R.filter(a=>a.participar_2027==='Talvez').length, nao=R.filter(a=>a.participar_2027==='Não').length;
+      const comVendas=R.filter(a=>parse(a.vendas_total)>0);
+      const vendas=comVendas.reduce((s,a)=>s+parse(a.vendas_total),0);
+      const media=comVendas.length?vendas/comVendas.length:0;
+      const npsTipo = t => { const s2=R.filter(a=>a.tipo===t); if(!s2.length) return null;
+        return Math.round((s2.filter(a=>a.nps>=9).length - s2.filter(a=>a.nps<=6).length)/s2.length*100); };
+      const npsXis=npsTipo('XIS'), npsCer=npsTipo('CERVEJA');
+      const fmtBR=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:0});
+      const zona = nps>=75?'zona de excelência':nps>=50?'zona de qualidade':nps>=0?'zona de aperfeiçoamento':'zona crítica';
+      const card=(x)=>`<div style="background:#f8edd3;border-radius:22px;padding:26px 30px;color:#5c150d;${x||''}">`;
+      const kpiCard=(num,rot,cor)=>`<div style="flex:1;background:#f8edd3;border-radius:20px;padding:24px 10px;text-align:center">
+        <div style="font-size:42px;font-weight:800;line-height:1;color:${cor||'#7a140c'}">${num}</div>
+        <div style="font-size:14px;font-weight:700;color:#5c150d;margin-top:8px">${rot}</div></div>`;
+      const barra=(rot,q,tot,cor)=>`<div style="display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center;margin:10px 0">
+        <b style="font-size:17px">${rot}</b>
+        <div style="height:24px;background:#eadfc6;border-radius:99px;overflow:hidden"><div style="width:${tot?Math.round(q/tot*100):0}%;height:100%;background:${cor};border-radius:99px"></div></div>
+        <b style="font-size:17px;color:#a32330;text-align:right">${q} (${tot?Math.round(q/tot*100):0}%)</b></div>`;
+      // capa
+      const s1=`<img src="ilustracao-festival.png" style="position:absolute;left:0;right:0;bottom:0;width:100%;display:block">
+        <div style="position:absolute;left:0;right:0;top:190px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <span style="background:#fff;border-radius:24px;padding:14px 20px;display:inline-flex"><img src="marca-festival-do-xis.jpg" style="height:210px;display:block"></span>
+          <div style="font-size:62px;font-weight:800;margin-top:30px;text-shadow:0 5px 20px rgba(0,0,0,.55)">RELATÓRIO DE AVALIAÇÃO</div>
+          <div style="font-size:34px;font-weight:800;color:#f5b73c;margin-top:6px">das Operações · 4º Festival Nacional do Xis</div>
+          <div style="font-size:22px;font-weight:700;color:#f8edd3;margin-top:14px">pesquisa oficial pós-evento · ${n} resposta(s) · gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+        </div>`;
+      // números
+      const s2=cabA4('A pesquisa em números','NPS, vendas e intenção de retorno')
+        +`<div style="position:absolute;top:210px;left:70px;right:70px;display:flex;gap:18px">
+            ${kpiCard(nps,'NPS do Festival',nps>=50?'#0c6b3d':nps>=0?'#ef9f27':'#a32330')}${kpiCard(n,'respostas recebidas')}${kpiCard(Math.round(sim/n*100)+'%','querem voltar em 2027','#0c6b3d')}</div>
+          <div style="position:absolute;top:400px;left:70px;right:70px">${card()}
+            <div style="font-size:23px;font-weight:800;color:#7a140c;margin-bottom:6px">Composição do NPS</div>
+            ${barra('Promotores (9–10)',prom,n,'#0c6b3d')}${barra('Neutros (7–8)',neu,n,'#ef9f27')}${barra('Detratores (0–6)',det,n,'#a32330')}</div></div>
+          <div style="position:absolute;top:800px;left:70px;right:70px">${card()}
+            <div style="font-size:23px;font-weight:800;color:#7a140c;margin-bottom:6px">Intenção para o 5º Festival (2027)</div>
+            ${barra('Sim',sim,n,'#0c6b3d')}${barra('Talvez',talvez,n,'#ef9f27')}${barra('Não',nao,n,'#a32330')}</div></div>
+          <div style="position:absolute;top:1200px;left:70px;right:70px">${card()}
+            <div style="font-size:23px;font-weight:800;color:#7a140c;margin-bottom:6px">Vendas informadas</div>
+            <div style="font-size:19px;line-height:1.7">${comVendas.length} de ${n} operações informaram vendas · soma de <b>R$ ${fmtBR(vendas)}</b> · média de <b>R$ ${fmtBR(media)}</b> por operação informante.${npsXis!==null&&npsCer!==null?`<br>NPS por segmento: XIS <b>${npsXis}</b> · CERVEJA <b>${npsCer}</b>.`:''}</div></div></div>`;
+      // análise técnica
+      const an=[];
+      an.push(`Com NPS de <b>${nps}</b>, o Festival está na <b>${zona}</b>: ${prom} promotor(es) contra ${det} detrator(es) em ${n} resposta(s).`);
+      an.push(sim/n>=0.8?`A intenção de retorno é o indicador mais forte: <b>${Math.round(sim/n*100)}%</b> já confirmam interesse em 2027 — base suficiente para abrir a captação da próxima edição com as operações veteranas.`:`A intenção de retorno (${Math.round(sim/n*100)}% "sim") pede conversa individual com quem respondeu "talvez" ou "não" antes da captação de 2027.`);
+      if(comVendas.length) an.push(`As vendas informadas somam <b>R$ ${fmtBR(vendas)}</b> (média de R$ ${fmtBR(media)}). Com ${comVendas.length} de ${n} informantes, trate o número como piso do faturamento real e registre-o no campo Vendas do Painel do 4º Festival para compor o Relatório Geral.`);
+      if(npsXis!==null&&npsCer!==null&&Math.abs(npsXis-npsCer)>=20) an.push(`Há diferença relevante entre segmentos (XIS ${npsXis} × CERVEJA ${npsCer}): investigue as causas junto ao segmento de menor nota — estrutura, localização no croqui, fluxo de público ou energia costumam explicar.`);
+      if(det>0) an.push(`Cada detrator merece contato direto da comissão: em pesquisas de evento, a conversa pós-nota baixa recupera a relação na maioria dos casos e revela problemas operacionais específicos.`);
+      an.push(`A taxa de resposta é o limite da leitura: ${n} de 28 operações participantes (${Math.round(n/28*100)}%). Reforce o link no grupo até alcançar ao menos 80% antes de dar a análise por encerrada.`);
+      const rec=[
+        'Transformar as sugestões recebidas em plano de ação com responsável e prazo, apresentado às operações — devolver a escuta aumenta a adesão da pesquisa em 2027.',
+        'Repetir esta mesma pesquisa no encerramento do 5º Festival, mantendo as perguntas para criar série histórica de NPS e vendas.',
+        'Metas sugeridas para 2027: NPS +10 pontos sobre o atual, 100% de resposta das operações e vendas informadas por ao menos 90% delas.',
+        'Usar o ranking de faturamento (painel da gestão) para dimensionar espaços e estoque de insumos na edição 2027.'];
+      const s3=cabA4('Análise técnica','leitura dos dados e recomendações da plataforma')
+        +`<div style="position:absolute;top:210px;left:70px;right:70px">${card('margin-bottom:22px')}
+            <div style="font-size:23px;font-weight:800;color:#7a140c;margin-bottom:10px">O que os números dizem</div>
+            ${an.map(t=>`<div style="font-size:18px;line-height:1.55;margin:10px 0">• ${t}</div>`).join('')}</div>
+          ${card()}
+            <div style="font-size:23px;font-weight:800;color:#7a140c;margin-bottom:10px">Recomendações para a comissão</div>
+            ${rec.map(t=>`<div style="font-size:18px;line-height:1.55;margin:10px 0">• ${t}</div>`).join('')}</div></div>`;
+      // sugestões (páginas de 6)
+      const sugs=R.filter(a=>(a.sugestoes||'').trim());
+      const pagsSug=[];
+      for(let i=0;i<sugs.length;i+=6){
+        const bloco=sugs.slice(i,i+6).map(a=>`${card('margin-bottom:16px')}
+          <div style="font-size:18px;font-weight:800;color:#a32330">${esc(a.operacao)} <span style="color:#8a7f95;font-weight:600;font-size:14px">· ${esc(a.tipo)} · NPS ${a.nps}</span></div>
+          <div style="font-size:17px;line-height:1.5;margin-top:4px">“${esc((a.sugestoes||'').slice(0,300))}${(a.sugestoes||'').length>300?'…':''}”</div></div>`).join('');
+        pagsSug.push(cabA4('Sugestões das operações','na voz de quem fez o Festival'+(sugs.length>6?` · parte ${Math.floor(i/6)+1}`:''))
+          +`<div style="position:absolute;top:200px;left:70px;right:70px">${bloco}</div>`);
+      }
+      const paginas=[s1,s2,s3,...pagsSug];
+      await garantirHtmlToImage(); await garantirJsPDF();
+      const ASSETS={};
+      for(const a of ['marca-festival-do-xis.jpg','ilustracao-festival.png','fundo-raios-festival.png']) ASSETS[a]=await assetDataUrl(a);
+      const JSPDF=window.jspdf.jsPDF;
+      const pdf=new JSPDF({unit:'pt',format:'a4',orientation:'portrait'});
+      for(let i=0;i<paginas.length;i++){
+        const palco=palcoA4('relAv'+i, paginas[i]);
+        let html=palco.innerHTML;
+        for(const a in ASSETS) html=html.split(a).join(ASSETS[a]);
+        palco.innerHTML=html;
+        const el=palco.querySelector('#relAv'+i);
+        await Promise.all([...palco.querySelectorAll('img')].map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve()));
+        const im=await htmlToImage.toJpeg(el,{quality:0.95,pixelRatio:2,backgroundColor:'#b23227',canvasWidth:2480,canvasHeight:3508,width:1240,height:1754,skipFonts:true});
+        if(i>0) pdf.addPage('a4','portrait');
+        pdf.addImage(im,'JPEG',0,0,595.28,841.89);
+        palco.remove();
+      }
+      pdf.save('Relatorio-Avaliacao-Operacoes-4-Festival.pdf');
+      toast('Relatório das avaliações baixado 📑');
+    }catch(e){ console.error(e); toast('Não foi possível gerar o relatório'); }
+    btn.disabled=false; btn.textContent='📑 Relatório das Avaliações (PDF)';
   }
   async function baixarRelatorioFraude(){
     try{ toast('Preparando o gerador de PDF…'); await garantirHtml2pdf(); }
