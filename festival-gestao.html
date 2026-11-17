@@ -710,7 +710,7 @@
         <button class="btn btn-g btn-sm" id="btnRelAval" onclick="baixarRelatorioAval()">📑 Relatório das Avaliações (PDF)</button>
       </div>
       <div class="kpis" id="aval4Kpis"></div>
-      <div class="card"><div style="font-weight:800;color:var(--roxo-esc);margin-bottom:10px">Vendas por operação (ordem decrescente)</div><div id="aval4Vendas"></div></div>
+      <div id="aval4Vendas"></div>
       <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabAval4"></table></div></div>
     </section>
 
@@ -3055,15 +3055,21 @@
       <div class="kpi"><b>${n?Math.round(sim/n*100)+'%':'—'}</b><span>querem voltar em 2027</span></div>
       <div class="kpi"><b>${vendas?('R$ '+vendas.toLocaleString('pt-BR',{maximumFractionDigits:0})):'—'}</b><span>vendas informadas (soma)</span></div>`;
         const comV = AVAL4.filter(a=>parse(a.vendas_total)>0);
-    const maxV = comV.length?parse(comV[0].vendas_total):1;
+    const maxV = comV.length?Math.max(...comV.map(a=>parse(a.vendas_total))):1;
+    const CATS=[['XIS','Vendas · Operações de Xis'],['CERVEJA','Vendas · Cervejarias'],['OUTRO','Vendas · Outras operações']];
     g('aval4Vendas').innerHTML = comV.length
-      ? '<div style="display:grid;grid-template-columns:220px minmax(0,1fr) 110px;gap:8px 12px;align-items:center">'
-        + comV.map((a,ix)=>`
-          <span style="font-size:13px;font-weight:700;color:var(--roxo-esc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ix+1}º ${esc(a.operacao)} <span style="color:var(--texto-suave);font-weight:600;font-size:11px">· ${esc(a.tipo)}</span></span>
-          <div style="height:16px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${Math.max(3,Math.round(parse(a.vendas_total)/maxV*100))}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#e91e8c)':'#662382'};border-radius:99px"></div></div>
-          <b style="text-align:right;color:var(--roxo-esc);font-size:13px">R$ ${parse(a.vendas_total).toLocaleString('pt-BR',{maximumFractionDigits:0})}</b>`).join('')
-        + '</div>'
-      : '<div style="font-size:13px;color:var(--texto-suave)">Nenhuma operação informou vendas ainda.</div>';
+      ? CATS.map(([cat,titulo])=>{
+          const grupo=comV.filter(a=>a.tipo===cat);
+          if(!grupo.length) return '';
+          return `<div class="card"><div style="font-weight:800;color:var(--roxo-esc);margin-bottom:10px">${titulo} <span style="color:var(--texto-suave);font-weight:600;font-size:12px">· ${grupo.length} operação(ões) · ordem decrescente</span></div>`
+            + '<div style="display:grid;grid-template-columns:220px minmax(0,1fr) 110px;gap:8px 12px;align-items:center">'
+            + grupo.map((a,ix)=>`
+              <span style="font-size:13px;font-weight:700;color:var(--roxo-esc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ix+1}º ${esc(a.operacao)}</span>
+              <div style="height:16px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${Math.max(3,Math.round(parse(a.vendas_total)/maxV*100))}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#e91e8c)':'#662382'};border-radius:99px"></div></div>
+              <b style="text-align:right;color:var(--roxo-esc);font-size:13px">R$ ${parse(a.vendas_total).toLocaleString('pt-BR',{maximumFractionDigits:0})}</b>`).join('')
+            + '</div></div>';
+        }).join('')
+      : '<div class="card" style="font-size:13px;color:var(--texto-suave)">Nenhuma operação informou vendas ainda.</div>';
     g('tabAval4').innerHTML = '<tr><th>Operação</th><th>Tipo</th><th>NPS</th><th>Vendas (R$)</th><th>2027?</th><th>Sugestões</th></tr>'
       + (n ? AVAL4.map(a=>`<tr>
           <td><b>${esc(a.operacao)}</b></td><td>${esc(a.tipo)}</td>
@@ -3160,18 +3166,33 @@
       }
       const ordV = comVendas.slice().sort((a,b)=>parse(b.vendas_total)-parse(a.vendas_total));
       const maxVpdf = ordV.length?parse(ordV[0].vendas_total):1;
-      const pagsVendas=[];
-      for(let i=0;i<ordV.length;i+=16){
-        const linhas=ordV.slice(i,i+16).map((a,ix)=>`
-          <div style="display:grid;grid-template-columns:330px 1fr 160px;gap:14px;align-items:center;margin:11px 0">
-            <b style="font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+ix+1}º ${esc(a.operacao)} <span style="font-weight:600;font-size:13px;color:#8a7f95">· ${esc(a.tipo)}</span></b>
-            <div style="height:24px;background:#eadfc6;border-radius:99px;overflow:hidden"><div style="width:${Math.max(3,Math.round(parse(a.vendas_total)/maxVpdf*100))}%;height:100%;background:${i+ix===0?'linear-gradient(90deg,#f5a800,#f5b73c)':'#ef9f27'};border-radius:99px"></div></div>
-            <b style="font-size:18px;color:#a32330;text-align:right">R$ ${fmtBR(parse(a.vendas_total))}</b>
+      const CATSP=[['XIS','Operações de Xis'],['CERVEJA','Cervejarias'],['OUTRO','Outras operações']];
+      const cardsCat=[];
+      CATSP.forEach(([cat,titulo])=>{
+        const grupo=ordV.filter(a=>a.tipo===cat);
+        if(!grupo.length) return;
+        const linhas=grupo.map((a,ix)=>`
+          <div style="display:grid;grid-template-columns:300px 1fr 160px;gap:14px;align-items:center;margin:9px 0">
+            <b style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ix+1}º ${esc(a.operacao)}</b>
+            <div style="height:22px;background:#eadfc6;border-radius:99px;overflow:hidden"><div style="width:${Math.max(3,Math.round(parse(a.vendas_total)/maxVpdf*100))}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#f5b73c)':'#ef9f27'};border-radius:99px"></div></div>
+            <b style="font-size:17px;color:#a32330;text-align:right">R$ ${fmtBR(parse(a.vendas_total))}</b>
           </div>`).join('');
-        pagsVendas.push(cabA4('Vendas por operação','faturamento informado no Festival · ordem decrescente'+(ordV.length>16?` · parte ${Math.floor(i/16)+1}`:''))
-          +`<div style="position:absolute;top:210px;left:70px;right:70px">${card()}${linhas}
-            ${i+16>=ordV.length?`<div style="font-size:17px;font-weight:800;margin-top:14px;color:#7a140c">Soma informada: R$ ${fmtBR(vendas)} · ${comVendas.length} de ${n} operações responderam este campo</div>`:''}</div></div>`);
-      }
+        cardsCat.push({rows:grupo.length, html:`${card('margin-bottom:20px')}
+          <div style="font-size:22px;font-weight:800;color:#7a140c;margin-bottom:6px">${titulo} <span style="font-size:15px;font-weight:700;color:#8a7f95">· ${grupo.length} operação(ões) · ordem decrescente</span></div>
+          ${linhas}</div>`});
+      });
+      const pagsVendas=[];
+      let lote=[], soma=0;
+      const fecha=(ultima)=>{ if(!lote.length) return;
+        pagsVendas.push(cabA4('Vendas por operação','um gráfico por categoria · barras na mesma escala'+(ultima?'':''))
+          +`<div style="position:absolute;top:200px;left:70px;right:70px">${lote.join('')}
+            ${ultima?`<div style="font-size:17px;font-weight:800;color:#f5b73c;text-shadow:0 2px 10px rgba(0,0,0,.45)">Soma informada: R$ ${fmtBR(vendas)} · ${comVendas.length} de ${n} operações responderam este campo</div>`:''}</div>`);
+        lote=[]; soma=0; };
+      cardsCat.forEach((c,ix)=>{
+        if(soma && soma+c.rows+2>17) fecha(false);
+        lote.push(c.html); soma+=c.rows+2;
+        if(ix===cardsCat.length-1) fecha(true);
+      });
       const paginas=[s1,s2,...pagsVendas,s3,...pagsSug];
       await garantirHtmlToImage(); await garantirJsPDF();
       const ASSETS={};
