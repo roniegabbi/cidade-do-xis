@@ -710,6 +710,7 @@
         <button class="btn btn-g btn-sm" id="btnRelAval" onclick="baixarRelatorioAval()">📑 Relatório das Avaliações (PDF)</button>
       </div>
       <div class="kpis" id="aval4Kpis"></div>
+      <div class="card"><div style="font-weight:800;color:var(--roxo-esc);margin-bottom:10px">Vendas por operação (ordem decrescente)</div><div id="aval4Vendas"></div></div>
       <div class="card"><div style="overflow-x:auto"><table class="fin" id="tabAval4"></table></div></div>
     </section>
 
@@ -3053,6 +3054,16 @@
       <div class="kpi"><b style="color:${nps>=50?'var(--verde)':nps>=0?'var(--amarelo)':'var(--vermelho)'}">${n?nps:'—'}</b><span>NPS do Festival</span></div>
       <div class="kpi"><b>${n?Math.round(sim/n*100)+'%':'—'}</b><span>querem voltar em 2027</span></div>
       <div class="kpi"><b>${vendas?('R$ '+vendas.toLocaleString('pt-BR',{maximumFractionDigits:0})):'—'}</b><span>vendas informadas (soma)</span></div>`;
+        const comV = AVAL4.filter(a=>parse(a.vendas_total)>0);
+    const maxV = comV.length?parse(comV[0].vendas_total):1;
+    g('aval4Vendas').innerHTML = comV.length
+      ? '<div style="display:grid;grid-template-columns:220px minmax(0,1fr) 110px;gap:8px 12px;align-items:center">'
+        + comV.map((a,ix)=>`
+          <span style="font-size:13px;font-weight:700;color:var(--roxo-esc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ix+1}º ${esc(a.operacao)} <span style="color:var(--texto-suave);font-weight:600;font-size:11px">· ${esc(a.tipo)}</span></span>
+          <div style="height:16px;background:var(--fundo);border-radius:99px;overflow:hidden"><div style="width:${Math.max(3,Math.round(parse(a.vendas_total)/maxV*100))}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#e91e8c)':'#662382'};border-radius:99px"></div></div>
+          <b style="text-align:right;color:var(--roxo-esc);font-size:13px">R$ ${parse(a.vendas_total).toLocaleString('pt-BR',{maximumFractionDigits:0})}</b>`).join('')
+        + '</div>'
+      : '<div style="font-size:13px;color:var(--texto-suave)">Nenhuma operação informou vendas ainda.</div>';
     g('tabAval4').innerHTML = '<tr><th>Operação</th><th>Tipo</th><th>NPS</th><th>Vendas (R$)</th><th>2027?</th><th>Sugestões</th></tr>'
       + (n ? AVAL4.map(a=>`<tr>
           <td><b>${esc(a.operacao)}</b></td><td>${esc(a.tipo)}</td>
@@ -3147,7 +3158,21 @@
         pagsSug.push(cabA4('Sugestões das operações','na voz de quem fez o Festival'+(sugs.length>6?` · parte ${Math.floor(i/6)+1}`:''))
           +`<div style="position:absolute;top:200px;left:70px;right:70px">${bloco}</div>`);
       }
-      const paginas=[s1,s2,s3,...pagsSug];
+      const ordV = comVendas.slice().sort((a,b)=>parse(b.vendas_total)-parse(a.vendas_total));
+      const maxVpdf = ordV.length?parse(ordV[0].vendas_total):1;
+      const pagsVendas=[];
+      for(let i=0;i<ordV.length;i+=16){
+        const linhas=ordV.slice(i,i+16).map((a,ix)=>`
+          <div style="display:grid;grid-template-columns:330px 1fr 160px;gap:14px;align-items:center;margin:11px 0">
+            <b style="font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+ix+1}º ${esc(a.operacao)} <span style="font-weight:600;font-size:13px;color:#8a7f95">· ${esc(a.tipo)}</span></b>
+            <div style="height:24px;background:#eadfc6;border-radius:99px;overflow:hidden"><div style="width:${Math.max(3,Math.round(parse(a.vendas_total)/maxVpdf*100))}%;height:100%;background:${i+ix===0?'linear-gradient(90deg,#f5a800,#f5b73c)':'#ef9f27'};border-radius:99px"></div></div>
+            <b style="font-size:18px;color:#a32330;text-align:right">R$ ${fmtBR(parse(a.vendas_total))}</b>
+          </div>`).join('');
+        pagsVendas.push(cabA4('Vendas por operação','faturamento informado no Festival · ordem decrescente'+(ordV.length>16?` · parte ${Math.floor(i/16)+1}`:''))
+          +`<div style="position:absolute;top:210px;left:70px;right:70px">${card()}${linhas}
+            ${i+16>=ordV.length?`<div style="font-size:17px;font-weight:800;margin-top:14px;color:#7a140c">Soma informada: R$ ${fmtBR(vendas)} · ${comVendas.length} de ${n} operações responderam este campo</div>`:''}</div></div>`);
+      }
+      const paginas=[s1,s2,...pagsVendas,s3,...pagsSug];
       await garantirHtmlToImage(); await garantirJsPDF();
       const ASSETS={};
       for(const a of ['marca-festival-do-xis.jpg','ilustracao-festival.png','fundo-raios-festival.png']) ASSETS[a]=await assetDataUrl(a);
