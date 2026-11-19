@@ -3042,7 +3042,14 @@
   }
   async function renderAval4(){
     const {data} = await SB.from('festival_avaliacao_ops').select('*');
-    const parse = s => { const v=parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return isNaN(v)?0:v; };
+    const parse = s => {
+      let t=String(s||'').toLowerCase().replace(/r\$|\s/g,'');
+      const mult=/mil/.test(t)?1000:1;
+      t=t.replace(/[^\d.,-]/g,'');
+      if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) t=t.replace(/,/g,'');
+      else { if(!/,/.test(t) && /\.\d{2}$/.test(t) && t.split('.').length>2){ const i=t.lastIndexOf('.'); t=t.slice(0,i)+','+t.slice(i+1); }
+        t=t.replace(/\./g,'').replace(',','.'); }
+      const v=parseFloat(t); return isNaN(v)?0:v*mult; };
     AVAL4 = (data||[]).sort((a,b)=> parse(b.vendas_total)-parse(a.vendas_total) || new Date(b.criado_em)-new Date(a.criado_em));
     const n = AVAL4.length;
     const prom = AVAL4.filter(a=>a.nps>=9).length, det = AVAL4.filter(a=>a.nps<=6).length;
@@ -3092,7 +3099,14 @@
       if(!AVAL4.length) await renderAval4();
       const R = AVAL4;
       if(!R.length){ toast('Ainda não há respostas'); btn.disabled=false; btn.textContent='📑 Relatório das Avaliações (PDF)'; return; }
-      const parse = s => { const v=parseFloat(String(s||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return isNaN(v)?0:v; };
+      const parse = s => {
+      let t=String(s||'').toLowerCase().replace(/r\$|\s/g,'');
+      const mult=/mil/.test(t)?1000:1;
+      t=t.replace(/[^\d.,-]/g,'');
+      if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) t=t.replace(/,/g,'');
+      else { if(!/,/.test(t) && /\.\d{2}$/.test(t) && t.split('.').length>2){ const i=t.lastIndexOf('.'); t=t.slice(0,i)+','+t.slice(i+1); }
+        t=t.replace(/\./g,'').replace(',','.'); }
+      const v=parseFloat(t); return isNaN(v)?0:v*mult; };
       const n=R.length;
       const prom=R.filter(a=>a.nps>=9).length, neu=R.filter(a=>a.nps>=7&&a.nps<=8).length, det=R.filter(a=>a.nps<=6).length;
       const nps=Math.round((prom-det)/n*100);
@@ -3193,7 +3207,35 @@
         lote.push(c.html); soma+=c.rows+2;
         if(ix===cardsCat.length-1) fecha(true);
       });
-      const paginas=[s1,s2,...pagsVendas,s3,...pagsSug];
+      // ===== TEMAS DAS SUGESTÕES (classificação automática por palavras-chave) =====
+      const TEMAS=[
+        ['Cobertura e sol (pavilhão lonado)','trailers e áreas ao sol; pedido de lona/cobertura para alimentação e cervejarias',['sol','lona','cobert','calor','ventila','relento','sombra','tenda']],
+        ['Montagem um dia antes','liberar a montagem das estruturas na véspera do evento',['dia antes','montagem','montar','antecedência para montar']],
+        ['Layout e distribuição dos espaços','trailers de frente para os estandes; igualdade de localização; cervejarias distribuídas',['frente','distribu','posicion','padroniz','pirâmide','concentrad','localiza','espaços','ponta']],
+        ['Copos do evento','tamanho, venda na entrada, divulgação e benefícios com as cervejarias',['copo']],
+        ['Horários do evento','abrir às 16h no fim de semana; pouco público pela manhã; horário dos concursos',['horário','16h','manhã','tardinha','abri de manhã','início da competição']],
+        ['Segurança e portaria','controle de ambulantes e de comida/bebida de fora (coolers)',['segurança','portaria','ambulante','cooler','isopor','rigorosa','portal']],
+        ['Limpeza e banheiros','limpeza dos banheiros e das mesas de uso comum',['limpeza','banheiro','mesas']],
+        ['Iluminação e energia','mais luz nos estandes; ponto de energia individual por operação',['ilumina','luz','energia']],
+        ['Divulgação antecipada','divulgar o Festival com mais antecedência',['divulga']],
+        ['Atrações durante o dia','bandas locais e shows acústicos à tarde, perto das operações',['atraç','banda','show','acústic','palco']],
+        ['Formato dos concursos','júri às cegas e jurados do meio gastronômico',['jurado','cegas','chef','influenciador']]
+      ];
+      const corpus = R.filter(a=>(a.sugestoes||'').trim()).map(a=>({op:a.operacao, t:(a.sugestoes||'').toLowerCase()}));
+      const temasCont = TEMAS.map(([nome,desc,keys])=>({nome,desc,n:corpus.filter(c=>keys.some(k=>c.t.includes(k))).length}))
+        .filter(t=>t.n>0).sort((a,b)=>b.n-a.n);
+      const maxT = temasCont.length?temasCont[0].n:1;
+      const sTemas = cabA4('Temas das sugestões','o que as operações mais pediram · ${corpus.length} respostas com sugestões'.replace('${corpus.length}',corpus.length))
+        +`<div style="position:absolute;top:200px;left:70px;right:70px">${card()}
+          ${temasCont.map((t,ix)=>`
+            <div style="margin:${ix===0?'4px':'20px'} 0 0">
+              <div style="font-size:21px;font-weight:800;color:${ix===0?'#a32330':'#7a140c'}">${ix+1}º · ${t.nome} <span style="color:#a32330">— ${t.n} ${t.n===1?'operação citou':'operações citaram'}</span></div>
+              <div style="height:26px;background:#eadfc6;border-radius:99px;overflow:hidden;margin-top:6px"><div style="width:${Math.max(6,Math.round(t.n/maxT*100))}%;height:100%;background:${ix===0?'linear-gradient(90deg,#f5a800,#f5b73c)':'#ef9f27'};border-radius:99px"></div></div>
+              <div style="font-size:14px;color:#8a7f95;font-weight:600;margin-top:3px">${t.desc}</div>
+            </div>`).join('')}
+          <div style="font-size:14px;color:#8a7f95;font-weight:600;margin-top:16px">Uma mesma resposta pode citar vários temas. As falas completas estão nas páginas seguintes.</div>
+        </div></div>`;
+      const paginas=[s1,s2,...pagsVendas,s3,sTemas,...pagsSug];
       await garantirHtmlToImage(); await garantirJsPDF();
       const ASSETS={};
       for(const a of ['marca-festival-do-xis.jpg','ilustracao-festival.png','fundo-raios-festival.png']) ASSETS[a]=await assetDataUrl(a);
